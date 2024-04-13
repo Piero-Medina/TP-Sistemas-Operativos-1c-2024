@@ -30,7 +30,7 @@ int main(int argc, char* argv[]) {
     config = init_cpu_config("cpu.config");
 
     conexion_memoria = crear_conexion(config->ip_memoria, config->puerto_memoria, "MEMORIA", logger);
-    //enviar_handshake(conexion_memoria, HANDSHAKE, "CPU", "MEMORIA", logger);
+    enviar_handshake(conexion_memoria, HANDSHAKE, "CPU", "MEMORIA", logger);
 
     server_cpu_dispatch_fd = iniciar_servidor("CPU DISPATCH", config->ip_cpu, config->puerto_escucha_dispatch, logger);
     log_info(logger, "CPU DISPATCH Escuchando Conexiones \n");

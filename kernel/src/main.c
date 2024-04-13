@@ -35,7 +35,7 @@ int main(int argc, char* argv[]) {
     enviar_handshake(conexion_cpu_interrupt, HANDSHAKE, "KERNEL", "CPU_INTERRUPT", logger);
 
     conexion_memoria = crear_conexion(config->ip_memoria, config->puerto_memoria, "MEMORIA", logger);
-    //enviar_handshake(conexion_cpu_dispatch, HANDSHAKE, "KERNEL", "MEMORIA", logger);
+    enviar_handshake(conexion_memoria, HANDSHAKE, "KERNEL", "MEMORIA", logger);
 
     server_fd = iniciar_servidor("KERNEL", config->ip_kernel, config->puerto_kernel, logger);
     log_info(logger, "KERNEL Escuchando Conexiones \n");

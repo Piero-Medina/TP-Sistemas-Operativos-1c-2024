@@ -160,8 +160,8 @@ void buffer_destroy(t_buffer* buffer){
  void estado_handshake(int conexion, char* modulo, t_log* logger){
     int valor = -1;
     recv(conexion, &valor, sizeof(int), MSG_WAITALL);
-    if(valor == 0) log_info (logger, "Handshake Aceptado por Modulo: %s",modulo);
-    else log_info (logger, "Handshake Denegado por Modulo: %s",modulo);
+    if(valor == 0) log_info (logger, "Handshake Aceptado por Modulo: %s \n",modulo);
+    else log_info (logger, "Handshake Denegado por Modulo: %s \n",modulo);
  }
 
  void responder_handshake(int fd_cliente){
