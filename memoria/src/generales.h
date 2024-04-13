@@ -11,7 +11,7 @@ extern t_memoria_config* config;
 
 extern int server_fd;
 
-
+// declarado en init.c
 extern bool procesar_conexion_en_ejecucion;
 
 #endif 
