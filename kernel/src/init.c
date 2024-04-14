@@ -18,6 +18,11 @@ void sigint_handler(int signum){
     exit(EXIT_SUCCESS);
 }
 
+void escuchar_kernel(void *arg){
+    while(server_listen(logger, "KERNEL", server_fd, (void*)procesar_conexion_io));
+}
+
+
 void liberar_kernel(void){
     log_destroy(logger);
     liberar_kernel_config(config);

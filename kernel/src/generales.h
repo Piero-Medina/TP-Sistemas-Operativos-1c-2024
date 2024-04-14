@@ -14,6 +14,8 @@ extern int conexion_cpu_interrupt;
 extern int conexion_memoria;
 extern int server_fd;
 
+extern pthread_t hilo_server_kernel;
+
 // declarado en init.c
 extern bool procesar_conexion_en_ejecucion;
 

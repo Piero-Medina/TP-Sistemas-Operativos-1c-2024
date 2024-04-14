@@ -6,6 +6,7 @@
 #include "kernel_config.h"
 #include <conexiones/conexiones.h>
 #include <signal.h>
+#include "procesar_conexion.h"
 
 
 void init_kernel(void);
@@ -15,5 +16,8 @@ void sigint_handler(int signum);
 
 // liberamos - server - conexiones principales - log - config
 void liberar_kernel(void);
+
+//
+void escuchar_kernel(void *arg);
 
 #endif 
