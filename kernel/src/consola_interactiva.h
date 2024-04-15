@@ -6,6 +6,13 @@
 #include <stdlib.h>
 #include <commons/string.h>
 #include <string.h>
+#include <semaphore.h>
+
+#include "generales.h"
+#include "planificacion.h"
+
+#include <comunicacion/comunicacion.h>
+#include <pcb/pcb.h>
 
 #define MAX 30
 

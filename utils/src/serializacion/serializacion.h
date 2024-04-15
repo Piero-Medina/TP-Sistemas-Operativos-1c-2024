@@ -29,12 +29,13 @@
     t_buffer* buffer;
  }t_paquete;
 
- 
+ // crea un paquete con un buffer inicializado con un tamanio especifico
+ t_paquete* paquete_create_with_buffer_size(uint32_t size_buffer, int codigo_operacion);
 
  // crea un paquete con un buffer determinado
  t_paquete* paquete_create_add_buffer(t_buffer* buffer, int codigo_operacion);
  
- // crecar un paquete con un buffer NULL
+ // crea un paquete con un buffer NULL
  t_paquete* paquete_create_with_buffer_null(int codigo_operacion);
 
  // Libera la memoria asociada a un paquete

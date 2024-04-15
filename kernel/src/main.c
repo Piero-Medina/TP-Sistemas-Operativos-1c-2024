@@ -50,6 +50,8 @@ int main(int argc, char* argv[]) {
     consola_interactiva();
     
     liberar_kernel();
+    liberar_semaforos();
+    liberar_colas();
 
     return 0;
 }

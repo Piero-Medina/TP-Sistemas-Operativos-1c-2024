@@ -131,14 +131,18 @@ void func_ejecutar_script(char* leido){
     string_array_destroy(split);
 }
 
-// TODO
 void func_iniciar_proceso(char* leido){
     printf("Ejecutando comando func_iniciar_proceso\n");
-
     char** split = string_split(leido, " ");
 
-    // split[1] -> PATH (intrucciones en el file System donde corre memoria)
-    // crear pcb, mandar a new
+    sem_wait(&mutex_pid);
+    t_PCB* pcb = crear_PCB(contador_pid, config->quantum, NEW); // creado pero aun no liberado
+    contador_pid ++;
+    sem_post(&mutex_pid);
+
+    avisar_nuevo_proceso_memoria(conexion_memoria, pcb->pid, split[1]);
+
+    mover_a_new(pcb);    
 
     string_array_destroy(split);
 }
@@ -146,7 +150,6 @@ void func_iniciar_proceso(char* leido){
 // TODO
 void func_finalizar_proceso(char* leido){
     printf("Ejecutando comando func_finalizar_proceso\n");
-
     char** split = string_split(leido, " ");
 
     // split[1] -> PID (proceso a finalizar, liberando recursos)

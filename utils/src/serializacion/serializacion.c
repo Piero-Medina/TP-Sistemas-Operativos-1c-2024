@@ -1,5 +1,14 @@
 #include <serializacion/serializacion.h>
 
+t_paquete* paquete_create_with_buffer_size(uint32_t size_buffer, int codigo_operacion){
+    t_paquete* paquete = malloc(sizeof(t_paquete));
+
+    paquete->codigo_operacion = codigo_operacion;
+    paquete->buffer = buffer_create(size_buffer);
+
+    return paquete;
+}
+
 t_paquete* paquete_create_add_buffer(t_buffer* buffer, int codigo_operacion){
     t_paquete* paquete = malloc(sizeof(t_paquete));
 
