@@ -6,7 +6,7 @@
 typedef enum {
     NEW,
     READY,
-    RUNNING,
+    EXECUTE,
     BLOCKED,
     EXIT
 }estado_pcb;

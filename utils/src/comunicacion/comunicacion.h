@@ -8,6 +8,6 @@
 #include <string.h>
 #include <sys/socket.h>
 
-void avisar_nuevo_proceso_memoria(int conexion_memoria, int PID, char* path_intrucciones);
+void avisar_nuevo_proceso_memoria(int conexion_memoria, int pid, char* path_intrucciones);
 
 #endif

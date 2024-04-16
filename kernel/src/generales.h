@@ -36,11 +36,22 @@ extern int contador_pid;
 
 // semaforos
 extern sem_t mutex_conexion_memoria;
+extern sem_t mutex_conexion_cpu_dispatch;
+
 extern sem_t sem_grado_multiprogramacion;
 extern sem_t mutex_pid;
+extern sem_t sem_procesos_esperando_en_new;
+extern sem_t sem_procesos_esperando_en_ready;
+
+extern sem_t sem_cpu_disponible;
+
 extern sem_t mutex_cola_new;
+extern sem_t mutex_cola_ready;
+extern sem_t mutex_cola_execute;
 
 // colas
 extern t_queue* cola_new;
+extern t_queue* cola_ready;
+extern t_queue* cola_execute;
 
 #endif 
