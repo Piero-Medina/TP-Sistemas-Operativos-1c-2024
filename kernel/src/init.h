@@ -9,6 +9,7 @@
 #include <semaphore.h>
 #include <stdint.h>
 #include <commons/collections/queue.h>
+#include <string.h>
 
 #include <conexiones/conexiones.h>
 #include <pcb/pcb.h>
@@ -34,5 +35,8 @@ void init_colas(void);
 void liberar_colas(void);
 
 void liberar_elemento_pcb(void* data);
+
+// setea el algoritmo elegido a un enum algoritmo
+void algorimo_elegido(void);
 
 #endif 

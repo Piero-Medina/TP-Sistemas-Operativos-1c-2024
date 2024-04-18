@@ -33,3 +33,35 @@ void procesar_conexion_io(void *args){
     // libera la conexion si el cliente no la libero al terminar la funcion
     if(!procesar_conexion_en_ejecucion) liberar_conexion(socket);
 }
+
+
+void procesar_conexion_cpu_dispatch(void *args){
+    char* nombre_modulo_server = "CPU_DISPATCH";
+
+    while (procesar_conexion_en_ejecucion) {
+        int cod_op = recibir_operacion(conexion_cpu_dispatch); // bloqueante
+        log_info(logger, "Se recibió el cod operacion %d de el server %s", cod_op, nombre_modulo_server);
+
+        switch (cod_op) {
+            case WAIT:
+                // TODO
+                break;
+            case SIGNAL:
+                // TODO
+                break;
+            case PETICION_IO:
+                // TODO
+                break;
+            case PROCESO_FINALIZADO:
+                // TODO
+                break;
+            case -1:
+                log_error(logger, "el server %s cerro la conexion", nombre_modulo_server);
+                return; // finalizando hilo
+            default:
+                log_error(logger, "El codigo de operacion %d es incorrecto - %s", cod_op, nombre_modulo_server);
+                return; // finalizando hilo
+        }
+    }
+
+}

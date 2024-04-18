@@ -9,6 +9,12 @@
 #include <commons/collections/queue.h>
 
 
+typedef enum{
+    FIFO,
+    RR,
+    VRR
+} algoritmo;
+
 /**
  * @DESC: variables declaradas en main.c
 */
@@ -25,6 +31,7 @@ extern int server_fd;
 
 // hilo
 extern pthread_t hilo_server_kernel;
+extern pthread_t hilo_cpu_dispatch;
 
 /**
  * @DESC: variables declaradas en init.c
@@ -33,6 +40,7 @@ extern pthread_t hilo_server_kernel;
 //
 extern bool procesar_conexion_en_ejecucion;
 extern int contador_pid;
+extern algoritmo algoritmo_elegido;
 
 // semaforos
 extern sem_t mutex_conexion_memoria;

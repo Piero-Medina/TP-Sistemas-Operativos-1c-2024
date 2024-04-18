@@ -13,6 +13,8 @@
 #include <pthread.h>
 #include "consola_interactiva.h"
 
+#include <utils/utils.h>
+
 t_log* logger;
 t_kernel_config* config;
 
@@ -22,19 +24,22 @@ int conexion_memoria;
 int server_fd;
 
 pthread_t hilo_server_kernel;
+pthread_t hilo_cpu_dispatch;
 
 
 int main(int argc, char* argv[]) {
-
-    init_kernel();
 
     logger = iniciar_logger_oculto("kernel.log", "KERNEL");
     log_info(logger, "Iniciando Modulo Kernel \n");
    
     config = init_kernel_config("kernel.config");
 
+    init_kernel();
+
     conexion_cpu_dispatch = crear_conexion(config->ip_cpu, config->puerto_cpu_dispatch, "CPU_DISPATCH" , logger);
     //enviar_handshake(conexion_cpu_dispatch, HANDSHAKE, "KERNEL", "CPU_DISPATCH", logger);
+    pthread_create(&hilo_cpu_dispatch, NULL, (void*) procesar_conexion_cpu_dispatch, NULL);
+    pthread_detach(hilo_cpu_dispatch);
 
     conexion_cpu_interrupt = crear_conexion(config->ip_cpu, config->puerto_cpu_interrupt, "CPU_INTERRUPT", logger);
     //enviar_handshake(conexion_cpu_interrupt, HANDSHAKE, "KERNEL", "CPU_INTERRUPT", logger);
@@ -52,6 +57,6 @@ int main(int argc, char* argv[]) {
     liberar_kernel();
     liberar_semaforos();
     liberar_colas();
-
+    
     return 0;
 }

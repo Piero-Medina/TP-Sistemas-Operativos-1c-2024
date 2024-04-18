@@ -2,6 +2,7 @@
 
 bool procesar_conexion_en_ejecucion;
 int contador_pid;
+algoritmo algoritmo_elegido;
 
 sem_t mutex_conexion_memoria;
 sem_t mutex_conexion_cpu_dispatch;
@@ -25,6 +26,8 @@ void init_kernel(void){
     signal(SIGINT, sigint_handler);
     procesar_conexion_en_ejecucion = true;
     contador_pid = 0;
+    
+    algorimo_elegido();
     init_semaforos();
     init_colas();
 }
@@ -52,6 +55,9 @@ void liberar_kernel(void){
     liberar_conexion(conexion_cpu_interrupt);
     liberar_conexion(conexion_memoria);
     liberar_conexion(server_fd);
+
+    liberar_semaforos();
+    liberar_colas();
 }
 
 void init_semaforos(void){
@@ -103,4 +109,21 @@ void liberar_elemento_pcb(void* elemento){
     liberar_PCB(tmp);
 }
 
+
+void algorimo_elegido(void){
+    if(strcmp(config->algoritmo_planificacion, "FIFO") == 0) {
+        algoritmo_elegido = FIFO;
+        log_info(logger, "Se eligio el algoritmo de planificacion FIFO \n");
+    }
+
+    if(strcmp(config->algoritmo_planificacion,"RR") == 0) {
+        algoritmo_elegido = RR;
+        log_info(logger, "Se eligio el algoritmo de planificacion RR (Round Robin) \n");
+    }
+
+    if(strcmp(config->algoritmo_planificacion,"VRR") == 0) {
+        algoritmo_elegido = VRR;
+        log_info(logger, "Se eligio el algoritmo de planificacion VRR (Virtual Round Robin) \n");
+    }
+}
 
