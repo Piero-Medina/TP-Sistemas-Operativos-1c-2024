@@ -7,13 +7,19 @@
 #include <semaphore.h>
 #include <stdint.h>
 #include <commons/collections/queue.h>
+#include <commons/collections/dictionary.h>
 
 
 typedef enum{
     FIFO,
     RR,
     VRR
-} algoritmo;
+}algoritmo;
+
+typedef struct {
+	int instancias;
+	t_queue* cola_recurso;
+}t_recurso;
 
 /**
  * @DESC: variables declaradas en main.c
@@ -61,5 +67,8 @@ extern sem_t mutex_cola_execute;
 extern t_queue* cola_new;
 extern t_queue* cola_ready;
 extern t_queue* cola_execute;
+
+//
+extern t_dictionary* recursos;
 
 #endif 

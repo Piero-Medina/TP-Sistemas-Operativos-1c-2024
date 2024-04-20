@@ -13,6 +13,7 @@
 
 #include <comunicacion/comunicacion.h>
 #include <pcb/pcb.h>
+#include <utils/utils.h>
 
 #define MAX 30
 

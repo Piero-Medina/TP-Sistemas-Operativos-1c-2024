@@ -10,6 +10,7 @@
 #include <stdint.h>
 #include <commons/collections/queue.h>
 #include <string.h>
+#include <commons/collections/dictionary.h>
 
 #include <conexiones/conexiones.h>
 #include <pcb/pcb.h>
@@ -38,5 +39,10 @@ void liberar_elemento_pcb(void* data);
 
 // setea el algoritmo elegido a un enum algoritmo
 void algorimo_elegido(void);
+
+//
+void init_recursos(void);
+void liberar_recursos(void);
+void liberar_elemento_recurso(void* elemento);
 
 #endif 

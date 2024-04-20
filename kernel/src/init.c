@@ -22,12 +22,15 @@ t_queue* cola_new;
 t_queue* cola_ready;
 t_queue* cola_execute;
 
+t_dictionary* recursos;
+
 void init_kernel(void){
     signal(SIGINT, sigint_handler);
     procesar_conexion_en_ejecucion = true;
     contador_pid = 0;
     
     algorimo_elegido();
+    init_recursos();
     init_semaforos();
     init_colas();
 }
@@ -38,8 +41,6 @@ void sigint_handler(int signum){
     // finalizamos la ejecucion de cualquier hilo (que usa procesar_conexion_kernel) para que libere recursos correctamente
     procesar_conexion_en_ejecucion = false; 
     liberar_kernel();
-    liberar_semaforos();
-    liberar_colas();
 
     exit(EXIT_SUCCESS);
 }
@@ -58,6 +59,7 @@ void liberar_kernel(void){
 
     liberar_semaforos();
     liberar_colas();
+    liberar_recursos();
 }
 
 void init_semaforos(void){
@@ -113,17 +115,49 @@ void liberar_elemento_pcb(void* elemento){
 void algorimo_elegido(void){
     if(strcmp(config->algoritmo_planificacion, "FIFO") == 0) {
         algoritmo_elegido = FIFO;
-        log_info(logger, "Se eligio el algoritmo de planificacion FIFO \n");
+        log_info(logger, "Se eligio el algoritmo de planificacion FIFO");
     }
 
     if(strcmp(config->algoritmo_planificacion,"RR") == 0) {
         algoritmo_elegido = RR;
-        log_info(logger, "Se eligio el algoritmo de planificacion RR (Round Robin) \n");
+        log_info(logger, "Se eligio el algoritmo de planificacion RR (Round Robin)");
     }
 
     if(strcmp(config->algoritmo_planificacion,"VRR") == 0) {
         algoritmo_elegido = VRR;
-        log_info(logger, "Se eligio el algoritmo de planificacion VRR (Virtual Round Robin) \n");
+        log_info(logger, "Se eligio el algoritmo de planificacion VRR (Virtual Round Robin)");
     }
 }
 
+void init_recursos(void){
+	recursos = dictionary_create();
+
+	if( !string_array_is_empty(config->recursos) ){
+		int cant_recursos = string_array_size(config->recursos);
+
+		for (int i = 0; i < cant_recursos; i++){
+			char* nombre_recurso = config->recursos[i];
+
+			t_recurso* tmp = malloc(sizeof(t_recurso));
+			tmp->cola_recurso = queue_create();
+			tmp->instancias = atoi(config->instancias_recursos[i]);
+
+			dictionary_put(recursos, nombre_recurso, (void*)tmp);
+		}
+		log_info(logger, "Se Tiene Recursos \n");
+
+	}
+	else{
+		log_info(logger, "No se Tiene Recursos \n");
+	}
+}
+
+void liberar_recursos(void){
+	dictionary_destroy_and_destroy_elements(recursos, liberar_elemento_recurso);
+}
+
+void liberar_elemento_recurso(void* elemento){
+    t_recurso* tmp = (t_recurso*) elemento;
+    queue_destroy_and_destroy_elements(tmp->cola_recurso, (void*)liberar_elemento_pcb);
+    free(tmp);
+}

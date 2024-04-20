@@ -37,15 +37,15 @@ int main(int argc, char* argv[]) {
     init_kernel();
 
     conexion_cpu_dispatch = crear_conexion(config->ip_cpu, config->puerto_cpu_dispatch, "CPU_DISPATCH" , logger);
-    //enviar_handshake(conexion_cpu_dispatch, HANDSHAKE, "KERNEL", "CPU_DISPATCH", logger);
+    enviar_handshake(conexion_cpu_dispatch, HANDSHAKE, "KERNEL", "CPU_DISPATCH", logger);
     pthread_create(&hilo_cpu_dispatch, NULL, (void*) procesar_conexion_cpu_dispatch, NULL);
     pthread_detach(hilo_cpu_dispatch);
 
     conexion_cpu_interrupt = crear_conexion(config->ip_cpu, config->puerto_cpu_interrupt, "CPU_INTERRUPT", logger);
-    //enviar_handshake(conexion_cpu_interrupt, HANDSHAKE, "KERNEL", "CPU_INTERRUPT", logger);
+    enviar_handshake(conexion_cpu_interrupt, HANDSHAKE, "KERNEL", "CPU_INTERRUPT", logger);
 
     conexion_memoria = crear_conexion(config->ip_memoria, config->puerto_memoria, "MEMORIA", logger);
-    //enviar_handshake(conexion_memoria, HANDSHAKE, "KERNEL", "MEMORIA", logger);
+    enviar_handshake(conexion_memoria, HANDSHAKE, "KERNEL", "MEMORIA", logger);
 
     server_fd = iniciar_servidor("KERNEL", config->ip_kernel, config->puerto_kernel, logger);
     log_info(logger, "KERNEL Escuchando Conexiones \n");

@@ -175,11 +175,22 @@ void func_iniciar_planificacion(void){
 // TODO
 void func_proceso_estado(void){
     printf("Ejecutando comando func_proceso_estado\n");
-    // listar procesos con sus estados actuales
+
+    char* lista_new = string_aplanar_PID(cola_new->elements);
+    char* lista_ready = string_aplanar_PID(cola_ready->elements);
+    char* lista_execute = string_aplanar_PID(cola_execute->elements);
+
+    printf("proceso en NEW : %s \n", lista_new);
+    printf("proceso en READY : %s \n", lista_ready);
+    printf("proceso en EXECUTE : %s \n", lista_execute);
+
+    free(lista_new);
+    free(lista_ready);
+    free(lista_execute);
 }
 
 FILE* leer_archivo(char *path){
-	FILE * archivo = fopen(path,"r");
+	FILE * archivo = fopen(path, "r");
 	if(archivo == NULL){
 		printf("no se pudo leer archivo");
 		exit(EXIT_FAILURE);

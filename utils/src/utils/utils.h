@@ -11,7 +11,7 @@
 
 #include <pcb/pcb.h>
 
-#define MAX_SIZE 150
+#define MAX_SIZE 80
 
 char* string_aplanar_PID(t_list* lista);
 
