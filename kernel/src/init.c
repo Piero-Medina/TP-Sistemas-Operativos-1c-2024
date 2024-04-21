@@ -6,6 +6,7 @@ algoritmo algoritmo_elegido;
 
 sem_t mutex_conexion_memoria;
 sem_t mutex_conexion_cpu_dispatch;
+sem_t mutex_conexion_cpu_interrupt;
 
 sem_t sem_grado_multiprogramacion;
 sem_t mutex_pid;
@@ -17,10 +18,16 @@ sem_t sem_cpu_disponible;
 sem_t mutex_cola_new;
 sem_t mutex_cola_ready;
 sem_t mutex_cola_execute;
+sem_t mutex_cola_blocked;
+sem_t mutex_cola_blocked_aux;
+sem_t mutex_cola_exit;
 
 t_queue* cola_new;
 t_queue* cola_ready;
 t_queue* cola_execute;
+t_queue* cola_blocked;
+t_queue* cola_blocked_aux;
+t_queue* cola_exit;
 
 t_dictionary* recursos;
 
@@ -65,6 +72,7 @@ void liberar_kernel(void){
 void init_semaforos(void){
     sem_init(&mutex_conexion_memoria, 0, 1);
     sem_init(&mutex_conexion_cpu_dispatch, 0, 1);
+    sem_init(&mutex_conexion_cpu_interrupt, 0, 1);
 
     sem_init(&sem_grado_multiprogramacion, 0, config->grado_max_multiprogramacion); // contador
     sem_init(&mutex_pid, 0, 1);
@@ -76,11 +84,16 @@ void init_semaforos(void){
     sem_init(&mutex_cola_new, 0, 1);
     sem_init(&mutex_cola_ready, 0, 1);
     sem_init(&mutex_cola_execute, 0, 1);
+    sem_init(&mutex_cola_blocked, 0, 1);
+    if(algoritmo_elegido == VRR) 
+    sem_init(&mutex_cola_blocked_aux, 0, 1);
+    sem_init(&mutex_cola_exit, 0, 1);
 }
 
 void liberar_semaforos(void){
     sem_destroy(&mutex_conexion_memoria);
     sem_destroy(&mutex_conexion_cpu_dispatch);
+    sem_destroy(&mutex_conexion_cpu_interrupt);
 
     sem_destroy(&sem_grado_multiprogramacion);
     sem_destroy(&mutex_pid);
@@ -92,18 +105,30 @@ void liberar_semaforos(void){
     sem_destroy(&mutex_cola_new);
     sem_destroy(&mutex_cola_ready);
     sem_destroy(&mutex_cola_execute);
+    sem_destroy(&mutex_cola_blocked);
+    if(algoritmo_elegido == VRR) 
+    sem_destroy(&mutex_cola_blocked_aux);
+    sem_destroy(&mutex_cola_exit);
 }
 
 void init_colas(void){
     cola_new = queue_create();
     cola_ready  = queue_create();
     cola_execute  = queue_create();
+    cola_blocked  = queue_create();
+    if(algoritmo_elegido == VRR) 
+    cola_blocked_aux  = queue_create();
+    cola_exit  = queue_create();
 }
 
 void liberar_colas(void){
     queue_destroy_and_destroy_elements(cola_new, (void*)liberar_elemento_pcb); 
     queue_destroy_and_destroy_elements(cola_ready, (void*)liberar_elemento_pcb);
-    queue_destroy_and_destroy_elements(cola_execute, (void*)liberar_elemento_pcb);      
+    queue_destroy_and_destroy_elements(cola_execute, (void*)liberar_elemento_pcb);
+    queue_destroy_and_destroy_elements(cola_blocked, (void*)liberar_elemento_pcb);
+    if (algoritmo_elegido == VRR) 
+    queue_destroy_and_destroy_elements(cola_blocked_aux, (void*)liberar_elemento_pcb);
+    queue_destroy_and_destroy_elements(cola_exit, (void*)liberar_elemento_pcb);      
 }
 
 void liberar_elemento_pcb(void* elemento){

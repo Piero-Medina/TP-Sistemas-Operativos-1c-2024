@@ -51,6 +51,7 @@ extern algoritmo algoritmo_elegido;
 // semaforos
 extern sem_t mutex_conexion_memoria;
 extern sem_t mutex_conexion_cpu_dispatch;
+extern sem_t mutex_conexion_cpu_interrupt;
 
 extern sem_t sem_grado_multiprogramacion;
 extern sem_t mutex_pid;
@@ -62,11 +63,17 @@ extern sem_t sem_cpu_disponible;
 extern sem_t mutex_cola_new;
 extern sem_t mutex_cola_ready;
 extern sem_t mutex_cola_execute;
+extern sem_t mutex_cola_blocked;
+extern sem_t mutex_cola_blocked_aux;
+extern sem_t mutex_cola_exit;
 
 // colas
 extern t_queue* cola_new;
 extern t_queue* cola_ready;
 extern t_queue* cola_execute;
+extern t_queue* cola_blocked;
+extern t_queue* cola_blocked_aux;
+extern t_queue* cola_exit;
 
 //
 extern t_dictionary* recursos;

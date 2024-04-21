@@ -45,7 +45,6 @@ void func_corto_plazo(void* arg){
 }
 
 void mover_ready_a_execute(void){
-
     sem_wait(&mutex_cola_ready);
         t_PCB* pcb = (t_PCB*) queue_pop(cola_ready);
     sem_post(&mutex_cola_ready);
@@ -59,7 +58,6 @@ void mover_ready_a_execute(void){
     sem_post(&mutex_cola_execute);
 
     sem_wait(&mutex_conexion_cpu_dispatch);
-        // enviar pcb a cpu para ejecutar
+        enviar_pcb(conexion_cpu_dispatch, pcb, EJECUTAR_PROCESO);
     sem_post(&mutex_conexion_cpu_dispatch);
 }
-

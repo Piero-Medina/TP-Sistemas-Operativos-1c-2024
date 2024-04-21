@@ -9,6 +9,8 @@
 #include <commons/collections/queue.h>
 
 #include <pcb/pcb.h>
+#include <comunicacion/comunicacion.h>
+#include <enum/enum.h>
 
 // movemos un proceso recien creado a la cola new
 void mover_a_new(t_PCB* pcb);

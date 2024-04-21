@@ -129,6 +129,7 @@ void buffer_destroy(t_buffer* buffer){
  void enviar_handshake(int conexion, int codigo_operacion, char* modulo_origen, char* modulo_destino, t_log* logger){
     t_paquete* paquete = paquete_create_with_buffer_null(codigo_operacion);
     
+    //
     uint32_t length = strlen(modulo_origen) + 1;
     uint32_t size_buffer = sizeof(uint32_t) + length;
 
@@ -137,6 +138,7 @@ void buffer_destroy(t_buffer* buffer){
     buffer_add_string(buffer, length, modulo_origen);
 
     paquete->buffer = buffer;
+    //
 
     size_t size_a_enviar = 0;
     void* a_enviar = serializar_paquete(paquete, &size_a_enviar);

@@ -34,3 +34,6 @@ char* string_aplanar_PID(t_list* lista) {
     return tmp;
 }
 
+void sleep_ms(int milisegundos) {
+    usleep(milisegundos * 1000); 
+}
