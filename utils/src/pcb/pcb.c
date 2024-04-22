@@ -42,3 +42,20 @@ void liberar_PCB(t_PCB* pcb){
         free(pcb);
     }
 }
+
+char* estado_to_string(t_PCB* pcb) {
+    switch (pcb->estado) {
+        case NEW:
+            return "NEW";
+        case READY:
+            return "READY";
+        case EXECUTE:
+            return "EXECUTE";
+        case BLOCKED:
+            return "BLOCKED";
+        case EXIT:
+            return "EXIT";
+        default:
+            return "UNKNOWN";
+    }
+}

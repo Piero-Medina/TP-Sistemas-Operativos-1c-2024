@@ -103,3 +103,23 @@ void mover_blocked_a_ready(void){
 
     sem_post(&sem_procesos_esperando_en_ready);
 } 
+
+void mover_a_exit(t_PCB* pcb){
+
+    char* estado_anterior = estado_to_string(pcb);
+    pcb->estado = EXIT;
+
+    sem_wait(&mutex_conexion_memoria);
+        enviar_pcb(conexion_memoria, pcb, PROCESO_FINALIZADO_MEMORIA);
+    sem_post(&mutex_conexion_memoria);
+
+    log_info(logger, "PID: <%d> - Estado Anterior: <%s> - Estado Actual: <EXIT>", pcb->pid, estado_anterior);
+
+    /* 
+        deberiamos liberar el pcb, pero por el momento lo guardamos, para luego poder mostrarlo 
+        por la consola, o tambien liberar el pcb y almenos quedarnos con el PID
+    */
+    sem_wait(&mutex_cola_exit);
+        queue_push(cola_ready, (void*) pcb);
+    sem_post(&mutex_cola_exit);
+}

@@ -35,4 +35,7 @@ t_PCB* actualizar_contexto(t_PCB* pcb_nueva, t_PCB* pcb_vieja);
 // movemos un proceso de blocked a ready
 void mover_blocked_a_ready(void);
 
+// movemos un proceso a exit
+void mover_a_exit(t_PCB* pcb);
+
 #endif 

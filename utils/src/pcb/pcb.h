@@ -41,4 +41,7 @@ void liberar_PCB(t_PCB* pcb);
 registros_cpu* crear_registros_cpu();
 void liberar_registros_cpu(registros_cpu* registros);
 
+// convierte al estado de un pcb en un String
+char* estado_to_string(t_PCB* pcb);
+
 #endif

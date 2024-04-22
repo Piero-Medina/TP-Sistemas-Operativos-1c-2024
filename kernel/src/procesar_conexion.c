@@ -37,6 +37,7 @@ void procesar_conexion_io(void *args){
 
 void procesar_conexion_cpu_dispatch(void *args){
     char* nombre_modulo_server = "CPU_DISPATCH";
+    //t_PCB* pcb = NULL;
 
     while (procesar_conexion_en_ejecucion) {
         int cod_op = recibir_operacion(conexion_cpu_dispatch); // bloqueante
@@ -53,10 +54,10 @@ void procesar_conexion_cpu_dispatch(void *args){
                 break;
             case PETICION_IO:
                 // TODO
-                t_PCB* pcb = recibir_pcb(conexion_cpu_dispatch);
+                t_PCB* pcb_io = recibir_pcb(conexion_cpu_dispatch);
                 sem_post(&mutex_conexion_cpu_interrupt);
                 // aca dentro se actualiza el contexto de ejecucion
-                mover_execute_a_blocked(pcb);
+                mover_execute_a_blocked(pcb_io);
                 // avisamos que la cpu ya esta disponible para ejecutar otro proceso
                 sem_post(&sem_cpu_disponible); 
                 // dormimos 3 segundos simulando una operacion de IO
@@ -65,9 +66,10 @@ void procesar_conexion_cpu_dispatch(void *args){
                 mover_blocked_a_ready();
                 break;
             case PROCESO_FINALIZADO:
-                // TODO
-                // sem_post(grado de multiprogramacion)
+                t_PCB* pcb_fin = recibir_pcb(conexion_cpu_dispatch);
                 sem_post(&mutex_conexion_cpu_interrupt);
+                mover_a_exit(pcb_fin);
+                sem_post(&sem_grado_multiprogramacion);
                 break;
             case -1:
                 log_error(logger, "el server %s cerro la conexion", nombre_modulo_server);
