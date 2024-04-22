@@ -5,6 +5,13 @@
 #include <enum/enum.h>
 #include <serializacion/serializacion.h>
 #include "generales.h"
+#include <semaphore.h>
+
+#include <comunicacion/comunicacion.h>
+#include <pcb/pcb.h>
+#include <utils/utils.h>
+#include "planificacion.h"
+
 
 // procesamos las conexiones que nos lleguen de una interfaz io
 void procesar_conexion_io(void *args);

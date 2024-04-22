@@ -33,7 +33,7 @@ void enviar_pcb(int conexion, t_PCB* pcb, int codigo_operacion){
 t_PCB* recibir_pcb(int conexion){
     t_buffer* buffer = malloc(sizeof(t_buffer));
 
-    recv(socket, &buffer->size, sizeof(uint32_t), MSG_WAITALL);
+    recv(conexion, &buffer->size, sizeof(uint32_t), MSG_WAITALL);
     buffer->stream = malloc(buffer->size);
     recv(conexion, buffer->stream, buffer->size, MSG_WAITALL);
 

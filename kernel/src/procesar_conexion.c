@@ -53,7 +53,16 @@ void procesar_conexion_cpu_dispatch(void *args){
                 break;
             case PETICION_IO:
                 // TODO
+                t_PCB* pcb = recibir_pcb(conexion_cpu_dispatch);
                 sem_post(&mutex_conexion_cpu_interrupt);
+                // aca dentro se actualiza el contexto de ejecucion
+                mover_execute_a_blocked(pcb);
+                // avisamos que la cpu ya esta disponible para ejecutar otro proceso
+                sem_post(&sem_cpu_disponible); 
+                // dormimos 3 segundos simulando una operacion de IO
+                hilo_dormir_milisegundos(3000);
+                
+                mover_blocked_a_ready();
                 break;
             case PROCESO_FINALIZADO:
                 // TODO

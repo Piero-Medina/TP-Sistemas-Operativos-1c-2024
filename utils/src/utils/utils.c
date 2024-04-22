@@ -34,6 +34,21 @@ char* string_aplanar_PID(t_list* lista) {
     return tmp;
 }
 
+
+void hilo_dormir_milisegundos(int milisegundos){
+    pthread_t hilo_durmicion;
+    int* milisegundos_ptr = malloc(sizeof(int));
+    *milisegundos_ptr = milisegundos;
+    pthread_create(&hilo_durmicion, NULL, (void*)mimir_milisegundos, (void*) milisegundos_ptr);
+    pthread_detach(hilo_durmicion);
+}
+
+void mimir_milisegundos(void* args){
+    int* milisegundos = (int*) args;
+    sleep_ms(*milisegundos);
+    free(milisegundos);
+}
+
 void sleep_ms(int milisegundos) {
     usleep(milisegundos * 1000); 
 }
