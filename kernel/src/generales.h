@@ -44,6 +44,7 @@ extern pthread_t hilo_cpu_dispatch;
 */
 
 //
+extern int grado_multiprogramacion_global;
 extern bool procesar_conexion_en_ejecucion;
 extern int contador_pid;
 extern algoritmo algoritmo_elegido;

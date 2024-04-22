@@ -28,6 +28,7 @@ void menu(void){
     printf("Finalizar proceso: FINALIZAR_PROCESO [PID]\n");
     printf("Detener planificación: DETENER_PLANIFICACION\n");
     printf("Iniciar planificación: INICIAR_PLANIFICACION\n");
+    printf("Modificar el grado de multiprogramación: MULTIPROGRAMACION [VALOR]\n");
     printf("Listar procesos por estado: PROCESO_ESTADO\n\n");
 
     printf("Ingrese el comando de la opción deseada: \n");
@@ -65,6 +66,10 @@ t_opcion_consola opcion_seleccionada(char* leido){
 		tmp.opcion = INICIAR_PLANIFICACION;
         tmp.cant_parametros = 0;
 	}
+    else if(strcmp(split[0], "MULTIPROGRAMACION") == 0){
+		tmp.opcion = MODIFICAR_MULTIPROGRAMACION;
+        tmp.cant_parametros = 1;
+	}
     else if(strcmp(split[0], "PROCESO_ESTADO") == 0){
 		tmp.opcion = PROCESO_ESTADO;
         tmp.cant_parametros = 0;
@@ -95,6 +100,10 @@ void ejecutar_opcion(t_opcion_consola opcion, char* leido){
         case INICIAR_PLANIFICACION:
             printf("Se seleccionó la opción INICIAR_PLANIFICACION\n");
             func_iniciar_planificacion();
+            break;
+        case MODIFICAR_MULTIPROGRAMACION:
+            printf("Se seleccionó la opción MULTIPROGRAMACION\n");
+            func_modificar_multiprogramacion(leido);
             break;
         case PROCESO_ESTADO:
             printf("Se seleccionó la opción PROCESO_ESTADO\n");
@@ -170,6 +179,35 @@ void func_detener_planificacion(void){
 void func_iniciar_planificacion(void){
     printf("Ejecutando comando func_iniciar_planificacion\n");
     // iniciar planificacion (t_sem)
+}
+
+void func_modificar_multiprogramacion(char* leido){
+    printf("Ejecutando comando func_modificar_multiprogramacion\n");
+    char** split = string_split(leido, " ");
+    int valor = atoi(split[1]);
+
+    printf("grado de multiprogramacion actual: %d \n", grado_multiprogramacion_global);
+
+    int diferencia = valor - grado_multiprogramacion_global;
+
+    if (diferencia > 0) {
+        // Aumentar el grado de multiprogramación
+        for (int i = 0; i < diferencia; i++) {
+            sem_post(&sem_grado_multiprogramacion);
+        }
+    } else if (diferencia < 0) {
+        // Disminuir el grado de multiprogramación
+        diferencia *= -1; // Convertir a valor positivo
+        for (int i = 0; i < diferencia; i++) {
+            sem_wait(&sem_grado_multiprogramacion);
+        }
+    }
+
+    // Actualizar el valor actual del grado de multiprogramación
+    grado_multiprogramacion_global = valor;
+    printf("grado de multiprogramacion actualizado: %d \n", grado_multiprogramacion_global);
+
+    string_array_destroy(split);
 }
 
 // TODO

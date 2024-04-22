@@ -23,6 +23,7 @@ typedef enum{
     FINALIZAR_PROCESO,
     DETENER_PLANIFICACION,
     INICIAR_PLANIFICACION,
+    MODIFICAR_MULTIPROGRAMACION,
     PROCESO_ESTADO
 } opcion_consola;
 
@@ -47,6 +48,7 @@ void func_iniciar_proceso(char* leido);
 void func_finalizar_proceso(char* leido);
 void func_detener_planificacion(void);
 void func_iniciar_planificacion(void);
+void func_modificar_multiprogramacion(char* leido);
 void func_proceso_estado(void);
 
 #endif 

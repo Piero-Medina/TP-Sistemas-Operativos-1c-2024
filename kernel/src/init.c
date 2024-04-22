@@ -3,6 +3,7 @@
 bool procesar_conexion_en_ejecucion;
 int contador_pid;
 algoritmo algoritmo_elegido;
+int grado_multiprogramacion_global;
 
 sem_t mutex_conexion_memoria;
 sem_t mutex_conexion_cpu_dispatch;
@@ -35,6 +36,7 @@ void init_kernel(void){
     signal(SIGINT, sigint_handler);
     procesar_conexion_en_ejecucion = true;
     contador_pid = 0;
+    grado_multiprogramacion_global = config->grado_max_multiprogramacion;
     
     algorimo_elegido();
     init_recursos();
