@@ -7,10 +7,12 @@
 #include <commons/log.h>
 #include <semaphore.h>
 #include <commons/collections/queue.h>
+#include <stdbool.h>
 
 #include <pcb/pcb.h>
 #include <comunicacion/comunicacion.h>
 #include <enum/enum.h>
+#include <utils/utils.h>
 
 // movemos un proceso recien creado a la cola new
 void mover_a_new(t_PCB* pcb);
@@ -26,7 +28,7 @@ void mover_new_a_ready(void);
 // movemos un proceso de ready a execute
 void mover_ready_a_execute(void);
 
-// movemos un proceso de execute a blocked
+// movemos un proceso de execute a blocked (dentro se actualiza el contexto)
 void mover_execute_a_blocked(t_PCB* pcb);
 
 // actualiza el contexto de ejecucion (guiño guiño)
@@ -37,5 +39,8 @@ void mover_blocked_a_ready(void);
 
 // movemos un proceso a exit
 void mover_a_exit(t_PCB* pcb);
+
+// movemos un proceso de execute a ready (dentro se actualiza el contexto)
+void mover_execute_a_ready(t_PCB* pcb_nueva);
 
 #endif 

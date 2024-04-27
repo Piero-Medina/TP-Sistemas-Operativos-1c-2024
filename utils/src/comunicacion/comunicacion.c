@@ -1,23 +1,56 @@
 #include <comunicacion/comunicacion.h>
-
+//
 void avisar_nuevo_proceso_memoria(int conexion_memoria, int pid, char* path_intrucciones){
-    uint32_t length = strlen(path_intrucciones) + 1;
+    envio_generico_entero_y_string(conexion_memoria, NUEVO_PROCESO_MEMORIA, pid, path_intrucciones);
+}
+
+void avisar_desalojo_a_cpu(int conexion_cpu, int op_code, char* motivo){
+    envio_generico_string(conexion_cpu, op_code, motivo);
+}
+
+//
+void envio_generico_entero_y_string(int conexion, int op_code, int entero, char* string){
+    uint32_t length = strlen(string) + 1;
     uint32_t size_buffer = sizeof(int) + sizeof(uint32_t) + length; 
     
-    t_paquete* paquete = paquete_create_with_buffer_size(size_buffer, NUEVO_PROCESO_MEMORIA);
+    t_paquete* paquete = paquete_create_with_buffer_size(size_buffer, op_code);
 
-    buffer_add_int(paquete->buffer, pid);
-    buffer_add_string(paquete->buffer, length, path_intrucciones);
+    buffer_add_int(paquete->buffer, entero);
+    buffer_add_string(paquete->buffer, length, string);
 
     size_t size_a_enviar = 0;
     void* a_enviar = serializar_paquete(paquete, &size_a_enviar);
 
-    send(conexion_memoria, a_enviar, size_a_enviar, 0);
+    send(conexion, a_enviar, size_a_enviar, 0);
 
     paquete_detroy(paquete);
     free(a_enviar);
 }
 
+// 
+void envio_generico_string(int conexion, int op_code, char* string){
+    uint32_t length = strlen(string) + 1;
+    uint32_t size_buffer = sizeof(uint32_t) + length; 
+    
+    t_paquete* paquete = paquete_create_with_buffer_size(size_buffer, op_code);
+
+    buffer_add_string(paquete->buffer, length, string);
+
+    size_t size_a_enviar = 0;
+    void* a_enviar = serializar_paquete(paquete, &size_a_enviar);
+
+    send(conexion, a_enviar, size_a_enviar, 0);
+
+    paquete_detroy(paquete);
+    free(a_enviar);
+}
+
+//
+void envio_generico_op_code(int conexion, int op_code){
+    send(conexion, &op_code, sizeof(int), 0);
+}
+
+//
 void enviar_pcb(int conexion, t_PCB* pcb, int codigo_operacion){
     t_paquete* paquete = paquete_create_with_buffer_null(codigo_operacion);
     paquete->buffer = serializar_pcb(pcb);

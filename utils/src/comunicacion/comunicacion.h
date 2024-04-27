@@ -12,6 +12,17 @@
 
 void avisar_nuevo_proceso_memoria(int conexion_memoria, int pid, char* path_intrucciones);
 
+void avisar_desalojo_a_cpu(int conexion_cpu, int op_code, char* motivo);
+
+// envio generico de un op_code
+void envio_generico_op_code(int conexion, int op_code);
+
+// envio generico de un op_code, entero y un string
+void envio_generico_entero_y_string(int conexion, int op_code, int entero, char* string);
+
+// envio generico de un op_code y string
+void envio_generico_string(int conexion, int op_code, char* string);
+
 // funciones para el enviar y recibir un pcb por red
 void enviar_pcb(int conexion, t_PCB* pcb, int codigo_operacion);
 t_PCB* recibir_pcb(int conexion);

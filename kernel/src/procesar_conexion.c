@@ -44,18 +44,34 @@ void procesar_conexion_cpu_dispatch(void *args){
         log_info(logger, "Se recibió el cod operacion %d de el server %s", cod_op, nombre_modulo_server);
         sem_wait(&mutex_conexion_cpu_dispatch);
         switch (cod_op) {
+            case DESALOJO:
+                // TODO
+                sem_wait(&mutex_proceso_en_ejecucion);
+                    proceso_en_ejecucion = false;
+                sem_post(&mutex_proceso_en_ejecucion);
+
+                t_PCB* pcb_desalojada = recibir_pcb(conexion_cpu_dispatch);
+                sem_post(&mutex_conexion_cpu_dispatch);
+                
+                // IIIIII -> luego revisar si puede haber otros motivos de desalojo
+                log_info(logger, "PID: <%d> - Desalojado por fin de Quantum", pcb_desalojada->pid);
+
+                sem_post(&sem_cpu_disponible); 
+                
+                mover_execute_a_ready(pcb_desalojada);
+                break;
             case WAIT:
                 // TODO
-                sem_post(&mutex_conexion_cpu_interrupt);
+                sem_post(&mutex_conexion_cpu_dispatch);
                 break;
             case SIGNAL:
                 // TODO
-                sem_post(&mutex_conexion_cpu_interrupt);
+                sem_post(&mutex_conexion_cpu_dispatch);
                 break;
             case PETICION_IO:
                 // TODO
                 t_PCB* pcb_io = recibir_pcb(conexion_cpu_dispatch);
-                sem_post(&mutex_conexion_cpu_interrupt);
+                sem_post(&mutex_conexion_cpu_dispatch);
                 // aca dentro se actualiza el contexto de ejecucion
                 mover_execute_a_blocked(pcb_io);
                 // avisamos que la cpu ya esta disponible para ejecutar otro proceso
@@ -66,18 +82,26 @@ void procesar_conexion_cpu_dispatch(void *args){
                 mover_blocked_a_ready();
                 break;
             case PROCESO_FINALIZADO:
+                sem_wait(&mutex_proceso_en_ejecucion);
+                    proceso_en_ejecucion = false;
+                sem_post(&mutex_proceso_en_ejecucion);
+                
                 t_PCB* pcb_fin = recibir_pcb(conexion_cpu_dispatch);
-                sem_post(&mutex_conexion_cpu_interrupt);
+                sem_post(&mutex_conexion_cpu_dispatch);
+                
+                sem_post(&sem_cpu_disponible); 
+
                 mover_a_exit(pcb_fin);
+
                 sem_post(&sem_grado_multiprogramacion);
                 break;
             case -1:
                 log_error(logger, "el server %s cerro la conexion", nombre_modulo_server);
-                sem_post(&mutex_conexion_cpu_interrupt);
+                sem_post(&mutex_conexion_cpu_dispatch);
                 return; // finalizando hilo
             default:
                 log_error(logger, "El codigo de operacion %d es incorrecto - %s", cod_op, nombre_modulo_server);
-                sem_post(&mutex_conexion_cpu_interrupt);
+                sem_post(&mutex_conexion_cpu_dispatch);
                 return; // finalizando hilo
         }
     }

@@ -149,7 +149,7 @@ void func_iniciar_proceso(char* leido){
     contador_pid ++;
     sem_post(&mutex_pid);
 
-    log_info(logger, "Avisando a Memoria entrada de Nuevo Preceso PID: <%d> ", pcb->pid);
+    log_info(logger, "Avisando a Memoria sobre la entrada de Nuevo Preceso PID: <%d> ", pcb->pid);
     sem_wait(&mutex_conexion_memoria);
     avisar_nuevo_proceso_memoria(conexion_memoria, pcb->pid, split[1]);
     sem_post(&mutex_conexion_memoria);

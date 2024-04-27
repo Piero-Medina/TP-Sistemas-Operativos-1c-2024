@@ -49,6 +49,8 @@ extern bool procesar_conexion_en_ejecucion;
 extern int contador_pid;
 extern algoritmo algoritmo_elegido;
 
+extern bool proceso_en_ejecucion; 
+
 // semaforos
 extern sem_t mutex_conexion_memoria;
 extern sem_t mutex_conexion_cpu_dispatch;
@@ -68,6 +70,8 @@ extern sem_t mutex_cola_blocked;
 extern sem_t mutex_cola_blocked_aux;
 extern sem_t mutex_cola_exit;
 
+extern sem_t mutex_proceso_en_ejecucion;
+
 // colas
 extern t_queue* cola_new;
 extern t_queue* cola_ready;
@@ -76,7 +80,11 @@ extern t_queue* cola_blocked;
 extern t_queue* cola_blocked_aux;
 extern t_queue* cola_exit;
 
-//
+// diccionario
 extern t_dictionary* recursos;
+
+// hilo
+extern pthread_t hilo_planificador_LP;
+extern pthread_t hilo_planificador_CP;
 
 #endif 

@@ -40,7 +40,7 @@ void hilo_dormir_milisegundos(int milisegundos){
     int* milisegundos_ptr = malloc(sizeof(int));
     *milisegundos_ptr = milisegundos;
     pthread_create(&hilo_durmicion, NULL, (void*)mimir_milisegundos, (void*) milisegundos_ptr);
-    pthread_detach(hilo_durmicion);
+    pthread_join(hilo_durmicion, NULL);
 }
 
 void mimir_milisegundos(void* args){

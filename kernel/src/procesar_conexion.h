@@ -6,6 +6,7 @@
 #include <serializacion/serializacion.h>
 #include "generales.h"
 #include <semaphore.h>
+#include <stdbool.h>
 
 #include <comunicacion/comunicacion.h>
 #include <pcb/pcb.h>

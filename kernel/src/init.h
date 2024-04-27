@@ -11,6 +11,7 @@
 #include <commons/collections/queue.h>
 #include <string.h>
 #include <commons/collections/dictionary.h>
+#include "planificacion.h"
 
 #include <conexiones/conexiones.h>
 #include <pcb/pcb.h>
@@ -44,5 +45,8 @@ void algorimo_elegido(void);
 void init_recursos(void);
 void liberar_recursos(void);
 void liberar_elemento_recurso(void* elemento);
+
+//
+void init_planificadores(void);
 
 #endif 

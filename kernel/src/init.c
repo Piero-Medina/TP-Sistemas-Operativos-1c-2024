@@ -5,6 +5,8 @@ int contador_pid;
 algoritmo algoritmo_elegido;
 int grado_multiprogramacion_global;
 
+bool proceso_en_ejecucion;
+
 sem_t mutex_conexion_memoria;
 sem_t mutex_conexion_cpu_dispatch;
 sem_t mutex_conexion_cpu_interrupt;
@@ -23,6 +25,8 @@ sem_t mutex_cola_blocked;
 sem_t mutex_cola_blocked_aux;
 sem_t mutex_cola_exit;
 
+sem_t mutex_proceso_en_ejecucion;
+
 t_queue* cola_new;
 t_queue* cola_ready;
 t_queue* cola_execute;
@@ -32,16 +36,21 @@ t_queue* cola_exit;
 
 t_dictionary* recursos;
 
+pthread_t hilo_planificador_LP;
+pthread_t hilo_planificador_CP;
+
 void init_kernel(void){
     signal(SIGINT, sigint_handler);
     procesar_conexion_en_ejecucion = true;
     contador_pid = 0;
     grado_multiprogramacion_global = config->grado_max_multiprogramacion;
+    proceso_en_ejecucion = false;
     
     algorimo_elegido();
     init_recursos();
     init_semaforos();
     init_colas();
+    init_planificadores();
 }
 
 void sigint_handler(int signum){
@@ -90,6 +99,8 @@ void init_semaforos(void){
     if(algoritmo_elegido == VRR) 
     sem_init(&mutex_cola_blocked_aux, 0, 1);
     sem_init(&mutex_cola_exit, 0, 1);
+
+    sem_init(&mutex_proceso_en_ejecucion, 0, 1);
 }
 
 void liberar_semaforos(void){
@@ -111,6 +122,8 @@ void liberar_semaforos(void){
     if(algoritmo_elegido == VRR) 
     sem_destroy(&mutex_cola_blocked_aux);
     sem_destroy(&mutex_cola_exit);
+
+    sem_destroy(&mutex_proceso_en_ejecucion);
 }
 
 void init_colas(void){
@@ -187,4 +200,12 @@ void liberar_elemento_recurso(void* elemento){
     t_recurso* tmp = (t_recurso*) elemento;
     queue_destroy_and_destroy_elements(tmp->cola_recurso, (void*)liberar_elemento_pcb);
     free(tmp);
+}
+
+void init_planificadores(void){
+    pthread_create(&hilo_planificador_LP, NULL, (void*) func_largo_plazo, NULL);
+    pthread_detach(hilo_planificador_LP);
+
+    pthread_create(&hilo_planificador_CP, NULL, (void*) func_corto_plazo, NULL);
+    pthread_detach(hilo_planificador_CP);
 }

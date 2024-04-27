@@ -43,6 +43,23 @@ void func_corto_plazo(void* arg){
             sem_wait(&sem_cpu_disponible);
             mover_ready_a_execute();
         }
+
+        if(algoritmo_elegido == RR){
+            sem_wait(&sem_cpu_disponible);
+            mover_ready_a_execute();
+
+            sleep_ms(config->quantum);
+
+            sem_wait(&mutex_proceso_en_ejecucion);
+            if(proceso_en_ejecucion){
+                // IIIIII -> luego revisar si puede haber otros motivos de desalojo
+                log_info(logger, "avisando a la CPU que desaloje el proceso actual");
+                sem_wait(&mutex_conexion_cpu_interrupt);
+                    envio_generico_op_code(conexion_cpu_interrupt, DESALOJO);
+                sem_wait(&mutex_conexion_cpu_interrupt);
+            }
+            sem_wait(&mutex_proceso_en_ejecucion);
+        }
         
     }
 }
@@ -63,6 +80,10 @@ void mover_ready_a_execute(void){
     sem_wait(&mutex_conexion_cpu_dispatch);
         enviar_pcb(conexion_cpu_dispatch, pcb, EJECUTAR_PROCESO);
     sem_post(&mutex_conexion_cpu_dispatch);
+
+    sem_wait(&mutex_proceso_en_ejecucion);
+        proceso_en_ejecucion = true;
+    sem_post(&mutex_proceso_en_ejecucion);
 }
 
 void mover_execute_a_blocked(t_PCB* pcb_nueva){
@@ -122,4 +143,22 @@ void mover_a_exit(t_PCB* pcb){
     sem_wait(&mutex_cola_exit);
         queue_push(cola_ready, (void*) pcb);
     sem_post(&mutex_cola_exit);
+}
+
+void mover_execute_a_ready(t_PCB* pcb_nueva){
+    sem_wait(&mutex_cola_execute);
+        t_PCB* pcb_vieja = (t_PCB*) queue_pop(cola_execute);
+    sem_post(&mutex_cola_execute);
+
+    t_PCB* pcb_actualizada = actualizar_contexto(pcb_nueva, pcb_vieja);
+
+    pcb_actualizada->estado = READY;
+
+    log_info(logger, "PID: <%d> - Estado Anterior: <EXECUTE> - Estado Actual: <READY>", pcb_actualizada->pid);
+
+    sem_wait(&mutex_cola_ready);
+        queue_push(cola_ready, (void*) pcb_actualizada);
+    sem_post(&mutex_cola_ready);
+
+    sem_post(&sem_procesos_esperando_en_ready);
 }
