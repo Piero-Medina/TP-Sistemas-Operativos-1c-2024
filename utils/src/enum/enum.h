@@ -16,4 +16,12 @@ typedef enum{
     PROCESO_FINALIZADO          // cpu -> kernel - procesar la finalizacion de proceso (exit)
 }op_code;
 
+
+typedef enum{
+    GENERICA,
+    STDIN,
+    STDOUT,
+    DIALFS
+}tipo_interfaz;
+
 #endif 

@@ -35,6 +35,7 @@ t_queue* cola_blocked_aux;
 t_queue* cola_exit;
 
 t_dictionary* recursos;
+t_dictionary* interfaces;
 
 pthread_t hilo_planificador_LP;
 pthread_t hilo_planificador_CP;
@@ -47,7 +48,7 @@ void init_kernel(void){
     proceso_en_ejecucion = false;
     
     algorimo_elegido();
-    init_recursos();
+    init_diccionarios();
     init_semaforos();
     init_colas();
     init_planificadores();
@@ -77,7 +78,7 @@ void liberar_kernel(void){
 
     liberar_semaforos();
     liberar_colas();
-    liberar_recursos();
+    liberar_diccionarios();
 }
 
 void init_semaforos(void){
@@ -169,7 +170,18 @@ void algorimo_elegido(void){
     }
 }
 
-void init_recursos(void){
+void init_diccionarios(void){
+    iniciar_recursos();
+    iniciar_interfaces(); // registro de todas la interfaces conectadas con el kernel
+
+}
+
+void liberar_diccionarios(void){
+    liberar_recursos();
+    liberar_interfaces(); 
+}
+
+void iniciar_recursos(void){
 	recursos = dictionary_create();
 
 	if( !string_array_is_empty(config->recursos) ){
@@ -199,6 +211,19 @@ void liberar_recursos(void){
 void liberar_elemento_recurso(void* elemento){
     t_recurso* tmp = (t_recurso*) elemento;
     queue_destroy_and_destroy_elements(tmp->cola_recurso, (void*)liberar_elemento_pcb);
+    free(tmp);
+}
+
+void iniciar_interfaces(void){
+    interfaces = dictionary_create();
+}
+
+void liberar_interfaces(void){
+    dictionary_destroy_and_destroy_elements(interfaces, liberar_elemento_interfaz);
+}
+
+void liberar_elemento_interfaz(void* elemento){
+    t_interfaz* tmp = (t_interfaz*) elemento;
     free(tmp);
 }
 

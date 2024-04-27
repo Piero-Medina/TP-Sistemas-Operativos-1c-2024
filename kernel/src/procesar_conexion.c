@@ -16,7 +16,7 @@ void procesar_conexion_io(void *args){
                 char* modulo = recibir_handshake(socket);
                 log_info(logger_k, "solicitud de Handshake del modulo: %s", modulo);
                 log_info(logger_k, "respondiendo Handshake al modulo: %s \n", modulo);
-                responder_handshake(socket);
+                responder_handshake(socket); 
                 free(modulo);
                 break;
             case -1:
@@ -106,4 +106,13 @@ void procesar_conexion_cpu_dispatch(void *args){
         }
     }
 
+}
+
+void agregar_interfaz(t_dictionary* interfaces, char* nombre_interfaz, int conexion, int tipo_interfaz){
+    t_interfaz* tmp = malloc(sizeof(t_interfaz));
+    
+    tmp->socket = conexion;
+    tmp->tipo = tipo_interfaz;
+
+    dictionary_put(interfaces, nombre_interfaz, (void*) tmp);
 }

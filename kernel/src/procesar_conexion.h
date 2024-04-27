@@ -7,6 +7,7 @@
 #include "generales.h"
 #include <semaphore.h>
 #include <stdbool.h>
+#include <commons/collections/dictionary.h>
 
 #include <comunicacion/comunicacion.h>
 #include <pcb/pcb.h>
@@ -19,5 +20,8 @@ void procesar_conexion_io(void *args);
 
 // procesamos la conexion que nos llega del modulo CPU_DISPATCH
 void procesar_conexion_cpu_dispatch(void *args);
+
+// agregamos una t_interfaz al diccionario 
+void agregar_interfaz(t_dictionary* interfaces, char* nombre_interfaz, int conexion, int tipo_interfaz);
 
 #endif 

@@ -42,9 +42,17 @@ void liberar_elemento_pcb(void* data);
 void algorimo_elegido(void);
 
 //
-void init_recursos(void);
+void init_diccionarios(void);
+void liberar_diccionarios(void);
+
+//
+void iniciar_recursos(void);
 void liberar_recursos(void);
 void liberar_elemento_recurso(void* elemento);
+
+void iniciar_interfaces(void);
+void liberar_interfaces(void);
+void liberar_elemento_interfaz(void* elemento);
 
 //
 void init_planificadores(void);

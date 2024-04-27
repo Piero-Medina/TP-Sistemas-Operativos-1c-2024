@@ -9,6 +9,8 @@
 #include <commons/collections/queue.h>
 #include <commons/collections/dictionary.h>
 
+#include <enum/enum.h>
+
 
 typedef enum{
     FIFO,
@@ -20,6 +22,11 @@ typedef struct {
 	int instancias;
 	t_queue* cola_recurso;
 }t_recurso;
+
+typedef struct {
+	int tipo;
+	int socket;
+}t_interfaz;
 
 /**
  * @DESC: variables declaradas en main.c
@@ -82,6 +89,7 @@ extern t_queue* cola_exit;
 
 // diccionario
 extern t_dictionary* recursos;
+extern t_dictionary* interfaces;
 
 // hilo
 extern pthread_t hilo_planificador_LP;
