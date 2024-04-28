@@ -8,6 +8,8 @@
 #include "procesar_conexion.h"
 #include "init.h"
 
+#include "peticiones_kernel.h"
+
 t_log* logger;
 t_memoria_config* config;
 

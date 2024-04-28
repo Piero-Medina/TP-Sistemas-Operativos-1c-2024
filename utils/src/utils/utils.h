@@ -17,11 +17,17 @@
 
 #define MAX_SIZE 80
 
+// abre un archivo en modo lectura
+FILE* leer_archivo(char *path);
+void cerrar_archivo(FILE* archivo);
+
 char* string_aplanar_PID(t_list* lista);
 
 // funciones usadas para simular IO por el momento
 void hilo_dormir_milisegundos(int milisegundos);
 void mimir_milisegundos(void* args);
 void sleep_ms(int milisegundos);
+
+//
 
 #endif

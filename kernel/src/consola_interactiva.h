@@ -38,9 +38,6 @@ void procesar_opcion(char* leido);
 t_opcion_consola opcion_seleccionada(char* leido);
 void ejecutar_opcion(t_opcion_consola opcion, char* leido);
 
-// abre un archivo en modo lectura
-FILE* leer_archivo(char *path);
-void cerrar_archivo(FILE* archivo);
 
 // func_comandos
 void func_ejecutar_script(char* leido);

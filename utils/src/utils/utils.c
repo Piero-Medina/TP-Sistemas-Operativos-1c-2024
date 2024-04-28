@@ -1,5 +1,18 @@
 #include <utils/utils.h>
 
+FILE* leer_archivo(char *path){
+	FILE * archivo = fopen(path, "r");
+	if(archivo == NULL){
+		printf("no se pudo leer archivo");
+		exit(EXIT_FAILURE);
+	}
+	return archivo;
+}
+
+void cerrar_archivo(FILE* archivo){
+    fclose(archivo);
+}
+
 char* string_aplanar_PID(t_list* lista) {
     char* tmp = malloc(sizeof(char) * MAX_SIZE);
     
@@ -52,3 +65,4 @@ void mimir_milisegundos(void* args){
 void sleep_ms(int milisegundos) {
     usleep(milisegundos * 1000); 
 }
+

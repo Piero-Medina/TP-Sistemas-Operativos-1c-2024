@@ -79,11 +79,11 @@ void procesar_conexion_cpu_dispatch(void *args){
                 
                 mover_execute_a_ready(pcb_desalojada);
                 break;
-            case WAIT:
+            case WAIT_KERNEL:
                 // TODO
                 sem_post(&mutex_conexion_cpu_dispatch);
                 break;
-            case SIGNAL:
+            case SIGNAL_KERNEL:
                 // TODO
                 sem_post(&mutex_conexion_cpu_dispatch);
                 break;

@@ -19,6 +19,11 @@ void procesar_conexion_general(void *args){
                 responder_handshake(socket);
                 free(modulo);
                 break;
+            case NUEVO_PROCESO_MEMORIA: // KERNEL
+                log_info(logger_m, "solicitud de Nuevo Proceso del KERNEL \n");
+                kernel_creacion_nuevo_proceso(socket);
+                envio_generico_op_code(socket, MEMORIA_OK);
+                break;
             case -1:
                 log_error(logger_m, "Cliente desconectado de %s", nombre_servidor);
                 //return EXIT_FAILURE -- si queremos terminar el server apenas alguien se desconecte

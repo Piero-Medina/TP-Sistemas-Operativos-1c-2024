@@ -151,7 +151,8 @@ void func_iniciar_proceso(char* leido){
 
     log_info(logger, "Avisando a Memoria sobre la entrada de Nuevo Preceso PID: <%d> ", pcb->pid);
     sem_wait(&mutex_conexion_memoria);
-    avisar_nuevo_proceso_memoria(conexion_memoria, pcb->pid, split[1]);
+        avisar_nuevo_proceso_memoria(conexion_memoria, pcb->pid, split[1]);
+        validar_respuesta_op_code(conexion_memoria, MEMORIA_OK, logger);
     sem_post(&mutex_conexion_memoria);
 
     mover_a_new(pcb);    
@@ -237,18 +238,5 @@ void func_proceso_estado(void){
     if (algoritmo_elegido == VRR) 
     free(lista_blocked_aux);
     free(lista_exit);
-}
-
-FILE* leer_archivo(char *path){
-	FILE * archivo = fopen(path, "r");
-	if(archivo == NULL){
-		printf("no se pudo leer archivo");
-		exit(EXIT_FAILURE);
-	}
-	return archivo;
-}
-
-void cerrar_archivo(FILE* archivo){
-    fclose(archivo);
 }
     
