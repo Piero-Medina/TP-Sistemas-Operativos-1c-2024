@@ -106,7 +106,7 @@ void buffer_destroy(t_buffer* buffer){
  }
 
 
-//-------------------------------------- SERIALIZACION DE PAQUETE -------------------------------
+//-------------------------------------- EXTRAS ----------------------------------------------
  void* serializar_paquete(t_paquete* paquete, size_t* size_a_enviar){
 
     *size_a_enviar = sizeof(int) +          // codigo de operacion
@@ -123,6 +123,18 @@ void buffer_destroy(t_buffer* buffer){
     memcpy(a_enviar + offset, paquete->buffer->stream, paquete->buffer->size);
 
     return a_enviar;
+ }
+
+ t_buffer* recibir_buffer(int conexion){
+    t_buffer* buffer = malloc(sizeof(t_buffer));
+    
+    recv(conexion, &buffer->size, sizeof(uint32_t), MSG_WAITALL);
+    buffer->stream = malloc(buffer->size);
+    recv(conexion, buffer->stream, buffer->size, MSG_WAITALL);
+
+    buffer->offset = 0;
+
+    return buffer;
  }
 
 //-------------------------------------- HANDSHAKE ---------------------------------------------- 

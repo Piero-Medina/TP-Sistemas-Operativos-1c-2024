@@ -82,10 +82,14 @@
  // Lee un string y su longitud del buffer y avanza el offset
  char* buffer_read_string(t_buffer *buffer);
 
-//-------------------------------------- SERIALIZACION DE PAQUETE --------------------------------
+//-------------------------------------- EXTRAS --------------------------------
  // serializamos un paquete, retorno un stream con el paquete serializado
  // no olvidar liberar el void* y el paquete y el paquete.
  void* serializar_paquete(t_paquete* paquete, size_t* size_a_enviar);
+
+ // recibe un buffer por red, se deserializa e inicializa el offset en 0  
+ // no olvidar liberar el buffer cuando se termine de sacar todo
+ t_buffer* recibir_buffer(int conexion);
 
 //-------------------------------------- HANDSHAKE ----------------------------------------------
  

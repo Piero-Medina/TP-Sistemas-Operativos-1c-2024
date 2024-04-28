@@ -210,7 +210,6 @@ void func_modificar_multiprogramacion(char* leido){
     string_array_destroy(split);
 }
 
-// TODO
 void func_proceso_estado(void){
     printf("Ejecutando comando func_proceso_estado\n");
 

@@ -11,6 +11,7 @@
 #include <commons/collections/queue.h>
 #include <commons/collections/list.h>
 #include <commons/collections/node.h>
+#include <commons/collections/dictionary.h>
 
 #include <pcb/pcb.h>
 
@@ -22,6 +23,5 @@ char* string_aplanar_PID(t_list* lista);
 void hilo_dormir_milisegundos(int milisegundos);
 void mimir_milisegundos(void* args);
 void sleep_ms(int milisegundos);
-
 
 #endif

@@ -7,20 +7,39 @@ void procesar_conexion_io(void *args){
     char* nombre_servidor = casted_args->server_name;
     free(casted_args);
 
+    char* nombre_interfaz = NULL;
+
     while (procesar_conexion_en_ejecucion) {
         int cod_op = recibir_operacion(socket);
         log_info(logger_k, "Se recibió el cod operacion %d en %s", cod_op, nombre_servidor);
         switch (cod_op) {
             case HANDSHAKE:
-                // Hacer algo si el código de operación es 1 (usar ENUM)
                 char* modulo = recibir_handshake(socket);
                 log_info(logger_k, "solicitud de Handshake del modulo: %s", modulo);
                 log_info(logger_k, "respondiendo Handshake al modulo: %s \n", modulo);
                 responder_handshake(socket); 
                 free(modulo);
                 break;
+            case REGISTRO_INTERFAZ:
+                int tipo_interfaz = 0;
+                recibir_generico_entero_string(socket, &tipo_interfaz, &nombre_interfaz);
+                log_info(logger_k, "recibiendo nombre y tipo de Interfaz: %s \n", nombre_interfaz);
+            
+                sem_wait(&mutex_diccionario_interfaces);
+                    agregar_interfaz(interfaces, nombre_interfaz, socket, tipo_interfaz);
+                sem_post(&mutex_diccionario_interfaces);
+                
+                envio_generico_op_code(socket, KERNEL_OK);
+                //free(nombre_interfaz);
+                break;
             case -1:
-                log_error(logger_k, "Cliente desconectado de %s", nombre_servidor);
+                log_error(logger_k, "Cliente desconectado de %s \n", nombre_servidor);
+
+                sem_wait(&mutex_diccionario_interfaces);
+                    dictionary_remove_and_destroy(interfaces, nombre_interfaz, liberar_elemento_interfaz);
+                sem_post(&mutex_diccionario_interfaces);
+                
+                free(nombre_interfaz);
                 //return EXIT_FAILURE -- si queremos terminar el server apenas alguien se desconecte
                 //break;
                 return; // terminamos la funcion si el cliente se desconecta

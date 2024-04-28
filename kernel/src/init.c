@@ -27,6 +27,8 @@ sem_t mutex_cola_exit;
 
 sem_t mutex_proceso_en_ejecucion;
 
+sem_t mutex_diccionario_interfaces;
+
 t_queue* cola_new;
 t_queue* cola_ready;
 t_queue* cola_execute;
@@ -102,6 +104,8 @@ void init_semaforos(void){
     sem_init(&mutex_cola_exit, 0, 1);
 
     sem_init(&mutex_proceso_en_ejecucion, 0, 1);
+
+    sem_init(&mutex_diccionario_interfaces,0, 1);
 }
 
 void liberar_semaforos(void){
@@ -125,6 +129,8 @@ void liberar_semaforos(void){
     sem_destroy(&mutex_cola_exit);
 
     sem_destroy(&mutex_proceso_en_ejecucion);
+
+    sem_destroy(&mutex_diccionario_interfaces);
 }
 
 void init_colas(void){

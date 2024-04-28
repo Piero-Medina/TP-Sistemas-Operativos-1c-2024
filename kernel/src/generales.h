@@ -79,6 +79,8 @@ extern sem_t mutex_cola_exit;
 
 extern sem_t mutex_proceso_en_ejecucion;
 
+extern sem_t mutex_diccionario_interfaces;
+
 // colas
 extern t_queue* cola_new;
 extern t_queue* cola_ready;

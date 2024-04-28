@@ -9,10 +9,15 @@
 #include <serializacion/serializacion.h>
 #include <enum/enum.h>
 
+#include "generales.h"
+#include <comunicacion/comunicacion.h>
+#include "init.h"
+
 #include <unistd.h> // para dormir
 
 t_log* logger;
 t_entradaSalida_config* config;
+
 int conexion_kernel;
 int conexion_memoria;
 
@@ -32,13 +37,17 @@ int main(int argc, char* argv[]) {
 
     config = init_entradaSalida_config(archivo_configuracion);
 
-    log_info(logger, "Tipo: %s \n", config->tipo_interfaz);
+    tipo_de_interfaz_elegido();
 
     conexion_kernel = crear_conexion(config->ip_kernel, config->puerto_kernel, "KERNEL", logger);
     enviar_handshake(conexion_kernel, HANDSHAKE, nombre_interfaz, "KERNEL", logger);
 
     conexion_memoria = crear_conexion(config->ip_memoria, config->puerto_memoria, "MEMORIA", logger);
     enviar_handshake(conexion_memoria, HANDSHAKE, nombre_interfaz, "MEMORIA", logger);
+
+    log_info(logger, "Registrando Interfaz ante el Kernel");
+    envio_generico_entero_y_string(conexion_kernel, REGISTRO_INTERFAZ, tipo_de_interfaz, nombre_interfaz);
+    validar_respuesta_op_code(conexion_kernel, KERNEL_OK, logger);
 
     // dormimos
     sleep(5);

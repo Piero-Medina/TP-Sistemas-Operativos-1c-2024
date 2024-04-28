@@ -3,7 +3,10 @@
 
 // aca declararemos los diferentes codigos de operacion
 typedef enum{
-    HANDSHAKE,                  // (hacia cualquier modulo) - procesar handshake 
+    HANDSHAKE,                  // (hacia cualquier modulo) - procesar handshake
+    REGISTRO_INTERFAZ,          // entradaSalida -> kernel - avisa al kernel para que la interfaz quede registrada
+
+    KERNEL_OK,                  // kernel -> cualquier modulo (avisa que la operacion se completo)  
 
     NUEVO_PROCESO_MEMORIA,      // de kernel -> memoria - avisar sobre la creacion de un proceso
     PROCESO_FINALIZADO_MEMORIA, // de kernel -> memoria - avisar sobre la eliminacion de un proceso

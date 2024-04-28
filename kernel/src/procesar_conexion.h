@@ -13,6 +13,7 @@
 #include <pcb/pcb.h>
 #include <utils/utils.h>
 #include "planificacion.h"
+#include "init.h"
 
 
 // procesamos las conexiones que nos lleguen de una interfaz io
