@@ -59,3 +59,120 @@ char* estado_to_string(t_PCB* pcb) {
             return "UNKNOWN";
     }
 }
+
+registro obtener_registro_por_nombre(char *nombre){
+    if (strcmp(nombre, "AX") == 0) {
+        return AX;
+    } else if (strcmp(nombre, "BX") == 0) {
+        return BX;
+    } else if (strcmp(nombre, "CX") == 0) {
+        return CX;
+    } else if (strcmp(nombre, "DX") == 0) {
+        return DX;
+    } else if (strcmp(nombre, "EAX") == 0) {
+        return EAX;
+    } else if (strcmp(nombre, "EBX") == 0) {
+        return EBX;
+    } else if (strcmp(nombre, "ECX") == 0) {
+        return ECX;
+    } else if (strcmp(nombre, "EDX") == 0) {
+        return EDX;
+    } else if (strcmp(nombre, "SI") == 0) {
+        return SI;
+    } else if (strcmp(nombre, "DI") == 0) {
+        return DI;
+    } else if (strcmp(nombre, "PC") == 0) {
+        return PC;
+    } else {
+        // Si no se encuentra el nombre del registro, se devuelve un valor inválido
+        return -1;
+    }
+}
+
+void set_registro(t_PCB *pcb, uint32_t valor, registro registro){
+    switch (registro) {
+        case AX:
+            pcb->registros->AX = valor;
+            break;
+        case BX:
+            pcb->registros->BX = valor;
+            break;
+        case CX:
+            pcb->registros->CX = valor;
+            break;
+        case DX:
+            pcb->registros->DX = valor;
+            break;
+        case EAX:
+            pcb->registros->EAX = valor;
+            break;
+        case EBX:
+            pcb->registros->EBX = valor;
+            break;
+        case ECX:
+            pcb->registros->ECX = valor;
+            break;
+        case EDX:
+            pcb->registros->EDX = valor;
+            break;
+        case SI:
+            pcb->registros->SI = valor;
+            break;
+        case DI:
+            pcb->registros->DI = valor;
+            break;
+        case PC:
+            pcb->registros->PC = valor;
+            break;
+        default:
+            printf("Error: Índice de registro inválido.\n");
+    }
+}
+
+
+uint32_t get_registro(t_PCB *pcb, registro registro) {
+    uint32_t valor;
+
+    switch (registro) {
+        case AX:
+            valor = pcb->registros->AX;
+            break;
+        case BX:
+            valor = pcb->registros->BX;
+            break;
+        case CX:
+            valor = pcb->registros->CX;
+            break;
+        case DX:
+            valor = pcb->registros->DX;
+            break;
+        case EAX:
+            valor = pcb->registros->EAX;
+            break;
+        case EBX:
+            valor = pcb->registros->EBX;
+            break;
+        case ECX:
+            valor = pcb->registros->ECX;
+            break;
+        case EDX:
+            valor = pcb->registros->EDX;
+            break;
+        case SI:
+            valor = pcb->registros->SI;
+            break;
+        case DI:
+            valor = pcb->registros->DI;
+            break;
+        case PC:
+            valor = pcb->registros->PC;
+            break;
+        default:
+            printf("Error: Índice de registro inválido.\n");
+            return 0;
+    }
+
+    return valor;
+}
+
+

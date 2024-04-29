@@ -1,8 +1,26 @@
 #ifndef PCB_H_
 #define PCB_H_
 
-#include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h> 
+
+#include <stdint.h>
+
+// enum usado para los getters y setter en los registros 
+typedef enum {
+    AX,
+    BX,
+    CX,
+    DX,
+    EAX,
+    EBX,
+    ECX,
+    EDX,
+    SI,
+    DI,
+    PC 
+}registro;
+
 typedef enum {
     NEW,
     READY,
@@ -43,5 +61,10 @@ void liberar_registros_cpu(registros_cpu* registros);
 
 // convierte al estado de un pcb en un String
 char* estado_to_string(t_PCB* pcb);
+
+////// setter y getter registro //////
+registro obtener_registro_por_nombre(char *nombre);
+void set_registro(t_PCB *pcb, uint32_t valor, registro registro);
+uint32_t get_registro(t_PCB *pcb, registro registro);
 
 #endif

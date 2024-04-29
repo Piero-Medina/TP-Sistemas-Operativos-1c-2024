@@ -14,8 +14,8 @@ typedef enum{
     EJECUTAR_PROCESO,           // de kernel -> CPU - manda contexto para ser ejecutado en cpu
 
     DESALOJO,                   // cpu <--> kernel - procesar un desalojo de proceso
-    WAIT_KERNEL,                       // cpu -> kernel - procesar un wait sobre los recursos 
-    SIGNAL_KERNEL,                     // cpu -> kernel - procesar un signal sobre los recursos
+    WAIT_KERNEL,                // cpu -> kernel - procesar un wait sobre los recursos 
+    SIGNAL_KERNEL,              // cpu -> kernel - procesar un signal sobre los recursos
     PETICION_IO,                // cpu -> kernel - procesar una peticion de IO  
     PROCESO_FINALIZADO          // cpu -> kernel - procesar la finalizacion de proceso (exit)
 }op_code;
