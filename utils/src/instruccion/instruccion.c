@@ -75,7 +75,7 @@ t_instruccion* crear_instruccion_mediante_array_string(char** split){
 	if(tamanio > 1){
 		int i = 1;
 		while(split[i] != NULL){
-			list_add(tmp->parametros, string_duplicate(split[i]));
+			list_add(tmp->parametros, (void*) string_duplicate(split[i]));
 			i++;
 		}
 	}

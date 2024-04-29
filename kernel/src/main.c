@@ -15,6 +15,9 @@
 
 #include <utils/utils.h>
 
+#include <commons/collections/list.h>
+#include <commons/string.h>
+
 t_log* logger;
 t_kernel_config* config;
 

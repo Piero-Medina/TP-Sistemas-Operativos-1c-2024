@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h> 
 
+#include <string.h>
 #include <stdint.h>
 
 // enum usado para los getters y setter en los registros 

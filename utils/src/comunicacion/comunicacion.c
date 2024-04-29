@@ -159,4 +159,88 @@ t_PCB* deserializar_pcb(t_buffer* buffer){
 
     return pcb;
 }
+///////////////////////////////////////////////////////////////////
+t_buffer* serializar_intruccion(t_instruccion* instruccion){
+    int largo_lista = list_size(instruccion->parametros);
+    int size_lista_serializable = tamanio_serializable_lista_de_string(instruccion->parametros);
 
+    uint32_t size = sizeof(int) +                     // identificador
+                    sizeof(int) +                     // largo de la lista 
+                    sizeof(size_lista_serializable);  // largo total de elementos de la lista
+
+    t_buffer* buffer = buffer_create(size);
+
+    buffer_add_int(buffer, instruccion->identificador);
+    buffer_add_list_string(buffer, instruccion->parametros, largo_lista);
+
+    return buffer;
+}
+
+t_instruccion* deserializar_intruccion(t_buffer* buffer){
+    t_instruccion* tmp = malloc(sizeof(t_instruccion));
+
+    tmp->identificador = buffer_read_int(buffer);
+    tmp->parametros = buffer_read_list_string(buffer);
+
+    return tmp;
+}
+
+///////////////////////////////////////////////////////////////////
+t_buffer* serializar_lista_de_string(t_list* lista_de_string){
+    int largo_lista = list_size(lista_de_string);
+    int size_lista_serializable = tamanio_serializable_lista_de_string(lista_de_string);
+
+    uint32_t size = sizeof(int) +                     // largo de la lista 
+                    sizeof(size_lista_serializable);  // largo total de elementos de la lista
+
+    t_buffer* buffer = buffer_create(size);
+
+    buffer_add_list_string(buffer, lista_de_string, largo_lista);
+    
+    return buffer;
+}
+
+t_list* deserializar_lista_de_string(t_buffer* buffer){
+    return buffer_read_list_string(buffer);
+}
+
+int tamanio_serializable_lista_de_string(t_list* lista_de_string){
+    int size = 0;
+    char* string = NULL;
+    uint32_t length_string = 0;
+
+    for (int i = 0; i < lista_de_string->elements_count; i++){
+        string = (char*) list_get(lista_de_string, i); // devuelve solo la direccion de memoria del elemento, no la remueve de la lista
+        length_string = strlen(string) + 1;
+        size += sizeof(uint32_t) + length_string; 
+    }
+    return size;
+}
+
+void buffer_add_list_string(t_buffer* buffer, t_list* lista_de_string, int size_lista){
+    char* string = NULL;
+    uint32_t length_string = 0;
+
+    // agrega al buffer el largo de la lista
+    buffer_add_int(buffer, size_lista);
+
+    // agrega cada string de la lista al buffer
+    for (int i = 0; i < size_lista; i++){
+        string = (char*) list_get(lista_de_string, i);
+        length_string = strlen(string) + 1;
+        buffer_add_string(buffer, length_string, string); 
+    }
+}
+
+t_list* buffer_read_list_string(t_buffer* buffer){
+    t_list* tmp = list_create();
+
+    // lee del buffer el largo de la lista
+    int size_lista = buffer_read_int(buffer);
+
+    // lee cada string del buffer y lo agrega a la lista
+    for(int i = 0; i < size_lista; i++){
+        list_add(tmp, (void*) buffer_read_string(buffer));
+    }
+    return tmp;
+}
