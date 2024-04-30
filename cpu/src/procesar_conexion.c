@@ -12,12 +12,15 @@ void procesar_conexion_kernel(void *args){
         log_info(logger_c, "Se recibió el cod operacion %d en %s", cod_op, nombre_servidor);
         switch (cod_op) {
             case HANDSHAKE:
-                // Hacer algo si el código de operación es 1 (usar ENUM)
                 char* modulo = recibir_handshake(socket);
                 log_info(logger_c, "solicitud de Handshake del modulo: %s", modulo);
                 log_info(logger_c, "respondiendo Handshake al modulo: %s \n", modulo);
                 responder_handshake(socket);
                 free(modulo);
+                break;
+            case EJECUTAR_PROCESO:
+                t_PCB* pcb_a_ejecutar = recibir_pcb(socket);
+                ejecutar_ciclo_de_instruccion(socket, pcb_a_ejecutar);
                 break;
             case -1:
                 log_error(logger_c, "Cliente desconectado de %s", nombre_servidor);

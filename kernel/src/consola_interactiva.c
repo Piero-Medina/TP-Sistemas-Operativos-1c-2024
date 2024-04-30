@@ -11,7 +11,7 @@ void consola_interactiva(void){
     while (!(strlen(leido) == 0)){
         free(leido);
         leido = NULL;
-        menu();
+        //menu();
         leido = readline("> ");
         procesar_opcion(leido);
     }
