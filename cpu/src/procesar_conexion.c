@@ -19,8 +19,16 @@ void procesar_conexion_kernel(void *args){
                 free(modulo);
                 break;
             case EJECUTAR_PROCESO:
+                log_info(logger_c, "solicitud de EJECUTAR_PROCESO");
                 t_PCB* pcb_a_ejecutar = recibir_pcb(socket);
                 ejecutar_ciclo_de_instruccion(socket, pcb_a_ejecutar);
+                liberar_PCB(pcb_a_ejecutar);
+                break;
+            case DESALOJO:
+                log_info(logger_c, "solicitud de DESALOJO");
+                sem_wait(&mutex_desalojo);
+                    desalojo = true;
+                sem_post(&mutex_desalojo);
                 break;
             case -1:
                 log_error(logger_c, "Cliente desconectado de %s", nombre_servidor);

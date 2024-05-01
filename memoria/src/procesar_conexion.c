@@ -20,9 +20,21 @@ void procesar_conexion_general(void *args){
                 free(modulo);
                 break;
             case NUEVO_PROCESO_MEMORIA: // KERNEL
+                // se crea un proceso en memoria a partir de path (en memoria) enviado por el kernel
                 log_info(logger_m, "solicitud de Nuevo Proceso del KERNEL \n");
                 kernel_creacion_nuevo_proceso(socket);
                 envio_generico_op_code(socket, MEMORIA_OK);
+                break;
+            case SOLICITAR_INTRUCCION_MEMORIA: // CPU
+                // busca la intruccion pedida y la devuelve a la cpu
+                log_info(logger_m, "solicitud de instruccion de CPU \n");
+                int pid, program_counter;
+                recibo_generico_doble_entero(socket,&pid, &program_counter);
+                t_instruccion* intruccion = buscar_intruccion(pid, program_counter);
+                log_info(logger_m, "PID: <%d> tiempo de retardo para envio de intruccion %d milisegundos \n", pid, config->retardo_respuesta);
+                sleep_ms(config->retardo_respuesta);
+                log_info(logger_m, "PID: <%d> enviando instruccion a CPU \n", pid);
+                enviar_instruccion(socket, intruccion, IGNORAR_OP_CODE);
                 break;
             case -1:
                 log_error(logger_m, "Cliente desconectado de %s", nombre_servidor);

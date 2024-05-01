@@ -1,13 +1,16 @@
 #include "init.h"
 
 bool procesar_conexion_en_ejecucion;
+bool desalojo;
 
 sem_t sem_test;
+sem_t mutex_desalojo;
 
 void init_cpu(void){
     signal(SIGINT, sigint_handler);
     
     procesar_conexion_en_ejecucion = true;
+    desalojo = false;
 
     init_semaforos();
 }
@@ -36,12 +39,13 @@ void sigint_handler(int signum){
 }
 
 void init_semaforos(void){
-    // contador - dar orden al inicio del servidor
-    sem_init(&sem_test, 0, 0);   
+    sem_init(&sem_test, 0, 0); // contador - dar orden al inicio del servidor
+    sem_init(&mutex_desalojo,0 ,1);   
 }
 
 void liberar_semaforos(void){
     sem_destroy(&sem_test);
+    sem_destroy(&mutex_desalojo);
 }
 
 void liberar_cpu(void){

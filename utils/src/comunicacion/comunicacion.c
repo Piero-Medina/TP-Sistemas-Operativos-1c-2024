@@ -8,7 +8,7 @@ void avisar_desalojo_a_cpu(int conexion_cpu, int op_code, char* motivo){
     envio_generico_string(conexion_cpu, op_code, motivo);
 }
 
-void perdir_intruccion_a_memoria(int conexion, int op_code, int pid, int pc){
+void solicitar_intruccion_a_memoria(int conexion, int op_code, int pid, int pc){
     envio_generico_doble_entero(conexion, op_code, pid, pc);
 }
 
@@ -135,6 +135,15 @@ void validar_respuesta_op_code(int conexion, int op_code_esperado, t_log* logger
     int respuesta = recibo_generico_op_code(conexion);
     if(respuesta == op_code_esperado) log_info(logger, "Respuesta OK");
     else log_info(logger, "Respuesta Fallida");
+}
+
+void ignorar_op_code(int conexion){
+    /*
+        La siguiente directiva del preprocesador se utiliza para indicar al compilador
+        que la variable 'tmp' puede estar sin usar, evitando así que se emita un warning.
+    */
+    int tmp __attribute__((unused)) = recibo_generico_op_code(conexion);
+    //int tmp = recibo_generico_op_code(conexion);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////

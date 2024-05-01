@@ -18,7 +18,9 @@ typedef enum{
     SIGNAL_KERNEL,                  // cpu -> kernel - procesar un signal sobre los recursos
     PETICION_IO,                    // cpu -> kernel - procesar una peticion de IO  
     PROCESO_FINALIZADO,             // cpu -> kernel - procesar la finalizacion de proceso (exit)
-    SOLICITAR_INTRUCCION_MEMORIA    // cpu -> memoria - pedir una intruccion a Memoria
+    SOLICITAR_INTRUCCION_MEMORIA,   // cpu -> memoria - pedir una intruccion a Memoria
+
+    IGNORAR_OP_CODE                 // para mensajes lo cuales no es necesario leer el op_code
 }op_code;
 
 

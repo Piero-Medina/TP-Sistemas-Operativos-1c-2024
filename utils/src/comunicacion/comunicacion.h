@@ -16,13 +16,15 @@
 ///////////////////////////////////////// WRAPPERS //////////////////////////////////////
 void avisar_nuevo_proceso_memoria(int conexion_memoria, int pid, char* path_intrucciones);
 void avisar_desalojo_a_cpu(int conexion_cpu, int op_code, char* motivo);
-void perdir_intruccion_a_memoria(int conexion, int op_code, int pid, int pc);
+void solicitar_intruccion_a_memoria(int conexion, int op_code, int pid, int pc);
 /////////////////////////////////////////////////////////////////////////////////////////
 
 // envio generico de un op_code
 void envio_generico_op_code(int conexion, int op_code);
 int recibo_generico_op_code(int conexion);
 void validar_respuesta_op_code(int conexion, int op_code_esperado, t_log* logger);
+// (posible warning) Ayuda a mantener la integridad del contrato de envío y recepción de datos a través de la red
+void ignorar_op_code(int conexion); 
 
 // envio y recibo generico de un op_code, entero y un string
 void envio_generico_entero_y_string(int conexion, int op_code, int entero, char* string);

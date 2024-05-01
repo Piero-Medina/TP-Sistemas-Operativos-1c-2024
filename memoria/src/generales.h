@@ -10,7 +10,7 @@
 
 typedef struct {
     int pid;
-    t_list* instrucciones;
+    t_list* instrucciones; // (t_instruccion*)
 }t_proceso;
 
 
@@ -25,6 +25,6 @@ extern bool procesar_conexion_en_ejecucion;
 
 extern t_parser tabla[19];
 
-extern t_list* lista_de_procesos;
+extern t_list* lista_de_procesos; // (t_proceso*)
 
 #endif 

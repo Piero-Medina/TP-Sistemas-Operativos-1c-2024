@@ -17,6 +17,8 @@ extern int server_cpu_interrupt_fd;
 // declarado en init.c
 
 extern bool procesar_conexion_en_ejecucion;
+extern bool desalojo;
 
+extern sem_t mutex_desalojo;
 
 #endif 

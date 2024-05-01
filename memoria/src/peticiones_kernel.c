@@ -1,5 +1,6 @@
 #include "peticiones_kernel.h"
 
+/////////////////////////////////////////////////////////////////////////////
 void kernel_creacion_nuevo_proceso(int conexion){
     int pid;
     char* path_intrucciones;
@@ -110,3 +111,4 @@ void imprimir_proceso(void* proceso_ptr) {
     list_iterate(proceso->instrucciones, imprimir_instruccion);
 }
 
+/////////////////////////////////////////////////////////////////////////////
