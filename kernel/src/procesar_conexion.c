@@ -36,7 +36,7 @@ void procesar_conexion_io(void *args){
                 log_error(logger_k, "Cliente desconectado de %s \n", nombre_servidor);
 
                 sem_wait(&mutex_diccionario_interfaces);
-                    dictionary_remove_and_destroy(interfaces, nombre_interfaz, liberar_elemento_interfaz);
+                    quitar_interfaz(interfaces, nombre_interfaz);
                 sem_post(&mutex_diccionario_interfaces);
                 
                 free(nombre_interfaz);
@@ -75,9 +75,9 @@ void procesar_conexion_cpu_dispatch(void *args){
                 // IIIIII -> luego revisar si puede haber otros motivos de desalojo
                 log_info(logger, "PID: <%d> - Desalojado por fin de Quantum", pcb_desalojada->pid);
 
-                sem_post(&sem_cpu_disponible); 
-                
                 mover_execute_a_ready(pcb_desalojada);
+
+                sem_post(&sem_cpu_disponible); 
                 break;
             case WAIT_KERNEL:
                 // TODO
@@ -89,16 +89,25 @@ void procesar_conexion_cpu_dispatch(void *args){
                 break;
             case PETICION_IO:
                 // TODO
+                sem_wait(&mutex_proceso_en_ejecucion);
+                    proceso_en_ejecucion = false;
+                sem_post(&mutex_proceso_en_ejecucion);
+
                 t_PCB* pcb_io = recibir_pcb(conexion_cpu_dispatch);
+
+                /*
+                    cuando este establecida la interfaz liberamos esta parte
+                //int tipo_de_interfaz = recibo_generico_op_code(conexion_cpu_dispatch);
+                //char* nombre_interfaz = recibir_generico_string(conexion_cpu_dispatch, &nombre_interfaz);
+                //verificar_tipo_interfaz(conexion_cpu_dispatch, tipo_de_interfaz, nombre_interfaz);
+                */
                 sem_post(&mutex_conexion_cpu_dispatch);
-                // aca dentro se actualiza el contexto de ejecucion
-                mover_execute_a_blocked(pcb_io);
-                // avisamos que la cpu ya esta disponible para ejecutar otro proceso
-                sem_post(&sem_cpu_disponible); 
-                // dormimos 3 segundos simulando una operacion de IO
-                hilo_dormir_milisegundos(3000);
+
+                mover_execute_a_blocked(pcb_io); // aca dentro se actualiza el contexto de ejecucion
                 
-                mover_blocked_a_ready();
+                hilo_procesar_io_fake(3000);
+
+                sem_post(&sem_cpu_disponible); 
                 break;
             case PROCESO_FINALIZADO:
                 sem_wait(&mutex_proceso_en_ejecucion);
@@ -108,9 +117,9 @@ void procesar_conexion_cpu_dispatch(void *args){
                 t_PCB* pcb_fin = recibir_pcb(conexion_cpu_dispatch);
                 sem_post(&mutex_conexion_cpu_dispatch);
                 
-                sem_post(&sem_cpu_disponible); 
+                mover_execute_a_exit(pcb_fin);
 
-                mover_a_exit(pcb_fin);
+                sem_post(&sem_cpu_disponible);
 
                 sem_post(&sem_grado_multiprogramacion);
                 break;
@@ -127,11 +136,20 @@ void procesar_conexion_cpu_dispatch(void *args){
 
 }
 
-void agregar_interfaz(t_dictionary* interfaces, char* nombre_interfaz, int conexion, int tipo_interfaz){
-    t_interfaz* tmp = malloc(sizeof(t_interfaz));
-    
-    tmp->socket = conexion;
-    tmp->tipo = tipo_interfaz;
 
-    dictionary_put(interfaces, nombre_interfaz, (void*) tmp);
+void hilo_procesar_io_fake(int milisegundos){
+    pthread_t hilo_durmicion;
+    int* milisegundos_ptr = malloc(sizeof(int));
+    *milisegundos_ptr = milisegundos;
+    pthread_create(&hilo_durmicion, NULL, (void*)procesar_io_fake, (void*) milisegundos_ptr);
+    pthread_detach(hilo_durmicion);
+}
+
+void procesar_io_fake(void* args){
+    int* milisegundos = (int*) args;
+    sleep_ms(*milisegundos);
+
+    mover_blocked_a_ready();
+
+    free(milisegundos);
 }

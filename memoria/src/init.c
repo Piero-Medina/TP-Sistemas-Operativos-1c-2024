@@ -20,6 +20,7 @@ void sigint_handler(int signum){
     // finalizamos la ejecucion de cualquier hilo (que usa procesar_conexion_en_ejecucion) para que libere recursos correctamente
     procesar_conexion_en_ejecucion = false; 
     
+    log_info(logger, "¡Este proceso nunca debió existir! \n\n\n");
     liberar_memoria();
 
     exit(EXIT_SUCCESS);

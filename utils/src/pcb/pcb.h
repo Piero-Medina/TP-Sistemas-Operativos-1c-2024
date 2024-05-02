@@ -20,7 +20,7 @@ typedef enum {
     SI,
     DI,
     PC 
-}registro;
+}e_registro;
 
 typedef enum {
     NEW,
@@ -64,8 +64,8 @@ void liberar_registros_cpu(registros_cpu* registros);
 char* estado_to_string(t_PCB* pcb);
 
 ////// setter y getter registro //////
-registro obtener_registro_por_nombre(char *nombre);
-void set_registro(t_PCB *pcb, uint32_t valor, registro registro);
-uint32_t get_registro(t_PCB *pcb, registro registro);
+e_registro obtener_registro_por_nombre(char *nombre);
+void set_registro(t_PCB *pcb, uint32_t valor, e_registro registro);
+uint32_t get_registro(t_PCB *pcb, e_registro registro);
 
 #endif

@@ -30,6 +30,9 @@ void mover_new_a_ready(void){
 
     sem_wait(&mutex_cola_ready);
         queue_push(cola_ready, (void*) pcb);
+        char* lista_ready = string_aplanar_PID(cola_ready->elements);
+        log_info(logger,"Ingreso a Cola Ready <Comun>: %s", lista_ready);
+        free(lista_ready);
     sem_post(&mutex_cola_ready);
 
     sem_post(&sem_procesos_esperando_en_ready);
@@ -56,9 +59,9 @@ void func_corto_plazo(void* arg){
                 log_info(logger, "avisando a la CPU que desaloje el proceso actual");
                 sem_wait(&mutex_conexion_cpu_interrupt);
                     envio_generico_op_code(conexion_cpu_interrupt, DESALOJO);
-                sem_wait(&mutex_conexion_cpu_interrupt);
+                sem_post(&mutex_conexion_cpu_interrupt);
             }
-            sem_wait(&mutex_proceso_en_ejecucion);
+            sem_post(&mutex_proceso_en_ejecucion);
         }
         
     }
@@ -120,18 +123,24 @@ void mover_blocked_a_ready(void){
 
     sem_wait(&mutex_cola_ready);
         queue_push(cola_ready, (void*) pcb);
+        char* lista_ready = string_aplanar_PID(cola_ready->elements);
+        log_info(logger,"Ingreso a Cola Ready <Comun>: %s", lista_ready);
+        free(lista_ready);
     sem_post(&mutex_cola_ready);
 
     sem_post(&sem_procesos_esperando_en_ready);
 } 
 
-void mover_a_exit(t_PCB* pcb){
+void mandar_a_exit(t_PCB* pcb){
 
     char* estado_anterior = estado_to_string(pcb);
     pcb->estado = EXIT;
 
     sem_wait(&mutex_conexion_memoria);
-        enviar_pcb(conexion_memoria, pcb, PROCESO_FINALIZADO_MEMORIA);
+        //enviar_pcb(conexion_memoria, pcb, PROCESO_FINALIZADO_MEMORIA);
+        log_info(logger, "Solicitando a MEMORIA que libere estructuras asocidas al proceso PID: <%d>", pcb->pid);
+        envio_generico_entero(conexion_memoria, PROCESO_FINALIZADO_MEMORIA, pcb->pid);
+        validar_respuesta_op_code(conexion_memoria, MEMORIA_OK, logger);
     sem_post(&mutex_conexion_memoria);
 
     log_info(logger, "PID: <%d> - Estado Anterior: <%s> - Estado Actual: <EXIT>", pcb->pid, estado_anterior);
@@ -141,7 +150,7 @@ void mover_a_exit(t_PCB* pcb){
         por la consola, o tambien liberar el pcb y almenos quedarnos con el PID
     */
     sem_wait(&mutex_cola_exit);
-        queue_push(cola_ready, (void*) pcb);
+        queue_push(cola_exit, (void*) pcb);
     sem_post(&mutex_cola_exit);
 }
 
@@ -158,7 +167,20 @@ void mover_execute_a_ready(t_PCB* pcb_nueva){
 
     sem_wait(&mutex_cola_ready);
         queue_push(cola_ready, (void*) pcb_actualizada);
+        char* lista_ready = string_aplanar_PID(cola_ready->elements);
+        log_info(logger,"Ingreso a Cola Ready <Comun>: %s", lista_ready);
+        free(lista_ready);
     sem_post(&mutex_cola_ready);
 
     sem_post(&sem_procesos_esperando_en_ready);
+}
+
+void mover_execute_a_exit(t_PCB* pcb_nueva){
+    sem_wait(&mutex_cola_execute);
+        t_PCB* pcb_vieja = (t_PCB*) queue_pop(cola_execute);
+    sem_post(&mutex_cola_execute);
+
+    t_PCB* pcb_actualizada = actualizar_contexto(pcb_nueva, pcb_vieja); 
+
+    mandar_a_exit(pcb_actualizada);
 }

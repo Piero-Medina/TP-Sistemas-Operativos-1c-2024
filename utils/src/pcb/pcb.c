@@ -60,7 +60,7 @@ char* estado_to_string(t_PCB* pcb) {
     }
 }
 
-registro obtener_registro_por_nombre(char *nombre){
+e_registro obtener_registro_por_nombre(char *nombre){
     if (strcmp(nombre, "AX") == 0) {
         return AX;
     } else if (strcmp(nombre, "BX") == 0) {
@@ -89,7 +89,7 @@ registro obtener_registro_por_nombre(char *nombre){
     }
 }
 
-void set_registro(t_PCB *pcb, uint32_t valor, registro registro){
+void set_registro(t_PCB *pcb, uint32_t valor, e_registro registro){
     switch (registro) {
         case AX:
             pcb->registros->AX = valor;
@@ -130,7 +130,7 @@ void set_registro(t_PCB *pcb, uint32_t valor, registro registro){
 }
 
 
-uint32_t get_registro(t_PCB *pcb, registro registro) {
+uint32_t get_registro(t_PCB *pcb, e_registro registro) {
     uint32_t valor;
 
     switch (registro) {

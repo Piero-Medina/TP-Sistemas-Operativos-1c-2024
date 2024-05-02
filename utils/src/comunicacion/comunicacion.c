@@ -58,12 +58,14 @@ void envio_generico_string(int conexion, int op_code, char* string){
     free(a_enviar);
 }
 
-void recibir_generico_string(int conexion, char** string){
+char* recibir_generico_string(int conexion){
     t_buffer* buffer = recibir_buffer(conexion);
     
-    *string = buffer_read_string(buffer);
+    char* string = buffer_read_string(buffer);
 
     buffer_destroy(buffer);
+
+    return string;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////

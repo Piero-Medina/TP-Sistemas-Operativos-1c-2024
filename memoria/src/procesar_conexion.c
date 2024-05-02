@@ -36,6 +36,13 @@ void procesar_conexion_general(void *args){
                 log_info(logger_m, "PID: <%d> enviando instruccion a CPU \n", pid);
                 enviar_instruccion(socket, intruccion, IGNORAR_OP_CODE);
                 break;
+            case PROCESO_FINALIZADO_MEMORIA: // KERNEL
+                // busca la intruccion pedida y la devuelve a la cpu
+                log_info(logger_m, "solicitud de Finalizacion de proceso de KERNEL \n");
+                int pid_a_finalizar = recibo_generico_entero(socket);
+                log_info(logger_m, "liberando estructuras administrativas del proceso PID: <%d> \n", pid_a_finalizar);
+                envio_generico_op_code(socket, MEMORIA_OK);
+                break;
             case -1:
                 log_error(logger_m, "Cliente desconectado de %s", nombre_servidor);
                 //return EXIT_FAILURE -- si queremos terminar el server apenas alguien se desconecte

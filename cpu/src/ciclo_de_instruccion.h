@@ -8,6 +8,7 @@
 #include <commons/log.h>
 #include <commons/collections/list.h>
 #include <sys/time.h>
+#include <stdint.h>
 
 #include "generales.h"
 

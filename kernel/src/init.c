@@ -60,7 +60,8 @@ void sigint_handler(int signum){
     printf("\n Finalizando el servidor por señal... \n");
     
     // finalizamos la ejecucion de cualquier hilo (que usa procesar_conexion_kernel) para que libere recursos correctamente
-    procesar_conexion_en_ejecucion = false; 
+    procesar_conexion_en_ejecucion = false;
+    log_info(logger, "¡Este proceso nunca debió existir! \n\n\n"); 
     liberar_kernel();
 
     exit(EXIT_SUCCESS);

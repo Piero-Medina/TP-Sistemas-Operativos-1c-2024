@@ -37,10 +37,22 @@ t_PCB* actualizar_contexto(t_PCB* pcb_nueva, t_PCB* pcb_vieja);
 // movemos un proceso de blocked a ready
 void mover_blocked_a_ready(void);
 
-// movemos un proceso a exit
-void mover_a_exit(t_PCB* pcb);
+/*
+    dado que podemos mandar a exit desde diferentes estados 
+    (new, ready, execute, blocked). esta funcion se encarga de
+    loggear el estado anterior en el que estaba el proceso y de hacer
+    todo lo requerido SOLO PARA MANDAR A EXIT A UN PROCESO.
+
+    sacarlo de la cola anterior en la que estaba es tarea que se
+    realizara manualmente, almenos que se quiera hacer una funcion
+    para cada transicion.  
+*/
+void mandar_a_exit(t_PCB* pcb);
 
 // movemos un proceso de execute a ready (dentro se actualiza el contexto)
 void mover_execute_a_ready(t_PCB* pcb_nueva);
+
+// movimientos a exit
+void mover_execute_a_exit(t_PCB* pcb);
 
 #endif 

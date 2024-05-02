@@ -1,0 +1,2 @@
+INICIAR_PROCESO proceso1.txt
+INICIAR_PROCESO proceso2.txt
