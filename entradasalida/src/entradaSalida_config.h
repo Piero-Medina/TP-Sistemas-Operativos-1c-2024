@@ -5,6 +5,8 @@
 #include <stdlib.h>
 #include <commons/config.h>
 
+#include <enum/enum.h>
+
 typedef struct {
     t_config* config;
     char* tipo_interfaz;
@@ -16,10 +18,13 @@ typedef struct {
     char* path_base_dialfs;
     int block_size;
     int block_count;
+    int retraso_compactacion;
 } t_entradaSalida_config;
 
-t_entradaSalida_config* init_entradaSalida_config(char* path);
+t_entradaSalida_config* init_entradaSalida_config(char* path, tipo_interfaz tipo_interfaz);
 
 void liberar_entradaSalida_config(t_entradaSalida_config* entradaSalida_config);
+
+void imprimir_config(t_entradaSalida_config* config, tipo_interfaz tipo);
 
 #endif

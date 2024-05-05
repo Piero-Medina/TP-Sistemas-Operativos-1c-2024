@@ -35,15 +35,19 @@ int main(int argc, char* argv[]) {
     logger = iniciar_logger("entradaSalida.log", nombre_interfaz);
     log_info(logger, "Iniciando Modulo ENTRADA_SALIDA de nombre (%s) \n", nombre_interfaz);
 
-    config = init_entradaSalida_config(archivo_configuracion);
+    tipo_de_interfaz_elegido(archivo_configuracion);
 
-    tipo_de_interfaz_elegido();
+    config = init_entradaSalida_config(archivo_configuracion, tipo_de_interfaz);
 
+    imprimir_config(config, tipo_de_interfaz);
+    
     conexion_kernel = crear_conexion(config->ip_kernel, config->puerto_kernel, "KERNEL", logger);
     enviar_handshake(conexion_kernel, HANDSHAKE, nombre_interfaz, "KERNEL", logger);
 
-    conexion_memoria = crear_conexion(config->ip_memoria, config->puerto_memoria, "MEMORIA", logger);
-    enviar_handshake(conexion_memoria, HANDSHAKE, nombre_interfaz, "MEMORIA", logger);
+    if(!(tipo_de_interfaz == GENERICA)){
+        conexion_memoria = crear_conexion(config->ip_memoria, config->puerto_memoria, "MEMORIA", logger);
+        enviar_handshake(conexion_memoria, HANDSHAKE, nombre_interfaz, "MEMORIA", logger);
+    }
 
     log_info(logger, "Registrando Interfaz ante el Kernel");
     envio_generico_entero_y_string(conexion_kernel, REGISTRO_INTERFAZ, tipo_de_interfaz, nombre_interfaz);
