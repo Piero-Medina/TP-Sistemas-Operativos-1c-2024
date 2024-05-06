@@ -216,27 +216,27 @@ void func_proceso_estado(void){
 
     char* lista_new = string_aplanar_PID(cola_new->elements);
     char* lista_ready = string_aplanar_PID(cola_ready->elements);
+    char* lista_ready_aux = NULL; // la declaraciones deben hacerse afuera del if
+    if (algoritmo_elegido == VRR)
+    lista_ready_aux = string_aplanar_PID(cola_ready_aux->elements);
     char* lista_execute = string_aplanar_PID(cola_execute->elements);
     char* lista_blocked = string_aplanar_PID(cola_blocked->elements);
-    char* lista_blocked_aux = NULL; // la declaraciones deben hacerse afuera del if
-    if (algoritmo_elegido == VRR)
-    lista_blocked_aux = string_aplanar_PID(cola_blocked_aux->elements);
     char* lista_exit = string_aplanar_PID(cola_exit->elements);
 
     printf("proceso en NEW : %s \n", lista_new);
     printf("proceso en READY : %s \n", lista_ready);
+    if (algoritmo_elegido == VRR) 
+    printf("proceso en READY AUX : %s \n", lista_ready_aux);
     printf("proceso en EXECUTE : %s \n", lista_execute);
     printf("proceso en BLOCKED : %s \n", lista_blocked);
-    if (algoritmo_elegido == VRR) 
-    printf("proceso en BLOCKED AUX : %s \n", lista_blocked_aux);
     printf("proceso en EXIT : %s \n", lista_exit);
 
     free(lista_new);
     free(lista_ready);
+    if (algoritmo_elegido == VRR) 
+    free(lista_ready_aux);
     free(lista_execute);
     free(lista_blocked);
-    if (algoritmo_elegido == VRR) 
-    free(lista_blocked_aux);
     free(lista_exit);
 }
     

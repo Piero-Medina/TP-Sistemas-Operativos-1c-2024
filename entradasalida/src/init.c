@@ -28,3 +28,5 @@ void tipo_de_interfaz_elegido(char* path){
 
     config_destroy(config_tmp);
 }
+
+

@@ -12,6 +12,7 @@
 #include "init.h"
 #include <pthread.h>
 #include "consola_interactiva.h"
+#include <stdbool.h>
 
 #include <utils/utils.h>
 

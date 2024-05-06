@@ -26,7 +26,19 @@ typedef struct {
 typedef struct {
 	int tipo;
 	int socket;
+	bool ocupado;
 }t_interfaz;
+
+typedef struct {
+	int pid;
+	int operacion;
+	t_interfaz* interfaz;
+	char* parametro_string;
+	int parametro_int_1;
+	int parametro_int_2;
+	int parametro_int_3;
+	int parametro_int_4;
+}t_io_pendiente;
 
 /**
  * @DESC: variables declaradas en main.c
@@ -72,9 +84,9 @@ extern sem_t sem_cpu_disponible;
 
 extern sem_t mutex_cola_new;
 extern sem_t mutex_cola_ready;
+extern sem_t mutex_cola_ready_aux;
 extern sem_t mutex_cola_execute;
 extern sem_t mutex_cola_blocked;
-extern sem_t mutex_cola_blocked_aux;
 extern sem_t mutex_cola_exit;
 
 extern sem_t mutex_proceso_en_ejecucion;
@@ -84,9 +96,9 @@ extern sem_t mutex_diccionario_interfaces;
 // colas
 extern t_queue* cola_new;
 extern t_queue* cola_ready;
+extern t_queue* cola_ready_aux;
 extern t_queue* cola_execute;
 extern t_queue* cola_blocked;
-extern t_queue* cola_blocked_aux;
 extern t_queue* cola_exit;
 
 // diccionario

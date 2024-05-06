@@ -6,6 +6,7 @@ void agregar_interfaz(t_dictionary* interfaces, char* nombre_interfaz, int conex
     
     tmp->socket = conexion;
     tmp->tipo = tipo_interfaz;
+    tmp->ocupado = false;
 
     dictionary_put(interfaces, nombre_interfaz, (void*) tmp);
 }
@@ -34,9 +35,13 @@ void verificar_operacion_generica(int conexion, char* nombre_interfaz, int opera
     if(operacion == IO_GEN_SLEEP){
         //int unidades_genericas = recibo_generico_entero(conexion);
         //sem_post(&mutex_conexion_cpu_dispatch); // terminamos de recibir todos los datos
+        sem_post(&mutex_conexion_cpu_dispatch);
 
         // validar que exista el nombre de interfaz
         // validar que admite la operacion
+
+        // procesar_io_generica()
+        // sem_post(hay_peticion_io_por_procesar);
 
         // recien validamos aca para no cortar el envio de la cpu
         // recibimos todo y dejamos al socket libre para que trabaje
