@@ -16,4 +16,7 @@ extern tipo_interfaz tipo_de_interfaz;
 extern int conexion_kernel;
 extern int conexion_memoria;
 
+// declarado en init.c
+extern bool procesar_conexion_en_ejecucion;
+
 #endif 

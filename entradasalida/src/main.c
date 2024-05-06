@@ -38,8 +38,6 @@ int main(int argc, char* argv[]) {
     tipo_de_interfaz_elegido(archivo_configuracion);
 
     config = init_entradaSalida_config(archivo_configuracion, tipo_de_interfaz);
-
-    imprimir_config(config, tipo_de_interfaz);
     
     conexion_kernel = crear_conexion(config->ip_kernel, config->puerto_kernel, "KERNEL", logger);
     enviar_handshake(conexion_kernel, HANDSHAKE, nombre_interfaz, "KERNEL", logger);
@@ -53,13 +51,9 @@ int main(int argc, char* argv[]) {
     envio_generico_entero_y_string(conexion_kernel, REGISTRO_INTERFAZ, tipo_de_interfaz, nombre_interfaz);
     validar_respuesta_op_code(conexion_kernel, KERNEL_OK, logger);
 
-    // dormimos
-    sleep(5);
+    configurar_segun_tipo_de_interfaz();
 
-    log_destroy(logger);
-    liberar_entradaSalida_config(config);
-    liberar_conexion(conexion_kernel);
-    liberar_conexion(conexion_memoria);
+    liberar_entrada_salida();
 
     return 0;
 }

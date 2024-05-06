@@ -20,7 +20,10 @@ typedef enum{
     PROCESO_FINALIZADO,             // cpu -> kernel - procesar la finalizacion de proceso (exit)
     SOLICITAR_INTRUCCION_MEMORIA,   // cpu -> memoria - pedir una intruccion a Memoria
 
-    IGNORAR_OP_CODE                 // para mensajes lo cuales no es necesario leer el op_code
+    IGNORAR_OP_CODE,                // para mensajes lo cuales no es necesario leer el op_code
+
+    SOLICITUD_IO_GEN_SLEEP,          
+    SOLICITUD_IO_GEN_SLEEP_FINALIZADA
 }op_code;
 
 
