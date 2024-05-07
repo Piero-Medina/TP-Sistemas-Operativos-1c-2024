@@ -10,6 +10,7 @@
 #include "generales.h"
 #include "peticiones_kernel.h"
 #include "peticiones_cpu.h"
+#include "init.h"
 
 
 void procesar_conexion_general(void *args);

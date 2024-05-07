@@ -37,4 +37,7 @@ void imprimir_lista_procesos(t_list* lista_procesos);
 // Función para imprimir todos los elementos de un proceso (t_proceso*)
 void imprimir_proceso(void* proceso_ptr);
 
+t_proceso* buscar_proceso_por_pid_y_remover(int pid, t_list* lista);
+int posicion_de_proceso_por_pid(int pid, t_list* lista);
+
 #endif 

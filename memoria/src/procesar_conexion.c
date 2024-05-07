@@ -30,7 +30,11 @@ void procesar_conexion_general(void *args){
                 log_info(logger_m, "solicitud de instruccion de CPU \n");
                 int pid, program_counter;
                 recibo_generico_doble_entero(socket,&pid, &program_counter);
+                
+                sem_wait(&mutex_lista_de_procesos);
                 t_instruccion* intruccion = buscar_intruccion(pid, program_counter);
+                sem_post(&mutex_lista_de_procesos);
+                
                 log_info(logger_m, "PID: <%d> tiempo de retardo para envio de intruccion %d milisegundos \n", pid, config->retardo_respuesta);
                 sleep_ms(config->retardo_respuesta);
                 log_info(logger_m, "PID: <%d> enviando instruccion a CPU \n", pid);
@@ -40,7 +44,13 @@ void procesar_conexion_general(void *args){
                 // busca la intruccion pedida y la devuelve a la cpu
                 log_info(logger_m, "solicitud de Finalizacion de proceso de KERNEL \n");
                 int pid_a_finalizar = recibo_generico_entero(socket);
-                log_info(logger_m, "liberando estructuras administrativas del proceso PID: <%d> \n", pid_a_finalizar);
+
+                log_info(logger_m, "liberando estructuras administrativas del proceso PID: <%d> \n", pid_a_finalizar);                
+                sem_wait(&mutex_lista_de_procesos);
+                t_proceso* proceso_a_eliminar = buscar_proceso_por_pid_y_remover(pid_a_finalizar, lista_de_procesos);
+                sem_post(&mutex_lista_de_procesos);
+                liberar_elemento_proceso((void*) proceso_a_eliminar);
+
                 envio_generico_op_code(socket, MEMORIA_OK);
                 break;
             case -1:

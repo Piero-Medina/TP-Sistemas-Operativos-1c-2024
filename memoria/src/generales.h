@@ -4,6 +4,7 @@
 #include <commons/log.h>
 #include "memoria_config.h"
 #include <stdbool.h>
+#include <semaphore.h>
 
 #include <instruccion/instruccion.h>
 #include <commons/collections/list.h>
@@ -21,6 +22,9 @@ extern t_memoria_config* config;
 extern int server_fd;
 
 // declarado en init.c
+
+extern sem_t mutex_lista_de_procesos;
+
 extern bool procesar_conexion_en_ejecucion;
 
 extern t_parser tabla[19];

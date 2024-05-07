@@ -112,3 +112,27 @@ void imprimir_proceso(void* proceso_ptr) {
 }
 
 /////////////////////////////////////////////////////////////////////////////
+t_proceso* buscar_proceso_por_pid_y_remover(int pid, t_list* lista){
+    int posicion = posicion_de_proceso_por_pid(pid, lista);
+    return (t_proceso*) list_remove(lista, posicion);
+}
+
+int posicion_de_proceso_por_pid(int pid, t_list* lista){
+    t_link_element **indirect = &lista->head;
+    t_proceso* proceso = NULL;
+    int contador = 0;
+
+	while ((*indirect) != NULL) {
+		proceso = (t_proceso*) (*indirect)->data;
+        
+        if(proceso->pid == pid){
+            return contador;
+        }
+		indirect = &(*indirect)->next;
+        contador++;
+	}
+    log_error(logger, "funcion (posicion_de_proceso_por_pid) arrojo un -1 \n");
+    contador = -1;
+
+    return contador;
+}

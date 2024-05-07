@@ -1,5 +1,7 @@
 #include "init.h"
 
+sem_t mutex_lista_de_procesos;
+
 bool procesar_conexion_en_ejecucion;
 
 t_parser tabla[19];
@@ -12,6 +14,7 @@ void init_memoria(void){
 
     init_estructura_para_parsear();
     init_lista_de_procesos();
+    init_semaforos();
 }
 
 void sigint_handler(int signum){
@@ -32,6 +35,15 @@ void liberar_memoria(void){
     liberar_conexion(server_fd);
 
     liberar_lista_de_procesos();
+    liberar_semaforos();
+}
+
+void init_semaforos(void){
+    sem_init(&mutex_lista_de_procesos, 0, 1);
+}
+
+void liberar_semaforos(void){
+    sem_destroy(&mutex_lista_de_procesos);
 }
 
 void init_estructura_para_parsear(void){

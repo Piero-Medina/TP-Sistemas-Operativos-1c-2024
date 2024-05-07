@@ -7,6 +7,7 @@
 #include <conexiones/conexiones.h>
 #include <signal.h>
 #include <commons/collections/list.h>
+#include <semaphore.h>
 
 #include <instruccion/instruccion.h>
 
@@ -15,6 +16,9 @@ void init_memoria(void);
 void sigint_handler(int signum);
 
 void liberar_memoria(void);
+
+void init_semaforos(void);
+void liberar_semaforos(void);
 
 void init_estructura_para_parsear(void);
 
