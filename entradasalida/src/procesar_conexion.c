@@ -2,6 +2,7 @@
 
 
 void procesar_conexion_siendo_io_generica(void *args){
+    log_info(logger, "Configurando interfaz en modo generico");
     char* nombre_modulo_server = "KERNEL";
 
     while (procesar_conexion_en_ejecucion) {
@@ -16,7 +17,7 @@ void procesar_conexion_siendo_io_generica(void *args){
                 log_info(logger, "PID: <%d> - Operacion: <IO_GEN_SLEEP> - dormira (%d) milisegundos", pid, unidades_totales);
                 hilo_dormir_milisegundos(unidades_totales);
                 envio_generico_entero(conexion_kernel, SOLICITUD_IO_GEN_SLEEP_FINALIZADA, pid);
-                log_info(logger, "PID: <%d> - Operacion : <IO_GEN_SLEEP> - Finalizada \n", pid);
+                log_info(logger, "PID: <%d> - Operacion: <IO_GEN_SLEEP> - Finalizada \n", pid);
                 break;
             case -1:
                 log_error(logger, "el server %s cerro la conexion", nombre_modulo_server);

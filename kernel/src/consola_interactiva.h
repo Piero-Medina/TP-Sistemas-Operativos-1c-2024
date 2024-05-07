@@ -24,7 +24,8 @@ typedef enum{
     DETENER_PLANIFICACION,
     INICIAR_PLANIFICACION,
     MODIFICAR_MULTIPROGRAMACION,
-    PROCESO_ESTADO
+    PROCESO_ESTADO,
+    OPCION_NEGADA
 } opcion_consola;
 
 typedef struct{

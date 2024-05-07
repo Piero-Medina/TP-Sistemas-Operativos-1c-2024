@@ -29,6 +29,9 @@ sem_t mutex_proceso_en_ejecucion;
 
 sem_t mutex_diccionario_interfaces;
 
+sem_t sem_peticiones_io_por_procesar;
+sem_t sem_interfaz_io_libre;
+
 t_queue* cola_new;
 t_queue* cola_ready;
 t_queue* cola_ready_aux;
@@ -38,6 +41,8 @@ t_queue* cola_exit;
 
 t_dictionary* recursos;
 t_dictionary* interfaces;
+
+t_list* pendientes_io;
 
 pthread_t hilo_planificador_LP;
 pthread_t hilo_planificador_CP;
@@ -54,6 +59,8 @@ void init_kernel(void){
     init_semaforos();
     init_colas();
     init_planificadores();
+    init_listas();
+    init_manejador_de_procesos_io();
 }
 
 void sigint_handler(int signum){
@@ -82,6 +89,7 @@ void liberar_kernel(void){
     liberar_semaforos();
     liberar_colas();
     liberar_diccionarios();
+    liberar_listas();
 }
 
 void init_semaforos(void){
@@ -107,6 +115,9 @@ void init_semaforos(void){
     sem_init(&mutex_proceso_en_ejecucion, 0, 1);
 
     sem_init(&mutex_diccionario_interfaces,0, 1);
+
+    sem_init(&sem_peticiones_io_por_procesar,0, 0);
+    sem_init(&sem_interfaz_io_libre,0, 0);
 }
 
 void liberar_semaforos(void){
@@ -132,6 +143,9 @@ void liberar_semaforos(void){
     sem_destroy(&mutex_proceso_en_ejecucion);
 
     sem_destroy(&mutex_diccionario_interfaces);
+
+    sem_destroy(&sem_peticiones_io_por_procesar);
+    sem_destroy(&sem_interfaz_io_libre);
 }
 
 void init_colas(void){
@@ -155,6 +169,7 @@ void liberar_colas(void){
 }
 
 void liberar_elemento_pcb(void* elemento){
+    printf("ELIMINADO ELEMENTO PCB\n");
     t_PCB* tmp = (t_PCB*) elemento;
     liberar_PCB(tmp);
 }
@@ -231,6 +246,10 @@ void liberar_interfaces(void){
 
 void liberar_elemento_interfaz(void* elemento){
     t_interfaz* tmp = (t_interfaz*) elemento;
+
+    sem_destroy(&tmp->semaforo);
+    queue_destroy_and_destroy_elements(tmp->cola, (void*)liberar_elemento_io_pendiente);
+    
     free(tmp);
 }
 
@@ -240,4 +259,28 @@ void init_planificadores(void){
 
     pthread_create(&hilo_planificador_CP, NULL, (void*) func_corto_plazo, NULL);
     pthread_detach(hilo_planificador_CP);
+}
+
+void init_listas(void){
+    pendientes_io = list_create();
+}
+
+void liberar_listas(void){
+    list_destroy_and_destroy_elements(pendientes_io, liberar_elemento_io_pendiente);
+}
+
+void liberar_elemento_io_pendiente(void* elemento){
+    t_io_pendiente* tmp = (t_io_pendiente*) elemento;
+
+    if(tmp->parametro_string != NULL){
+        free(tmp->parametro_string);
+    }
+
+    free(tmp);
+}
+
+void init_manejador_de_procesos_io(void){
+    pthread_t hilo_manejador_io;
+    pthread_create(&hilo_manejador_io, NULL, (void*) manejador_de_procesos_pendientes_io, NULL);
+    pthread_detach(hilo_manejador_io);
 }

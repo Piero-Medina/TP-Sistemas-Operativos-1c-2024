@@ -74,8 +74,8 @@ void ejecutar_ciclo_de_instruccion(int conexion, t_PCB* pcb){
 
                 log_info(logger, "PID: <%d> - se va de CPU", pcb->pid);
                 enviar_pcb(conexion, pcb, PETICION_IO);
-                //envio_generico_string(conexion, GENERICA, interfaz_generica);
-                //envio_generico_entero(conexion, IO_GEN_SLEEP, unidades_generica);
+                envio_generico_string(conexion, GENERICA, interfaz_generica);
+                envio_generico_entero(conexion, IO_GEN_SLEEP, unidades_generica);
                 puede_seguir_ejecutando = false;
                 proceso_sigue_en_cpu = false;
                 break;

@@ -27,12 +27,14 @@ typedef struct {
 	int tipo;
 	int socket;
 	bool ocupado;
+	sem_t semaforo;
+	t_queue* cola;
 }t_interfaz;
 
 typedef struct {
 	int pid;
 	int operacion;
-	t_interfaz* interfaz;
+	bool interfaz_ocupada;
 	char* parametro_string;
 	int parametro_int_1;
 	int parametro_int_2;
@@ -93,6 +95,9 @@ extern sem_t mutex_proceso_en_ejecucion;
 
 extern sem_t mutex_diccionario_interfaces;
 
+extern sem_t sem_peticiones_io_por_procesar;
+extern sem_t sem_interfaz_io_libre;
+
 // colas
 extern t_queue* cola_new;
 extern t_queue* cola_ready;
@@ -104,6 +109,9 @@ extern t_queue* cola_exit;
 // diccionario
 extern t_dictionary* recursos;
 extern t_dictionary* interfaces;
+
+// listas
+extern t_list* pendientes_io;
 
 // hilo
 extern pthread_t hilo_planificador_LP;

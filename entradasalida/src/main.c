@@ -38,6 +38,8 @@ int main(int argc, char* argv[]) {
     tipo_de_interfaz_elegido(archivo_configuracion);
 
     config = init_entradaSalida_config(archivo_configuracion, tipo_de_interfaz);
+
+    init_entrada_salida();
     
     conexion_kernel = crear_conexion(config->ip_kernel, config->puerto_kernel, "KERNEL", logger);
     enviar_handshake(conexion_kernel, HANDSHAKE, nombre_interfaz, "KERNEL", logger);

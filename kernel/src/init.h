@@ -57,4 +57,12 @@ void liberar_elemento_interfaz(void* elemento);
 //
 void init_planificadores(void);
 
+//
+void init_listas(void);
+void liberar_listas(void);
+void liberar_elemento_io_pendiente(void* elemento);
+
+//
+void init_manejador_de_procesos_io(void);
+
 #endif 

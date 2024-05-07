@@ -14,6 +14,8 @@
 #include <enum/enum.h>
 #include <utils/utils.h>
 
+#include <manejo_interfaz.h>
+
 // movemos un proceso recien creado a la cola new
 void mover_a_new(t_PCB* pcb);
 
@@ -34,8 +36,8 @@ void mover_execute_a_blocked(t_PCB* pcb);
 // actualiza el contexto de ejecucion (guiño guiño)
 t_PCB* actualizar_contexto(t_PCB* pcb_nueva, t_PCB* pcb_vieja);
 
-// movemos un proceso de blocked a ready
-void mover_blocked_a_ready(void);
+// movemos un proceso de blocked a ready | luego ver si hace falta actualizar el contexto
+void mover_blocked_a_ready(int pid);
 
 /*
     dado que podemos mandar a exit desde diferentes estados 
@@ -47,12 +49,12 @@ void mover_blocked_a_ready(void);
     realizara manualmente, almenos que se quiera hacer una funcion
     para cada transicion.  
 */
-void mandar_a_exit(t_PCB* pcb);
+void mandar_a_exit(t_PCB* pcb, char* motivo);
 
 // movemos un proceso de execute a ready (dentro se actualiza el contexto)
 void mover_execute_a_ready(t_PCB* pcb_nueva);
 
 // movimientos a exit
-void mover_execute_a_exit(t_PCB* pcb);
+void mover_execute_a_exit(t_PCB* pcb, char* motivo);
 
 #endif 

@@ -8,6 +8,7 @@ void procesar_conexion_io(void *args){
     free(casted_args);
 
     char* nombre_interfaz = NULL;
+    int pid;
 
     while (procesar_conexion_en_ejecucion) {
         int cod_op = recibir_operacion(socket);
@@ -30,7 +31,26 @@ void procesar_conexion_io(void *args){
                 sem_post(&mutex_diccionario_interfaces);
                 
                 envio_generico_op_code(socket, KERNEL_OK);
+                
+                sem_post(&sem_interfaz_io_libre);
                 //free(nombre_interfaz);
+                break;
+            case SOLICITUD_IO_GEN_SLEEP_FINALIZADA:
+                pid = recibo_generico_entero(socket);
+                
+                log_info(logger, "PID: <%d> - Solicitud de IO_GEN_SLEEP Finalizada", pid);
+                // movemos el proceso a la lista de ready                
+                mover_blocked_a_ready(pid);
+
+                // cambiar el estado (sacando del diccionario) (tenemos el key nombre_interfaz)
+                sem_wait(&mutex_diccionario_interfaces);
+                    t_interfaz* interfaz_sleep = dictionary_get(interfaces, nombre_interfaz);
+                    interfaz_sleep->ocupado = false;
+                    // interfaz_sleep->cola | el t_io_pendiente* asociado ya fue liberado y removido antes de realizar la llamada
+                sem_post(&mutex_diccionario_interfaces);
+
+                // post semaforo avisando que hay una interfaz de io disponible
+                sem_post(&sem_interfaz_io_libre); // aviso que hay una instancia de io
                 break;
             case -1:
                 log_error(logger_k, "Cliente desconectado de %s \n", nombre_servidor);
@@ -87,25 +107,20 @@ void procesar_conexion_cpu_dispatch(void *args){
                 // TODO
                 sem_post(&mutex_conexion_cpu_dispatch);
                 break;
-            case PETICION_IO:
+            case PETICION_IO: // mandamos a blocked, o sino a exit
                 // TODO
                 sem_wait(&mutex_proceso_en_ejecucion);
                     proceso_en_ejecucion = false;
                 sem_post(&mutex_proceso_en_ejecucion);
 
                 t_PCB* pcb_io = recibir_pcb(conexion_cpu_dispatch);
+                log_info(logger, "PID: <%d> - PETICION_IO", pcb_io->pid);
 
-                /*
-                    cuando este establecida la interfaz liberamos esta parte
-                //int tipo_de_interfaz = recibo_generico_op_code(conexion_cpu_dispatch);
-                //char* nombre_interfaz = recibir_generico_string(conexion_cpu_dispatch, &nombre_interfaz);
-                //verificar_tipo_interfaz(conexion_cpu_dispatch, tipo_de_interfaz, nombre_interfaz);
-                */
-                sem_post(&mutex_conexion_cpu_dispatch);
-
-                mover_execute_a_blocked(pcb_io); // aca dentro se actualiza el contexto de ejecucion
+                verificar_tipo_interfaz(conexion_cpu_dispatch, pcb_io);
                 
-                hilo_procesar_io_fake(3000);
+                //sem_post(&mutex_conexion_cpu_dispatch);
+                //mover_execute_a_blocked(pcb_io); // aca dentro se actualiza el contexto de ejecucion
+                //hilo_procesar_io_fake(3000);
 
                 sem_post(&sem_cpu_disponible); 
                 break;
@@ -117,7 +132,7 @@ void procesar_conexion_cpu_dispatch(void *args){
                 t_PCB* pcb_fin = recibir_pcb(conexion_cpu_dispatch);
                 sem_post(&mutex_conexion_cpu_dispatch);
                 
-                mover_execute_a_exit(pcb_fin);
+                mover_execute_a_exit(pcb_fin, "SUCCESS");
 
                 sem_post(&sem_cpu_disponible);
 
@@ -149,7 +164,7 @@ void procesar_io_fake(void* args){
     int* milisegundos = (int*) args;
     sleep_ms(*milisegundos);
 
-    mover_blocked_a_ready();
+    //mover_blocked_a_ready();
 
     free(milisegundos);
 }

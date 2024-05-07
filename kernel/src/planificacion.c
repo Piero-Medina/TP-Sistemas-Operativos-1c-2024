@@ -12,7 +12,7 @@ void mover_a_new(t_PCB* pcb){
 }
 
 void func_largo_plazo(void* arg){
-    while (1){
+    while (procesar_conexion_en_ejecucion){
         sem_wait(&sem_procesos_esperando_en_new);
         sem_wait(&sem_grado_multiprogramacion);
         mover_new_a_ready();
@@ -39,7 +39,7 @@ void mover_new_a_ready(void){
 }
 
 void func_corto_plazo(void* arg){
-    while (1){
+    while (procesar_conexion_en_ejecucion){
         sem_wait(&sem_procesos_esperando_en_ready);
 
         if(algoritmo_elegido == FIFO){
@@ -112,9 +112,9 @@ t_PCB* actualizar_contexto(t_PCB* pcb_nueva, t_PCB* pcb_vieja){
     return pcb_nueva; 
 }
 
-void mover_blocked_a_ready(void){
+void mover_blocked_a_ready(int pid){
     sem_wait(&mutex_cola_blocked);
-        t_PCB* pcb = (t_PCB*) queue_pop(cola_blocked);
+        t_PCB* pcb = buscar_pcb_por_pid_y_remover(pid, cola_blocked->elements);
     sem_post(&mutex_cola_blocked);
 
     pcb->estado = READY;
@@ -131,13 +131,16 @@ void mover_blocked_a_ready(void){
     sem_post(&sem_procesos_esperando_en_ready);
 } 
 
-void mandar_a_exit(t_PCB* pcb){
+void mandar_a_exit(t_PCB* pcb, char* motivo){
 
     char* estado_anterior = estado_to_string(pcb);
     pcb->estado = EXIT;
 
-    sem_wait(&mutex_conexion_memoria);
-        //enviar_pcb(conexion_memoria, pcb, PROCESO_FINALIZADO_MEMORIA);
+    if (motivo != NULL){
+        log_info(logger, "Finaliza el proceso <%d> - Motivo: <%s>", pcb->pid, motivo);
+    }
+
+    sem_wait(&mutex_conexion_memoria);;
         log_info(logger, "Solicitando a MEMORIA que libere estructuras asocidas al proceso PID: <%d>", pcb->pid);
         envio_generico_entero(conexion_memoria, PROCESO_FINALIZADO_MEMORIA, pcb->pid);
         validar_respuesta_op_code(conexion_memoria, MEMORIA_OK, logger);
@@ -175,12 +178,12 @@ void mover_execute_a_ready(t_PCB* pcb_nueva){
     sem_post(&sem_procesos_esperando_en_ready);
 }
 
-void mover_execute_a_exit(t_PCB* pcb_nueva){
+void mover_execute_a_exit(t_PCB* pcb_nueva, char* motivo){
     sem_wait(&mutex_cola_execute);
         t_PCB* pcb_vieja = (t_PCB*) queue_pop(cola_execute);
     sem_post(&mutex_cola_execute);
 
     t_PCB* pcb_actualizada = actualizar_contexto(pcb_nueva, pcb_vieja); 
 
-    mandar_a_exit(pcb_actualizada);
+    mandar_a_exit(pcb_actualizada, motivo);
 }

@@ -36,8 +36,12 @@ void menu(void){
 
 void procesar_opcion(char* leido){
     t_opcion_consola opcion = opcion_seleccionada(leido);
-    ejecutar_opcion(opcion, leido);
     
+    if(opcion.opcion != OPCION_NEGADA){
+        ejecutar_opcion(opcion, leido);
+    }else{
+        printf("OPCION NO DISPONIBLE\n\n");
+    }
 }
 
 t_opcion_consola opcion_seleccionada(char* leido){
@@ -73,7 +77,10 @@ t_opcion_consola opcion_seleccionada(char* leido){
     else if(strcmp(split[0], "PROCESO_ESTADO") == 0){
 		tmp.opcion = PROCESO_ESTADO;
         tmp.cant_parametros = 0;
-	}
+	}else{
+        tmp.opcion = OPCION_NEGADA;
+        tmp.cant_parametros = 0;
+    }
 
     string_array_destroy(split);
     return tmp;
