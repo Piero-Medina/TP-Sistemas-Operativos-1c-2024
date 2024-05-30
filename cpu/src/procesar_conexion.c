@@ -21,9 +21,9 @@ void procesar_conexion_kernel(void *args){
             case EJECUTAR_PROCESO:
                 log_info(logger_c, "Solicitud de EJECUTAR_PROCESO");
                 t_PCB* pcb_a_ejecutar = recibir_pcb(socket);
-                log_info(logger_c, "Iniciando ciclo de instruccion para PID <%d>", pcb_a_ejecutar->pid);
+                log_info(logger_c, "Iniciando ciclo de instruccion para PID <%u>", pcb_a_ejecutar->pid);
                 ejecutar_ciclo_de_instruccion(socket, pcb_a_ejecutar);
-                log_info(logger_c, "finalizando ciclo de instruccion para PID <%d>", pcb_a_ejecutar->pid);
+                log_info(logger_c, "finalizando ciclo de instruccion para PID <%u> \n", pcb_a_ejecutar->pid);
                 liberar_PCB(pcb_a_ejecutar);
                 break;
             case DESALOJO:

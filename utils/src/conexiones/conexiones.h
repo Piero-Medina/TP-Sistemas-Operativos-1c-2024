@@ -36,7 +36,8 @@ int esperar_clientes(t_log* logger, const char* name, int socket_servidor);
 // funcion template (que recibe el hilo), modificar segun el uso que se le de
 void procesar_conexion_template(void *args);
 
-// recibe un codigo de operacion 
+// - Se recibe un codigo de operacion y se lo castea (uint8_t -> int)
+// - Si el cliente se desconecta (recv = 0) se cierra la conexion y se retorna -1 
 int recibir_operacion(int socket_cliente);
 
 // libera una conexion 

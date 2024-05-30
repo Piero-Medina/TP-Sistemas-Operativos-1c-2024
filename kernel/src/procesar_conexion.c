@@ -8,7 +8,6 @@ void procesar_conexion_io(void *args){
     free(casted_args);
 
     char* nombre_interfaz = NULL;
-    int pid;
 
     while (procesar_conexion_en_ejecucion) {
         int cod_op = recibir_operacion(socket);
@@ -22,12 +21,13 @@ void procesar_conexion_io(void *args){
                 free(modulo);
                 break;
             case REGISTRO_INTERFAZ:
-                int tipo_interfaz = 0;
+            {
+                uint32_t tipo_interfaz;
                 recibir_generico_entero_string(socket, &tipo_interfaz, &nombre_interfaz);
-                log_info(logger_k, "recibiendo nombre y tipo de Interfaz: %s \n", nombre_interfaz);
+                log_info(logger_k, "Recibiendo nombre y tipo de Interfaz: (%s) \n", nombre_interfaz);
             
                 sem_wait(&mutex_diccionario_interfaces);
-                    agregar_interfaz(interfaces, nombre_interfaz, socket, tipo_interfaz);
+                    agregar_interfaz(interfaces, nombre_interfaz, socket, (int)tipo_interfaz);
                 sem_post(&mutex_diccionario_interfaces);
                 
                 envio_generico_op_code(socket, KERNEL_OK);
@@ -35,12 +35,14 @@ void procesar_conexion_io(void *args){
                 sem_post(&sem_interfaz_io_libre);
                 //free(nombre_interfaz);
                 break;
+            }
             case SOLICITUD_IO_GEN_SLEEP_FINALIZADA:
-                pid = recibo_generico_entero(socket);
+            {
+                uint32_t pid = recibo_generico_entero(socket);
                 
-                log_info(logger, "PID: <%d> - Solicitud de IO_GEN_SLEEP Finalizada", pid);
+                log_info(logger, "PID: <%u> - Solicitud de IO_GEN_SLEEP Finalizada", pid);
                 // movemos el proceso a la lista de ready                
-                mover_blocked_a_ready(pid);
+                mover_blocked_a_ready((int)pid);
 
                 // cambiar el estado (sacando del diccionario) (tenemos el key nombre_interfaz)
                 sem_wait(&mutex_diccionario_interfaces);
@@ -52,16 +54,15 @@ void procesar_conexion_io(void *args){
                 // post semaforo avisando que hay una interfaz de io disponible
                 sem_post(&sem_interfaz_io_libre); // aviso que hay una instancia de io
                 break;
+            }
             case -1:
-                log_error(logger_k, "Cliente desconectado de %s \n", nombre_servidor);
+                log_error(logger_k, "Cliente (%s) desconectado de %s \n", nombre_interfaz, nombre_servidor);
 
                 sem_wait(&mutex_diccionario_interfaces);
                     quitar_interfaz(interfaces, nombre_interfaz);
                 sem_post(&mutex_diccionario_interfaces);
                 
                 free(nombre_interfaz);
-                //return EXIT_FAILURE -- si queremos terminar el server apenas alguien se desconecte
-                //break;
                 return; // terminamos la funcion si el cliente se desconecta
             default:
                 log_error(logger_k, "El codigo de operacion %d es incorrecto - %s", cod_op, nombre_servidor);
@@ -76,7 +77,6 @@ void procesar_conexion_io(void *args){
 
 void procesar_conexion_cpu_dispatch(void *args){
     char* nombre_modulo_server = "CPU_DISPATCH";
-    //t_PCB* pcb = NULL;
 
     while (procesar_conexion_en_ejecucion) {
         int cod_op = recibir_operacion(conexion_cpu_dispatch); // bloqueante
@@ -84,21 +84,23 @@ void procesar_conexion_cpu_dispatch(void *args){
         sem_wait(&mutex_conexion_cpu_dispatch);
         switch (cod_op) {
             case DESALOJO:
+            {
                 // TODO
                 sem_wait(&mutex_proceso_en_ejecucion);
                     proceso_en_ejecucion = false;
                 sem_post(&mutex_proceso_en_ejecucion);
 
-                t_PCB* pcb_desalojada = recibir_pcb(conexion_cpu_dispatch);
+                t_PCB* pcb = recibir_pcb(conexion_cpu_dispatch);
                 sem_post(&mutex_conexion_cpu_dispatch);
                 
                 // IIIIII -> luego revisar si puede haber otros motivos de desalojo
-                log_info(logger, "PID: <%d> - Desalojado por fin de Quantum", pcb_desalojada->pid);
+                log_info(logger, "PID: <%u> - Desalojado por fin de Quantum", pcb->pid);
 
-                mover_execute_a_ready(pcb_desalojada);
+                mover_execute_a_ready(pcb);
 
                 sem_post(&sem_cpu_disponible); 
                 break;
+            }
             case WAIT_KERNEL:
                 // TODO
                 sem_post(&mutex_conexion_cpu_dispatch);
@@ -108,36 +110,40 @@ void procesar_conexion_cpu_dispatch(void *args){
                 sem_post(&mutex_conexion_cpu_dispatch);
                 break;
             case PETICION_IO: // mandamos a blocked, o sino a exit
+            {
                 // TODO
                 sem_wait(&mutex_proceso_en_ejecucion);
                     proceso_en_ejecucion = false;
                 sem_post(&mutex_proceso_en_ejecucion);
 
-                t_PCB* pcb_io = recibir_pcb(conexion_cpu_dispatch);
-                log_info(logger, "PID: <%d> - PETICION_IO", pcb_io->pid);
+                t_PCB* pcb = recibir_pcb(conexion_cpu_dispatch);
+                log_info(logger, "PID: <%u> - PETICION_IO", pcb->pid);
 
-                verificar_tipo_interfaz(conexion_cpu_dispatch, pcb_io);
+                verificar_tipo_interfaz(conexion_cpu_dispatch, pcb);
                 
                 //sem_post(&mutex_conexion_cpu_dispatch);
-                //mover_execute_a_blocked(pcb_io); // aca dentro se actualiza el contexto de ejecucion
+                //mover_execute_a_blocked(pcb); // aca dentro se actualiza el contexto de ejecucion
                 //hilo_procesar_io_fake(3000);
 
                 sem_post(&sem_cpu_disponible); 
                 break;
+            }
             case PROCESO_FINALIZADO:
+            {
                 sem_wait(&mutex_proceso_en_ejecucion);
                     proceso_en_ejecucion = false;
                 sem_post(&mutex_proceso_en_ejecucion);
                 
-                t_PCB* pcb_fin = recibir_pcb(conexion_cpu_dispatch);
+                t_PCB* pcb = recibir_pcb(conexion_cpu_dispatch);
                 sem_post(&mutex_conexion_cpu_dispatch);
                 
-                mover_execute_a_exit(pcb_fin, "SUCCESS");
+                mover_execute_a_exit(pcb, "SUCCESS");
 
                 sem_post(&sem_cpu_disponible);
 
                 sem_post(&sem_grado_multiprogramacion);
                 break;
+            }
             case -1:
                 log_error(logger, "el server %s cerro la conexion", nombre_modulo_server);
                 sem_post(&mutex_conexion_cpu_dispatch);

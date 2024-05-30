@@ -42,27 +42,29 @@ void verificar_operacion_generica(int conexion, char* nombre_interfaz, t_PCB* pc
     t_interfaz* interfaz = NULL;
 
     if(operacion == IO_GEN_SLEEP){
-        int unidades_genericas = recibo_generico_entero(conexion);
+        uint32_t unidades_genericas = recibo_generico_entero(conexion);
         sem_post(&mutex_conexion_cpu_dispatch); // terminamos de recibir todos los datos
 
         // validar que exista el nombre de interfaz
         sem_wait(&mutex_diccionario_interfaces);
         if(!dictionary_has_key(interfaces, nombre_interfaz)){
             sem_post(&mutex_diccionario_interfaces);
-            log_info(logger, "PID: <%d> - PETICION_IO - operacion <IO_GEN_SLEEP> (Denegada porque no existe la interfaz (%s) en el Kernel)", pcb->pid, nombre_interfaz);
+            log_info(logger, "PID: <%u> - PETICION_IO - operacion <IO_GEN_SLEEP> (Denegada porque no existe la interfaz (%s) en el Kernel)", pcb->pid, nombre_interfaz);
             mover_execute_a_exit(pcb, "INTERFAZ SOLICITADA NO EXISTE"); // aca dentro se actualiza el contexto de ejecucion
             return;
         }
+        
         interfaz = (t_interfaz*) dictionary_get(interfaces, nombre_interfaz);
         
         // validar que admite la operacion
         if(!validar_operacion(interfaz->tipo, operacion)){
             sem_post(&mutex_diccionario_interfaces);
-            log_info(logger, "PID: <%d> - PETICION_IO - operacion <IO_GEN_SLEEP> (Denegada porque la interfaz (%s) no admite la operacion)", pcb->pid, nombre_interfaz);
+            log_info(logger, "PID: <%u> - PETICION_IO - operacion <IO_GEN_SLEEP> (Denegada porque la interfaz (%s) no admite la operacion)", pcb->pid, nombre_interfaz);
             mover_execute_a_exit(pcb, "INTERFAZ SOLCITADA NO ADMITE OPERACION PEDIDA");
             return;
         }
-    
+
+        log_info(logger, "PID: <%u> - Bloqueado por: <INTERFAZ (%s)>", pcb->pid, nombre_interfaz);
         mover_execute_a_blocked(pcb); // aca dentro se actualiza el contexto de ejecucion
 
         t_io_pendiente* pendiente_de_io = NULL;
@@ -135,7 +137,7 @@ bool validar_operacion(tipo_interfaz tipo_de_interfaz, t_identificador operacion
 }
 
 
-t_io_pendiente* inicializar_io_pendiente(int pid, int operacion, bool interfaz_ocupada, char* param_string, int param_int_1, int param_int_2, int param_int_3, int param_int_4){
+t_io_pendiente* inicializar_io_pendiente(uint32_t pid, int operacion, bool interfaz_ocupada, char* param_string, uint32_t param_int_1, uint32_t param_int_2, uint32_t param_int_3, uint32_t param_int_4){
     t_io_pendiente *nueva_io_pendiente = malloc(sizeof(t_io_pendiente));
     
     nueva_io_pendiente->pid = pid;

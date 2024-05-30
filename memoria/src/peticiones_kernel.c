@@ -2,13 +2,13 @@
 
 /////////////////////////////////////////////////////////////////////////////
 void kernel_creacion_nuevo_proceso(int conexion){
-    int pid;
+    uint32_t pid;
     char* path_intrucciones;
     t_proceso* proceso = NULL;
 
     recibir_generico_entero_string(conexion, &pid, &path_intrucciones);
 
-    proceso = crear_proceso_mediante_path(pid, path_intrucciones);
+    proceso = crear_proceso_mediante_path((int)pid, path_intrucciones);
 
     list_add(lista_de_procesos, proceso);
 

@@ -14,7 +14,7 @@ void ejecutar_ciclo_de_instruccion(int conexion, t_PCB* pcb){
     bool proceso_sigue_en_cpu = true;
     
     do {
-        log_info(logger, "PID: <%d> - FETCH - Program Counter: <%d>", pcb->pid, pcb->program_counter);
+        log_info(logger, "PID: <%u> - FETCH - Program Counter: <%d>", pcb->pid, pcb->program_counter);
         
         solicitar_intruccion_a_memoria(conexion_memoria, SOLICITAR_INTRUCCION_MEMORIA, pcb->pid, pcb->program_counter);
         ignorar_op_code(conexion_memoria);
@@ -22,117 +22,148 @@ void ejecutar_ciclo_de_instruccion(int conexion, t_PCB* pcb){
  
         switch (instruccion->identificador){
             case SET:
-                char* registro_set = (char*) list_get(instruccion->parametros, 0);
-                int valor_set = atoi((char*) list_get(instruccion->parametros, 1));
+            {
+                char* registro = (char*) list_get(instruccion->parametros, 0);
+                int valor = atoi((char*) list_get(instruccion->parametros, 1));
 
-                log_info(logger, "PID: <%d> - Ejecutando: <SET> - <%s> - <%d>", pcb->pid, registro_set, valor_set);
-                
-                e_registro e_registro_set = obtener_registro_por_nombre(registro_set);
-                set_registro(pcb, valor_set, e_registro_set);
+                log_info(logger, "PID: <%u> - Ejecutando: <SET> - <%s> - <%d>", pcb->pid, registro, valor);
+
+                e_registro e_registro = obtener_registro_por_nombre(registro);
+                set_registro(pcb, (uint32_t)valor, e_registro);
+
+                log_info(logger, "PID: <%u> - Finalizando: <SET> - (%s = %u)", pcb->pid, registro, (uint32_t)valor);
                 break;
+            }
             case SUM:
-                char* registro_dest_sum = (char*) list_get(instruccion->parametros, 0);
-                char* registro_orig_sum = (char*) list_get(instruccion->parametros, 1);
+            {
+                char* registro_dest = (char*) list_get(instruccion->parametros, 0);
+                char* registro_orig = (char*) list_get(instruccion->parametros, 1);
 
-                log_info(logger, "PID: <%d> - Ejecutando: <SUM> - <%s> - <%s>", pcb->pid, registro_dest_sum, registro_orig_sum);
+                log_info(logger, "PID: <%u> - Ejecutando: <SUM> - <%s> - <%s>", pcb->pid, registro_dest, registro_orig);
 
-                int suma_sum = get_registro(pcb, obtener_registro_por_nombre(registro_dest_sum)) +
-                                get_registro(pcb, obtener_registro_por_nombre(registro_orig_sum));
+                uint32_t suma = get_registro(pcb, obtener_registro_por_nombre(registro_dest)) +
+                                get_registro(pcb, obtener_registro_por_nombre(registro_orig));
 
-                set_registro(pcb, suma_sum, obtener_registro_por_nombre(registro_dest_sum));
+                set_registro(pcb, suma, obtener_registro_por_nombre(registro_dest));
+
+                log_info(logger, "PID: <%u> - Finalizando: <SUM> (%s = %u)", pcb->pid, registro_dest, suma);
                 break;
+            }
             case SUB:
-                char* registro_dest_sub = (char*) list_get(instruccion->parametros, 0);
-                char* registro_orig_sub = (char*) list_get(instruccion->parametros, 1);
+            {
+                char* registro_dest = (char*) list_get(instruccion->parametros, 0);
+                char* registro_orig = (char*) list_get(instruccion->parametros, 1);
 
-                log_info(logger, "PID: <%d> - Ejecutando: <SUB> - <%s> - <%s>", pcb->pid, registro_dest_sub, registro_orig_sub);
+                log_info(logger, "PID: <%u> - Ejecutando: <SUB> - <%s> - <%s>", pcb->pid, registro_dest, registro_orig);
                 
-                int resta_sub = get_registro(pcb, obtener_registro_por_nombre(registro_dest_sub)) -
-                                get_registro(pcb, obtener_registro_por_nombre(registro_orig_sub));
+                uint32_t resta = get_registro(pcb, obtener_registro_por_nombre(registro_dest)) -
+                                     get_registro(pcb, obtener_registro_por_nombre(registro_orig));
                 
-                set_registro(pcb, resta_sub, obtener_registro_por_nombre(registro_dest_sub));
+                set_registro(pcb, resta, obtener_registro_por_nombre(registro_dest));
+
+                log_info(logger, "PID: <%u> - Finalizando: <SUB> (%s = %u)", pcb->pid, registro_dest, resta);
                 break;
+            }
             case JNZ:
-                char* registro_jnz = (char*) list_get(instruccion->parametros, 0);
-                int valor_jnz = atoi((char*) list_get(instruccion->parametros, 1));
+            {
+                char* registro = (char*) list_get(instruccion->parametros, 0);
+                int nro_instruccion = atoi((char*) list_get(instruccion->parametros, 1));
                 
-                log_info(logger, "PID: <%d> - Ejecutando: <JNZ> - <%s> - <%d>", pcb->pid, registro_jnz, valor_jnz);
+                log_info(logger, "PID: <%u> - Ejecutando: <JNZ> - <%s> - <%d>", pcb->pid, registro, nro_instruccion);
 
-                if(get_registro(pcb, obtener_registro_por_nombre(registro_jnz)) != 0){
-                    pcb->program_counter = valor_jnz;
-                    pcb->registros->PC = valor_jnz;
-                } 
+                if(get_registro(pcb, obtener_registro_por_nombre(registro)) != 0){
+                    pcb->program_counter = (uint32_t)nro_instruccion;
+                    pcb->registros->PC = (uint32_t)nro_instruccion;
+                }
+
+                log_info(logger, "PID: <%u> - Finalizando: <JNZ> (PC = %u)", pcb->pid, pcb->program_counter); 
                 break;
+            }
             case IO_GEN_SLEEP:
-                char* interfaz_generica = (char*) list_get(instruccion->parametros, 0);
-                int unidades_generica = atoi((char*) list_get(instruccion->parametros, 1));
+            {
+                char* nombre_interfaz = (char*) list_get(instruccion->parametros, 0);
+                int unidades_de_trabajo = atoi((char*) list_get(instruccion->parametros, 1));
 
-                log_info(logger, "PID: <%d> - Ejecutando: <IO_GEN_SLEEP> - <%s> - <%d>", pcb->pid, interfaz_generica, unidades_generica);
+                log_info(logger, "PID: <%u> - Ejecutando: <IO_GEN_SLEEP> - <%s> - <%d>", pcb->pid, nombre_interfaz, unidades_de_trabajo);
                 
                 // porque el pcb se va de cpu, si no lo hacemos tendra el PC desactualizado
-                incrementar_program_counter(pcb, 1); 
+                incrementar_program_counter(pcb, 1);
 
-                log_info(logger, "PID: <%d> - se va de CPU", pcb->pid);
+                establecer_tiempo_restante_de_ejecucion(pcb, inicio, final); 
+
+                log_info(logger, "PID: <%u> - Se va de CPU", pcb->pid);
                 enviar_pcb(conexion, pcb, PETICION_IO);
-                envio_generico_string(conexion, GENERICA, interfaz_generica);
-                envio_generico_entero(conexion, IO_GEN_SLEEP, unidades_generica);
+                envio_generico_string(conexion, GENERICA, nombre_interfaz);
+                envio_generico_entero(conexion, IO_GEN_SLEEP, (uint32_t)unidades_de_trabajo);
                 puede_seguir_ejecutando = false;
                 proceso_sigue_en_cpu = false;
+
+                log_info(logger, "PID: <%u> - Finalizando: <IO_GEN_SLEEP> ", pcb->pid);
                 break;
+            }
             case EXIT_I:
-                log_info(logger, "PID: <%d> - Ejecutando: <EXIT> ", pcb->pid);
+            {
+                log_info(logger, "PID: <%u> - Ejecutando: <EXIT> ", pcb->pid);
 
                 // porque el pcb se va de cpu, si no lo hacemos tendra el PC desactualizado
-                incrementar_program_counter(pcb, 1); 
+                incrementar_program_counter(pcb, 1);
 
-                log_info(logger, "PID: <%d> - se va de CPU", pcb->pid);
+                establecer_tiempo_restante_de_ejecucion(pcb, inicio, final); 
+
+                log_info(logger, "PID: <%u> - Se va de CPU", pcb->pid);
                 enviar_pcb(conexion, pcb, PROCESO_FINALIZADO);
                 puede_seguir_ejecutando = false;
                 proceso_sigue_en_cpu = false;
+
+                log_info(logger, "PID: <%u> - Finalizando: <EXIT> ", pcb->pid);
                 break;
+            }
             default:
                 log_info(logger, "PID: <%d> - No se reconoce Instruccion", pcb->pid);
                 break;
         }
 
         // no incrementamos el PC ante un JNZ ya que este setea un nuevo valor para PC 
-        if(instruccion->identificador != JNZ) 
-        incrementar_program_counter(pcb, 1);
+        if(instruccion->identificador != JNZ){ 
+            incrementar_program_counter(pcb, 1);
+        }
             
-        log_info(logger, "PID: <%d> - CHECK INTERRUPT (verificando) ", pcb->pid);
+        log_info(logger, "PID: <%u> - CHECK INTERRUPT (verificando) ", pcb->pid);
         sem_wait(&mutex_desalojo);
             if(desalojo){
-                log_info(logger, "PID: <%d> - CHECK INTERRUPT (true)", pcb->pid);
+                log_info(logger, "PID: <%u> - CHECK INTERRUPT (True)", pcb->pid);
 
                 if(proceso_sigue_en_cpu){
                     puede_seguir_ejecutando = false;
-                    gettimeofday(&final, NULL);
+
                     establecer_tiempo_restante_de_ejecucion(pcb, inicio, final);
 
-                    log_info(logger, "PID: <%d> - se va de CPU", pcb->pid);
+                    log_info(logger, "PID: <%u> - Se va de CPU", pcb->pid);
                     enviar_pcb(conexion, pcb, DESALOJO);
                     
                     desalojo = false;
                 }
                 else{
-                    log_info(logger, "PID: <%d> - CHECK INTERRUPT (negado) - el proceso se fue de CPU", pcb->pid);
+                    log_info(logger, "PID: <%u> - CHECK INTERRUPT (Negado) - el proceso se fue de CPU", pcb->pid);
                     puede_seguir_ejecutando = false;
 
                     desalojo = false;
                 }
             }
             else{
-                log_info(logger, "PID: <%d> - CHECK INTERRUPT (false)", pcb->pid);
+                log_info(logger, "PID: <%u> - CHECK INTERRUPT (False)", pcb->pid);
             }
         sem_post(&mutex_desalojo);
 
         destruir_elemento_instruccion((void*) instruccion);
+        instruccion = NULL;
 
     } while (puede_seguir_ejecutando);
 
 }
 
 void establecer_tiempo_restante_de_ejecucion(t_PCB* pcb,struct timeval inicio, struct timeval final){
+    gettimeofday(&final, NULL);
     int tiempo_ejecucion_ms = (final.tv_sec - inicio.tv_sec) * 1000;
     int tiempo_restante_ms = pcb->quantum - tiempo_ejecucion_ms;
 
@@ -144,10 +175,9 @@ void establecer_tiempo_restante_de_ejecucion(t_PCB* pcb,struct timeval inicio, s
         pcb->quantum = 0;
     }
     else{
-        pcb->quantum -= tiempo_ejecucion_ms;
+        pcb->quantum -= (uint32_t)tiempo_ejecucion_ms;
     }
 }
-
 
 void incrementar_program_counter(t_PCB* pcb, int en_cuanto){
     pcb->program_counter += en_cuanto;

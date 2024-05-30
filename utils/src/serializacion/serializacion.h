@@ -25,76 +25,77 @@
  }t_buffer;
 
  typedef struct {
-    int codigo_operacion; 
+    uint8_t codigo_operacion; 
     t_buffer* buffer;
  }t_paquete;
 
- // crea un paquete con un buffer inicializado con un tamanio especifico
- t_paquete* paquete_create_with_buffer_size(uint32_t size_buffer, int codigo_operacion);
+ // - crea un paquete con un buffer inicializado con un tamanio especifico
+ t_paquete* paquete_create_with_buffer_size(uint32_t size_buffer, uint8_t codigo_operacion);
 
- // crea un paquete con un buffer determinado
- t_paquete* paquete_create_add_buffer(t_buffer* buffer, int codigo_operacion);
+ // - crea un paquete recibiendo un buffer externo
+ t_paquete* paquete_create_add_buffer(t_buffer* buffer, uint8_t codigo_operacion);
  
- // crea un paquete con un buffer NULL
- t_paquete* paquete_create_with_buffer_null(int codigo_operacion);
+ // - crea un paquete con un buffer NULL (vacio)
+ t_paquete* paquete_create_with_buffer_null(uint8_t codigo_operacion);
 
- // Libera la memoria asociada a un paquete
+ // - Libera la memoria asociada a un paquete
  void paquete_detroy(t_paquete* paquete); 
  
- // Crea un buffer de tamaño size, offset 0 y reservando memoria para stream
+ // - Crea un buffer de tamanio (size), offset (0) y reservando memoria para stream (size)
  t_buffer* buffer_create(uint32_t size);
 
- // Libera la memoria asociada al buffer
+ // - Libera la memoria asociada al buffer
  void buffer_destroy(t_buffer* buffer);
 
- // Agrega un stream al buffer en la posición actual y avanza el offset
- void buffer_add(t_buffer *buffer, void *data, uint32_t size);
+ // - Agrega un stream al buffer en la posición actual y avanza el offset
+ void buffer_add(t_buffer *buffer, void* data, uint32_t size);
 
- // Guarda size bytes del principio del buffer en la dirección data y avanza el offset
+ // - Guarda size bytes del principio del buffer en la dirección data y avanza el offset
  void buffer_read(t_buffer* buffer, void* data, uint32_t size);
 
 
 // --------------------------  agregar tipos de dato -----------------------
 
- // agrega un int al buffer
+ // - Agrega un int al buffer
  void buffer_add_int(t_buffer *buffer, int data);
 
- // Agrega un uint32_t al buffer
+ // - Agrega un uint32_t al buffer
  void buffer_add_uint32(t_buffer *buffer, uint32_t data);
 
- // Agrega un uint8_t al buffer
+ // - Agrega un uint8_t al buffer
  void buffer_add_uint8(t_buffer *buffer, uint8_t data);
 
- // Agrega string al buffer con un uint32_t adelante indicando su longitud
+ // - Agrega string al buffer con un uint32_t adelante indicando su longitud
  void buffer_add_string(t_buffer *buffer, uint32_t length, char *string);
 
 // --------------------------  leer tipos de dato -----------------------
 
- // Lee un int del buffer y avanza el offset
+ // - Lee un int del buffer y avanza el offset
  int buffer_read_int(t_buffer *buffer);
 
- // Lee un uint32_t del buffer y avanza el offset
+ // - Lee un uint32_t del buffer y avanza el offset
  uint32_t buffer_read_uint32(t_buffer *buffer);
 
- // Lee un uint8_t del buffer y avanza el offset 
+ // - Lee un uint8_t del buffer y avanza el offset 
  uint8_t buffer_read_uint8(t_buffer *buffer);
 
- // Lee un string y su longitud del buffer y avanza el offset
+ // - Lee un string y su longitud del buffer y avanza el offset
  char* buffer_read_string(t_buffer *buffer);
 
 //-------------------------------------- EXTRAS --------------------------------
- // serializamos un paquete, retorno un stream con el paquete serializado
- // no olvidar liberar el void* y el paquete y el paquete.
- void* serializar_paquete(t_paquete* paquete, size_t* size_a_enviar);
 
- // recibe un buffer por red, se deserializa e inicializa el offset en 0  
- // no olvidar liberar el buffer cuando se termine de sacar todo
+ // - serializamos un paquete, retorno un stream con el paquete serializado
+ // - (liberar el stream (void*) y el paquete)
+ void* serializar_paquete(t_paquete* paquete, uint32_t* size_a_enviar);
+
+ // - Recibe un buffer por red, se deserializa e inicializa el offset en 0  
+ // - (liberar el buffer cuando se termine de sacar todo)
  t_buffer* recibir_buffer(int conexion);
 
 //-------------------------------------- HANDSHAKE ----------------------------------------------
  
  // envia handshake al servidor e informa si fue exitoso
- void enviar_handshake(int conexion, int codigo_operacion, char* modulo_origen, char* modulo_destino, t_log* logger);
+ void enviar_handshake(int conexion, uint8_t codigo_operacion, char* modulo_origen, char* modulo_destino, t_log* logger);
  
  // retorna de que modulo_cliente se realiza el handshake
  char* recibir_handshake(int fd_cliente);
@@ -131,7 +132,7 @@
  t_persona* deserializar_persona(t_buffer* buffer);
 
  // envia por red un t_persona 
- void enviar_persona(int socket, t_persona* persona, int codigo_operacion);
+ void enviar_persona(int socket, t_persona* persona, uint8_t codigo_operacion);
 
  // recibe por red un t_persona
  t_persona* recibir_persona(int socket);

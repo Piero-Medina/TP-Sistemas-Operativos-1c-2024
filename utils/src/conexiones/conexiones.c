@@ -119,9 +119,11 @@ void procesar_conexion_template(void *args){
 }
 
 int recibir_operacion(int socket_cliente){
-	int cod_op;
-	if(recv(socket_cliente, &cod_op, sizeof(int), MSG_WAITALL) > 0){
-		return cod_op;
+	uint8_t cod_op;
+
+	// si recv devuelve 0 significa que el cliente se desconecto
+	if(recv(socket_cliente, &cod_op, sizeof(uint8_t), MSG_WAITALL) > 0){
+		return (int) cod_op;
 	}
 	else{
 		close(socket_cliente);

@@ -152,13 +152,13 @@ void func_iniciar_proceso(char* leido){
     char** split = string_split(leido, " ");
 
     sem_wait(&mutex_pid);
-    t_PCB* pcb = crear_PCB(contador_pid, config->quantum, NEW); // creado pero aun no liberado
+    t_PCB* pcb = crear_PCB((uint32_t)contador_pid, (uint32_t)config->quantum, NEW); // creado pero aun no liberado
     contador_pid ++;
     sem_post(&mutex_pid);
 
-    log_info(logger, "Avisando a Memoria sobre la entrada de Nuevo Preceso PID: <%d> ", pcb->pid);
+    log_info(logger, "Avisando a Memoria sobre la entrada de Nuevo Preceso PID: <%u> ", pcb->pid);
     sem_wait(&mutex_conexion_memoria);
-        avisar_nuevo_proceso_memoria(conexion_memoria, pcb->pid, split[1]);
+        envio_generico_entero_y_string(conexion_memoria, NUEVO_PROCESO_MEMORIA, pcb->pid, split[1]);
         validar_respuesta_op_code(conexion_memoria, MEMORIA_OK, logger);
     sem_post(&mutex_conexion_memoria);
 

@@ -45,15 +45,15 @@ typedef struct {
 }registros_cpu;
 
 typedef struct {
-    int pid;
+    uint32_t pid;
     uint32_t program_counter;
-    int quantum;
+    uint32_t quantum;
     registros_cpu* registros;
     estado_pcb estado;
 }t_PCB;
 
 // crea y retorna un puntero a t_PCB 
-t_PCB* crear_PCB(int pid, int quantum, estado_pcb estado);
+t_PCB* crear_PCB(uint32_t pid, uint32_t quantum, estado_pcb estado);
 void liberar_PCB(t_PCB* pcb);
 
 // crea y retorna un puntero a registros_cpu 
@@ -64,8 +64,9 @@ void liberar_registros_cpu(registros_cpu* registros);
 char* estado_to_string(t_PCB* pcb);
 
 ////// setter y getter registro //////
-e_registro obtener_registro_por_nombre(char *nombre);
-void set_registro(t_PCB *pcb, uint32_t valor, e_registro registro);
-uint32_t get_registro(t_PCB *pcb, e_registro registro);
+
+ e_registro obtener_registro_por_nombre(char *nombre);
+ void set_registro(t_PCB *pcb, uint32_t valor, e_registro registro);
+ uint32_t get_registro(t_PCB *pcb, e_registro registro);
 
 #endif

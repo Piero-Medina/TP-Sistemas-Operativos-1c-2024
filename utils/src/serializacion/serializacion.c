@@ -1,6 +1,6 @@
 #include <serializacion/serializacion.h>
 
-t_paquete* paquete_create_with_buffer_size(uint32_t size_buffer, int codigo_operacion){
+t_paquete* paquete_create_with_buffer_size(uint32_t size_buffer, uint8_t codigo_operacion){
     t_paquete* paquete = malloc(sizeof(t_paquete));
 
     paquete->codigo_operacion = codigo_operacion;
@@ -9,7 +9,7 @@ t_paquete* paquete_create_with_buffer_size(uint32_t size_buffer, int codigo_oper
     return paquete;
 }
 
-t_paquete* paquete_create_add_buffer(t_buffer* buffer, int codigo_operacion){
+t_paquete* paquete_create_add_buffer(t_buffer* buffer, uint8_t codigo_operacion){
     t_paquete* paquete = malloc(sizeof(t_paquete));
 
     paquete->codigo_operacion = codigo_operacion;
@@ -18,7 +18,7 @@ t_paquete* paquete_create_add_buffer(t_buffer* buffer, int codigo_operacion){
     return paquete;
 }
 
-t_paquete* paquete_create_with_buffer_null(int codigo_operacion){
+t_paquete* paquete_create_with_buffer_null(uint8_t codigo_operacion){
     t_paquete* paquete = malloc(sizeof(t_paquete));
 
     paquete->codigo_operacion = codigo_operacion;
@@ -107,17 +107,18 @@ void buffer_destroy(t_buffer* buffer){
 
 
 //-------------------------------------- EXTRAS ----------------------------------------------
- void* serializar_paquete(t_paquete* paquete, size_t* size_a_enviar){
 
-    *size_a_enviar = sizeof(int) +          // codigo de operacion
+ void* serializar_paquete(t_paquete* paquete, uint32_t* size_a_enviar){
+
+    *size_a_enviar = sizeof(uint8_t) +      // codigo de operacion
                      sizeof(uint32_t) +     // tamaño del buffer
                      paquete->buffer->size; // el propio stream del buffer
 
     void* a_enviar = malloc(*size_a_enviar);
 
     int offset = 0;
-    memcpy(a_enviar + offset, &paquete->codigo_operacion, sizeof(int));
-    offset += sizeof(int);
+    memcpy(a_enviar + offset, &paquete->codigo_operacion, sizeof(uint8_t));
+    offset += sizeof(uint8_t);
     memcpy(a_enviar + offset, &paquete->buffer->size, sizeof(uint32_t)); 
     offset += sizeof(uint32_t);
     memcpy(a_enviar + offset, paquete->buffer->stream, paquete->buffer->size);
@@ -138,7 +139,8 @@ void buffer_destroy(t_buffer* buffer){
  }
 
 //-------------------------------------- HANDSHAKE ---------------------------------------------- 
- void enviar_handshake(int conexion, int codigo_operacion, char* modulo_origen, char* modulo_destino, t_log* logger){
+
+ void enviar_handshake(int conexion, uint8_t codigo_operacion, char* modulo_origen, char* modulo_destino, t_log* logger){
     t_paquete* paquete = paquete_create_with_buffer_null(codigo_operacion);
     
     //
@@ -152,7 +154,7 @@ void buffer_destroy(t_buffer* buffer){
     paquete->buffer = buffer;
     //
 
-    size_t size_a_enviar = 0;
+    uint32_t size_a_enviar = 0;
     void* a_enviar = serializar_paquete(paquete, &size_a_enviar);
 
     send(conexion, a_enviar, size_a_enviar, 0);
@@ -181,15 +183,16 @@ void buffer_destroy(t_buffer* buffer){
  }
 
  void estado_handshake(int conexion, char* modulo, t_log* logger){
-    int valor = -1;
-    recv(conexion, &valor, sizeof(int), MSG_WAITALL);
+    // int valor = -1; uint8_ solo toma valores (0-255)
+    uint8_t valor;
+    recv(conexion, &valor, sizeof(uint8_t), MSG_WAITALL);
     if(valor == 0) log_info (logger, "Handshake Aceptado por Modulo: %s \n",modulo);
-    else log_info (logger, "Handshake Denegado por Modulo: %s \n",modulo);
+    if(valor != 0) log_info (logger, "Handshake Denegado por Modulo: %s \n",modulo);
  }
 
  void responder_handshake(int fd_cliente){
-    int valor = 0;
-    send(fd_cliente, &valor, sizeof(int), 0);
+    uint8_t valor = 0;
+    send(fd_cliente, &valor, sizeof(uint8_t), 0);
  }
 
 //-------------------------------------- EJEMPLO -------------------------------------------------
@@ -249,12 +252,12 @@ t_persona* deserializar_persona(t_buffer *buffer) {
 }
 
 
-void enviar_persona(int socket, t_persona* persona, int codigo_operacion){
+void enviar_persona(int socket, t_persona* persona, uint8_t codigo_operacion){
     t_paquete* paquete = paquete_create_with_buffer_null(codigo_operacion);
 
     paquete->buffer = serializar_persona(persona);
 
-    size_t size_a_enviar = 0;
+    uint32_t size_a_enviar = 0;
     void* a_enviar = serializar_paquete(paquete, &size_a_enviar);
 
     send(socket, a_enviar, size_a_enviar, 0);

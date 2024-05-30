@@ -1,6 +1,6 @@
 #include <pcb/pcb.h>
 
-t_PCB* crear_PCB(int pid, int quantum, estado_pcb estado){
+t_PCB* crear_PCB(uint32_t pid, uint32_t quantum, estado_pcb estado){
     t_PCB* nuevo_pcb = malloc(sizeof(t_PCB));
 
     nuevo_pcb->pid = pid;
@@ -92,16 +92,16 @@ e_registro obtener_registro_por_nombre(char *nombre){
 void set_registro(t_PCB *pcb, uint32_t valor, e_registro registro){
     switch (registro) {
         case AX:
-            pcb->registros->AX = valor;
+            pcb->registros->AX = (uint8_t)valor;
             break;
         case BX:
-            pcb->registros->BX = valor;
+            pcb->registros->BX = (uint8_t)valor;
             break;
         case CX:
-            pcb->registros->CX = valor;
+            pcb->registros->CX = (uint8_t)valor;
             break;
         case DX:
-            pcb->registros->DX = valor;
+            pcb->registros->DX = (uint8_t)valor;
             break;
         case EAX:
             pcb->registros->EAX = valor;
@@ -129,22 +129,21 @@ void set_registro(t_PCB *pcb, uint32_t valor, e_registro registro){
     }
 }
 
-
 uint32_t get_registro(t_PCB *pcb, e_registro registro) {
     uint32_t valor;
 
     switch (registro) {
         case AX:
-            valor = pcb->registros->AX;
+            valor = (uint32_t)pcb->registros->AX;
             break;
         case BX:
-            valor = pcb->registros->BX;
+            valor = (uint32_t)pcb->registros->BX;
             break;
         case CX:
-            valor = pcb->registros->CX;
+            valor = (uint32_t)pcb->registros->CX;
             break;
         case DX:
-            valor = pcb->registros->DX;
+            valor = (uint32_t)pcb->registros->DX;
             break;
         case EAX:
             valor = pcb->registros->EAX;

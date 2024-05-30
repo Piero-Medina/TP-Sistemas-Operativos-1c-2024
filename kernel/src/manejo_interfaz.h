@@ -3,6 +3,8 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h> 
+
 #include <commons/collections/dictionary.h>
 #include <commons/collections/list.h>
 #include <commons/collections/queue.h>
@@ -36,7 +38,7 @@ void verificar_operacion_dialFs(int conexion, char* nombre_interfaz, int operaci
 bool validar_operacion(tipo_interfaz tipo_de_interfaz, t_identificador operacion);
 
 // se inicializa y se reserva memoria para un io_pendiente
-t_io_pendiente* inicializar_io_pendiente(int pid, int operacion, bool interfaz_ocupada, char* param_string, int param_int_1, int param_int_2, int param_int_3, int param_int_4);
+t_io_pendiente* inicializar_io_pendiente(uint32_t pid, int operacion, bool interfaz_ocupada, char* param_string, uint32_t param_int_1, uint32_t param_int_2, uint32_t param_int_3, uint32_t param_int_4);
 
 // verifica que interfaces estan libres para procesar una IO
 void manejador_de_procesos_pendientes_io(void* arg);

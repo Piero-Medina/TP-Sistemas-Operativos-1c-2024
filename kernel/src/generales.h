@@ -32,14 +32,14 @@ typedef struct {
 }t_interfaz;
 
 typedef struct {
-	int pid;
+	uint32_t pid;
 	int operacion;
 	bool interfaz_ocupada;
 	char* parametro_string;
-	int parametro_int_1;
-	int parametro_int_2;
-	int parametro_int_3;
-	int parametro_int_4;
+	uint32_t parametro_int_1;
+	uint32_t parametro_int_2;
+	uint32_t parametro_int_3;
+	uint32_t parametro_int_4;
 }t_io_pendiente;
 
 /**

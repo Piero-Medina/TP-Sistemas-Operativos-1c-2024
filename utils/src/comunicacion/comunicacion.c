@@ -13,16 +13,16 @@ void solicitar_intruccion_a_memoria(int conexion, int op_code, int pid, int pc){
 }
 
 /////////////////////////////////////////////////////////////////////////////////////// 
-void envio_generico_entero_y_string(int conexion, int op_code, int entero, char* string){
+void envio_generico_entero_y_string(int conexion, uint8_t op_code, uint32_t entero, char* string){
     uint32_t length = strlen(string) + 1;
-    uint32_t size_buffer = sizeof(int) + sizeof(uint32_t) + length; 
+    uint32_t size_buffer = sizeof(uint32_t) + sizeof(uint32_t) + length; 
     
     t_paquete* paquete = paquete_create_with_buffer_size(size_buffer, op_code);
 
-    buffer_add_int(paquete->buffer, entero);
+    buffer_add_uint32(paquete->buffer, entero);
     buffer_add_string(paquete->buffer, length, string);
 
-    size_t size_a_enviar = 0;
+    uint32_t size_a_enviar = 0;
     void* a_enviar = serializar_paquete(paquete, &size_a_enviar);
 
     send(conexion, a_enviar, size_a_enviar, 0);
@@ -31,17 +31,17 @@ void envio_generico_entero_y_string(int conexion, int op_code, int entero, char*
     free(a_enviar);
 }
 
-void recibir_generico_entero_string(int conexion, int* entero, char** string){
+void recibir_generico_entero_string(int conexion, uint32_t* entero, char** string){
     t_buffer* buffer = recibir_buffer(conexion);
 
-    *entero = buffer_read_int(buffer);
+    *entero = buffer_read_uint32(buffer);
     *string = buffer_read_string(buffer);
 
     buffer_destroy(buffer);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////// 
-void envio_generico_string(int conexion, int op_code, char* string){
+void envio_generico_string(int conexion, uint8_t op_code, char* string){
     uint32_t length = strlen(string) + 1;
     uint32_t size_buffer = sizeof(uint32_t) + length; 
     
@@ -49,7 +49,7 @@ void envio_generico_string(int conexion, int op_code, char* string){
 
     buffer_add_string(paquete->buffer, length, string);
 
-    size_t size_a_enviar = 0;
+    uint32_t size_a_enviar = 0;
     void* a_enviar = serializar_paquete(paquete, &size_a_enviar);
 
     send(conexion, a_enviar, size_a_enviar, 0);
@@ -69,14 +69,15 @@ char* recibir_generico_string(int conexion){
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////
-void envio_generico_entero(int conexion, int op_code, int entero){
-    uint32_t size_buffer = sizeof(int); 
+
+void envio_generico_entero(int conexion, uint8_t op_code, uint32_t entero){
+    uint32_t size_buffer = sizeof(uint32_t); 
     
     t_paquete* paquete = paquete_create_with_buffer_size(size_buffer, op_code);
 
-    buffer_add_int(paquete->buffer, entero);
+    buffer_add_uint32(paquete->buffer, entero);
 
-    size_t size_a_enviar = 0;
+    uint32_t size_a_enviar = 0;
     void* a_enviar = serializar_paquete(paquete, &size_a_enviar);
 
     send(conexion, a_enviar, size_a_enviar, 0);
@@ -85,10 +86,10 @@ void envio_generico_entero(int conexion, int op_code, int entero){
     free(a_enviar);
 }
 
-int recibo_generico_entero(int conexion){
+uint32_t recibo_generico_entero(int conexion){
     t_buffer* buffer = recibir_buffer(conexion);
     
-    int entero = buffer_read_int(buffer);
+    uint32_t entero = buffer_read_uint32(buffer);
 
     buffer_destroy(buffer);
 
@@ -96,15 +97,16 @@ int recibo_generico_entero(int conexion){
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////
-void envio_generico_doble_entero(int conexion, int op_code, int entero1, int entero2){
-    uint32_t size_buffer = sizeof(int) * 2; 
+
+void envio_generico_doble_entero(int conexion, uint8_t op_code, uint32_t entero1, uint32_t entero2){
+    uint32_t size_buffer = sizeof(uint32_t) * 2; 
     
     t_paquete* paquete = paquete_create_with_buffer_size(size_buffer, op_code);
 
-    buffer_add_int(paquete->buffer, entero1);
-    buffer_add_int(paquete->buffer, entero2);
+    buffer_add_uint32(paquete->buffer, entero1);
+    buffer_add_uint32(paquete->buffer, entero2);
 
-    size_t size_a_enviar = 0;
+    uint32_t size_a_enviar = 0;
     void* a_enviar = serializar_paquete(paquete, &size_a_enviar);
 
     send(conexion, a_enviar, size_a_enviar, 0);
@@ -113,30 +115,31 @@ void envio_generico_doble_entero(int conexion, int op_code, int entero1, int ent
     free(a_enviar);
 }
 
-void recibo_generico_doble_entero(int conexion, int* entero1, int* entero2){
+void recibo_generico_doble_entero(int conexion, uint32_t* entero1, uint32_t* entero2){
     t_buffer* buffer = recibir_buffer(conexion);
     
-    *entero1 = buffer_read_int(buffer);
-    *entero2 = buffer_read_int(buffer);
+    *entero1 = buffer_read_uint32(buffer);
+    *entero2 = buffer_read_uint32(buffer);
 
     buffer_destroy(buffer);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////
-void envio_generico_op_code(int conexion, int op_code){
-    send(conexion, &op_code, sizeof(int), 0);
+
+void envio_generico_op_code(int conexion, uint8_t op_code){
+    send(conexion, &op_code, sizeof(uint8_t), 0);
 }
 
 int recibo_generico_op_code(int conexion){
-    int tmp;
-    recv(conexion, &tmp, sizeof(int), MSG_WAITALL);
-    return tmp;
+    uint8_t tmp;
+    recv(conexion, &tmp, sizeof(uint8_t), MSG_WAITALL);
+    return (int) tmp;
 }
 
-void validar_respuesta_op_code(int conexion, int op_code_esperado, t_log* logger){
+void validar_respuesta_op_code(int conexion, uint8_t op_code_esperado, t_log* logger){
     int respuesta = recibo_generico_op_code(conexion);
-    if(respuesta == op_code_esperado) log_info(logger, "Respuesta OK");
-    else log_info(logger, "Respuesta Fallida");
+    if(respuesta == op_code_esperado) log_info(logger, "Respuesta OK \n");
+    if(respuesta != op_code_esperado) log_info(logger, "Respuesta Fallida \n");
 }
 
 void ignorar_op_code(int conexion){
@@ -148,12 +151,45 @@ void ignorar_op_code(int conexion){
     //int tmp = recibo_generico_op_code(conexion);
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void enviar_generico_doble_entero_y_string(int conexion, uint8_t op_code, uint32_t entero1, uint32_t entero2, char* string){
+    uint32_t length = strlen(string) + 1;
+    uint32_t size_buffer = sizeof(uint32_t) * 2 +
+                           sizeof(uint32_t) + length; 
+    
+    t_paquete* paquete = paquete_create_with_buffer_size(size_buffer, op_code);
+
+    buffer_add_uint32(paquete->buffer, entero1);
+    buffer_add_uint32(paquete->buffer, entero2);
+    buffer_add_string(paquete->buffer, length, string);
+
+    uint32_t size_a_enviar = 0;
+    void* a_enviar = serializar_paquete(paquete, &size_a_enviar);
+
+    send(conexion, a_enviar, size_a_enviar, 0);
+
+    paquete_detroy(paquete);
+    free(a_enviar);
+}
+
+void recibir_generico_doble_entero_y_string(int conexion, uint32_t* entero1, uint32_t* entero2, char** string){
+    t_buffer* buffer = recibir_buffer(conexion);
+    
+    *entero1 = buffer_read_uint32(buffer);
+    *entero2 = buffer_read_uint32(buffer);
+    *string = buffer_read_string(buffer);
+
+    buffer_destroy(buffer);
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////
-void enviar_pcb(int conexion, t_PCB* pcb, int codigo_operacion){
+
+void enviar_pcb(int conexion, t_PCB* pcb, uint8_t codigo_operacion){
     t_paquete* paquete = paquete_create_with_buffer_null(codigo_operacion);
     paquete->buffer = serializar_pcb(pcb);
 
-    size_t size_a_enviar = 0;
+    uint32_t size_a_enviar = 0;
     void* a_enviar = serializar_paquete(paquete, &size_a_enviar);
     send(conexion, a_enviar, size_a_enviar, 0);
     
@@ -177,15 +213,16 @@ t_PCB* recibir_pcb(int conexion){
 }
 
 t_buffer* serializar_pcb(t_PCB* pcb){
-    uint32_t size = sizeof(int) * 3 + 
-                    sizeof(uint32_t) * 8 +
+    uint32_t size = sizeof(uint32_t) * 2 +  //(pid, quamtum)
+                    sizeof(uint8_t) * 1 +   //(estado)
+                    sizeof(uint32_t) * 8 +  
                     sizeof(uint8_t) * 4;
 
     t_buffer* buffer = buffer_create(size);
 
-    buffer_add_int(buffer, pcb->pid);
+    buffer_add_uint32(buffer, pcb->pid);
     buffer_add_uint32(buffer, pcb->program_counter);
-    buffer_add_int(buffer, pcb->quantum);
+    buffer_add_uint32(buffer, pcb->quantum);
 
     buffer_add_uint32(buffer, pcb->registros->PC);
     buffer_add_uint8(buffer, pcb->registros->AX);
@@ -199,7 +236,7 @@ t_buffer* serializar_pcb(t_PCB* pcb){
     buffer_add_uint32(buffer, pcb->registros->SI);
     buffer_add_uint32(buffer, pcb->registros->DI);
 
-    buffer_add_int(buffer, pcb->estado);
+    buffer_add_uint8(buffer, pcb->estado);
 
     return buffer;
 }
@@ -208,9 +245,9 @@ t_PCB* deserializar_pcb(t_buffer* buffer){
     t_PCB* pcb = malloc(sizeof(t_PCB));
     pcb->registros = malloc(sizeof(registros_cpu));
 
-    pcb->pid = buffer_read_int(buffer);
+    pcb->pid = buffer_read_uint32(buffer);
     pcb->program_counter = buffer_read_uint32(buffer);
-    pcb->quantum = buffer_read_int(buffer);
+    pcb->quantum = buffer_read_uint32(buffer);
 
     pcb->registros->PC = buffer_read_uint32(buffer);
     pcb->registros->AX = buffer_read_uint8(buffer);
@@ -224,16 +261,16 @@ t_PCB* deserializar_pcb(t_buffer* buffer){
     pcb->registros->SI = buffer_read_uint32(buffer);
     pcb->registros->DI = buffer_read_uint32(buffer);
 
-    pcb->estado = buffer_read_int(buffer);
+    pcb->estado = (estado_pcb) buffer_read_uint8(buffer); // se castea automaticamente
 
     return pcb;
 }
 //////////////////////////////////////////////////////////////////////////////////////////
-void enviar_instruccion(int conexion, t_instruccion* instruccion, int codigo_operacion){
+void enviar_instruccion(int conexion, t_instruccion* instruccion, uint8_t codigo_operacion){
     t_paquete* paquete = paquete_create_with_buffer_null(codigo_operacion);
     paquete->buffer = serializar_instruccion(instruccion);
 
-    size_t size_a_enviar = 0;
+    uint32_t size_a_enviar = 0;
     void* a_enviar = serializar_paquete(paquete, &size_a_enviar);
     send(conexion, a_enviar, size_a_enviar, 0);
     
@@ -252,16 +289,16 @@ t_instruccion* recibir_instruccion(int conexion){
 }
 
 t_buffer* serializar_instruccion(t_instruccion* instruccion){
-    int largo_lista = list_size(instruccion->parametros);
+    uint32_t largo_lista = (uint32_t) list_size(instruccion->parametros);
     int size_lista_serializable = tamanio_serializable_lista_de_string(instruccion->parametros);
 
-    uint32_t size = sizeof(int) +                     // identificador
-                    sizeof(int) +                     // largo de la lista 
+    uint32_t size = sizeof(uint8_t) +                 // identificador
+                    sizeof(uint32_t) +                // largo de la lista 
                     size_lista_serializable;          // largo total de elementos de la lista
 
     t_buffer* buffer = buffer_create(size);
 
-    buffer_add_int(buffer, instruccion->identificador);
+    buffer_add_uint8(buffer, instruccion->identificador);
     buffer_add_list_string(buffer, instruccion->parametros, largo_lista);
 
     return buffer;
@@ -270,7 +307,7 @@ t_buffer* serializar_instruccion(t_instruccion* instruccion){
 t_instruccion* deserializar_instruccion(t_buffer* buffer){
     t_instruccion* tmp = malloc(sizeof(t_instruccion));
 
-    tmp->identificador = buffer_read_int(buffer);
+    tmp->identificador = (t_identificador) buffer_read_uint8(buffer);
     tmp->parametros = buffer_read_list_string(buffer);
 
     return tmp;
@@ -278,10 +315,10 @@ t_instruccion* deserializar_instruccion(t_buffer* buffer){
 
 ///////////////////////////////////////////////////////////////////
 t_buffer* serializar_lista_de_string(t_list* lista_de_string){
-    int largo_lista = list_size(lista_de_string);
+    uint32_t largo_lista = (uint32_t) list_size(lista_de_string);
     int size_lista_serializable = tamanio_serializable_lista_de_string(lista_de_string);
 
-    uint32_t size = sizeof(int) +                     // largo de la lista 
+    uint32_t size = sizeof(uint32_t) +                // largo de la lista 
                     size_lista_serializable;          // largo total de elementos de la lista
 
     t_buffer* buffer = buffer_create(size);
@@ -308,12 +345,12 @@ int tamanio_serializable_lista_de_string(t_list* lista_de_string){
     return size;
 }
 
-void buffer_add_list_string(t_buffer* buffer, t_list* lista_de_string, int size_lista){
+void buffer_add_list_string(t_buffer* buffer, t_list* lista_de_string, uint32_t size_lista){
     char* string = NULL;
     uint32_t length_string = 0;
 
     // agrega al buffer el largo de la lista
-    buffer_add_int(buffer, size_lista);
+    buffer_add_uint32(buffer, size_lista);
 
     // agrega cada string de la lista al buffer
     for (int i = 0; i < size_lista; i++){
@@ -327,7 +364,7 @@ t_list* buffer_read_list_string(t_buffer* buffer){
     t_list* tmp = list_create();
 
     // lee del buffer el largo de la lista
-    int size_lista = buffer_read_int(buffer);
+    uint32_t size_lista = buffer_read_uint32(buffer);
 
     // lee cada string del buffer y lo agrega a la lista
     for(int i = 0; i < size_lista; i++){
@@ -335,3 +372,5 @@ t_list* buffer_read_list_string(t_buffer* buffer){
     }
     return tmp;
 }
+
+//////////////////////////////////////////////////////////////////////////////////////

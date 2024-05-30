@@ -5,7 +5,7 @@ void mover_a_new(t_PCB* pcb){
         queue_push(cola_new, (void*) pcb);
     sem_post(&mutex_cola_new);
 
-    log_info(logger, "Se crea el proceso PID: <%d> en NEW", pcb->pid);
+    log_info(logger, "Se crea el proceso PID: <%u> en NEW", pcb->pid);
     
     sem_post(&sem_procesos_esperando_en_new);
 
@@ -26,7 +26,7 @@ void mover_new_a_ready(void){
 
     pcb->estado = READY;
 
-    log_info(logger, "PID: <%d> - Estado Anterior: <NEW> - Estado Actual: <READY>", pcb->pid);
+    log_info(logger, "PID: <%u> - Estado Anterior: <NEW> - Estado Actual: <READY>", pcb->pid);
 
     sem_wait(&mutex_cola_ready);
         queue_push(cola_ready, (void*) pcb);
@@ -56,7 +56,7 @@ void func_corto_plazo(void* arg){
             sem_wait(&mutex_proceso_en_ejecucion);
             if(proceso_en_ejecucion){
                 // IIIIII -> luego revisar si puede haber otros motivos de desalojo
-                log_info(logger, "avisando a la CPU que desaloje el proceso actual");
+                log_info(logger, "avisando a la CPU que desaloje al proceso actual");
                 sem_wait(&mutex_conexion_cpu_interrupt);
                     envio_generico_op_code(conexion_cpu_interrupt, DESALOJO);
                 sem_post(&mutex_conexion_cpu_interrupt);
@@ -74,7 +74,7 @@ void mover_ready_a_execute(void){
 
     pcb->estado = EXECUTE;
 
-    log_info(logger, "PID: <%d> - Estado Anterior: <READY> - Estado Actual: <EXECUTE>", pcb->pid);
+    log_info(logger, "PID: <%u> - Estado Anterior: <READY> - Estado Actual: <EXECUTE>", pcb->pid);
 
     sem_wait(&mutex_cola_execute);
         queue_push(cola_execute, (void*) pcb);
@@ -98,7 +98,7 @@ void mover_execute_a_blocked(t_PCB* pcb_nueva){
 
     pcb_actualizada->estado = BLOCKED;
 
-    log_info(logger, "PID: <%d> - Estado Anterior: <EXECUTE> - Estado Actual: <BLOCKED>", pcb_actualizada->pid);
+    log_info(logger, "PID: <%u> - Estado Anterior: <EXECUTE> - Estado Actual: <BLOCKED>", pcb_actualizada->pid);
 
     sem_wait(&mutex_cola_blocked);
         queue_push(cola_blocked, (void*) pcb_actualizada);
@@ -119,7 +119,7 @@ void mover_blocked_a_ready(int pid){
 
     pcb->estado = READY;
 
-    log_info(logger, "PID: <%d> - Estado Anterior: <BLOCKED> - Estado Actual: <READY>", pcb->pid);
+    log_info(logger, "PID: <%u> - Estado Anterior: <BLOCKED> - Estado Actual: <READY>", pcb->pid);
 
     sem_wait(&mutex_cola_ready);
         queue_push(cola_ready, (void*) pcb);
@@ -137,16 +137,16 @@ void mandar_a_exit(t_PCB* pcb, char* motivo){
     pcb->estado = EXIT;
 
     if (motivo != NULL){
-        log_info(logger, "Finaliza el proceso <%d> - Motivo: <%s>", pcb->pid, motivo);
+        log_info(logger, "Finaliza el proceso <%u> - Motivo: <%s>", pcb->pid, motivo);
     }
 
     sem_wait(&mutex_conexion_memoria);;
-        log_info(logger, "Solicitando a MEMORIA que libere estructuras asocidas al proceso PID: <%d>", pcb->pid);
+        log_info(logger, "Solicitando a MEMORIA que libere estructuras asocidas al proceso PID: <%u>", pcb->pid);
         envio_generico_entero(conexion_memoria, PROCESO_FINALIZADO_MEMORIA, pcb->pid);
         validar_respuesta_op_code(conexion_memoria, MEMORIA_OK, logger);
     sem_post(&mutex_conexion_memoria);
 
-    log_info(logger, "PID: <%d> - Estado Anterior: <%s> - Estado Actual: <EXIT>", pcb->pid, estado_anterior);
+    log_info(logger, "PID: <%u> - Estado Anterior: <%s> - Estado Actual: <EXIT>", pcb->pid, estado_anterior);
 
     /* 
         deberiamos liberar el pcb, pero por el momento lo guardamos, para luego poder mostrarlo 
@@ -166,7 +166,7 @@ void mover_execute_a_ready(t_PCB* pcb_nueva){
 
     pcb_actualizada->estado = READY;
 
-    log_info(logger, "PID: <%d> - Estado Anterior: <EXECUTE> - Estado Actual: <READY>", pcb_actualizada->pid);
+    log_info(logger, "PID: <%u> - Estado Anterior: <EXECUTE> - Estado Actual: <READY>", pcb_actualizada->pid);
 
     sem_wait(&mutex_cola_ready);
         queue_push(cola_ready, (void*) pcb_actualizada);
