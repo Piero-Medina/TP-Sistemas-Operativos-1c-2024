@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 #include <readline/readline.h>
+#include <readline/history.h>
 #include <stdlib.h>
 #include <commons/string.h>
 #include <string.h>
@@ -48,5 +49,15 @@ void func_detener_planificacion(void);
 void func_iniciar_planificacion(void);
 void func_modificar_multiprogramacion(char* leido);
 void func_proceso_estado(void);
+
+void imprimir_recursos_bloqueados(void);
+
+void finalizar_proceso_NEW(int pid);
+void finalizar_proceso_READY(int pid);
+void finalizar_proceso_READY_AUX(int pid);
+void finalizar_proceso_EXECUTE(int pid);
+void finalizar_proceso_BLOCKED(int pid);
+void finalizar_proceso_BLOCKED_RECURSO(int pid);
+void finalizar_proceso_EXIT(int pid);
 
 #endif 

@@ -175,3 +175,59 @@ uint32_t get_registro(t_PCB *pcb, e_registro registro) {
 }
 
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void imprimir_estado_pcb(estado_pcb estado){
+    switch (estado) {
+        case NEW:
+            printf("Estado: NEW\n");
+            break;
+        case READY:
+            printf("Estado: READY\n");
+            break;
+        case EXECUTE:
+            printf("Estado: EXECUTE\n");
+            break;
+        case BLOCKED:
+            printf("Estado: BLOCKED\n");
+            break;
+        case EXIT:
+            printf("Estado: EXIT\n");
+            break;
+        default:
+            printf("Estado: UNKNOWN\n");
+            break;
+    }
+}
+
+void imprimir_registros_cpu(registros_cpu* registros){
+    if (registros == NULL) {
+        printf("Registros de CPU: NULL\n");
+        return;
+    }
+    printf("Registros de CPU:\n");
+    printf("  PC: %u\n", registros->PC);
+    printf("  AX: %u\n", registros->AX);
+    printf("  BX: %u\n", registros->BX);
+    printf("  CX: %u\n", registros->CX);
+    printf("  DX: %u\n", registros->DX);
+    printf("  EAX: %u\n", registros->EAX);
+    printf("  EBX: %u\n", registros->EBX);
+    printf("  ECX: %u\n", registros->ECX);
+    printf("  EDX: %u\n", registros->EDX);
+    printf("  SI: %u\n", registros->SI);
+    printf("  DI: %u\n", registros->DI);
+}
+
+void imprimir_t_PCB(t_PCB* pcb){
+    if (pcb == NULL) {
+        printf("PCB: NULL\n");
+        return;
+    }
+    printf("PCB:\n");
+    printf("  PID: %u\n", pcb->pid);
+    printf("  Program Counter: %u\n", pcb->program_counter);
+    printf("  Quantum: %u\n", pcb->quantum);
+    imprimir_registros_cpu(pcb->registros);
+    imprimir_estado_pcb(pcb->estado);
+}

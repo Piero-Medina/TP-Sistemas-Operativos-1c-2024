@@ -32,7 +32,7 @@ char* string_aplanar_PID(t_list* lista) {
 	while ((*indirect) != NULL) {
 		pcb = (t_PCB*) (*indirect)->data;
         
-        sprintf(convertido, "%d", pcb->pid);
+        sprintf(convertido, "%u", pcb->pid);
         strcat(tmp, convertido);
         strcat(tmp, ",");
 

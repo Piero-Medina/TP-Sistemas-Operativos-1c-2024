@@ -52,7 +52,7 @@ int main(int argc, char* argv[]) {
     enviar_handshake(conexion_memoria, HANDSHAKE, "KERNEL", "MEMORIA", logger);
 
     server_fd = iniciar_servidor("KERNEL", config->ip_kernel, config->puerto_kernel, logger);
-    log_info(logger, "KERNEL Escuchando Conexiones \n");
+    log_info(logger, "KERNEL Escuchando Conexiones IO\n");
     pthread_create(&hilo_server_kernel, NULL, (void*) escuchar_kernel, NULL);
     pthread_detach(hilo_server_kernel);
 

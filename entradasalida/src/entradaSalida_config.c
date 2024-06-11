@@ -62,8 +62,7 @@ void imprimir_config(t_entradaSalida_config* config, tipo_interfaz tipo) {
             printf("Ruta base de DialFS: %s\n", config->path_base_dialfs);
             printf("Tamaño del bloque: %d\n", config->block_size);
             printf("Cantidad de bloques: %d\n", config->block_count);
-            printf("Cantidad de bloques: %d\n", config->block_count);
-            printf("Tiempo de retraso por cada compactacion: %d\n\n", config->block_count);
+            printf("Tiempo de retraso por cada compactacion: %d\n\n", config->retraso_compactacion);
         }
     }
 }

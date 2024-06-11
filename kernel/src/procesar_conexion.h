@@ -1,6 +1,8 @@
 #ifndef PROCESAR_CONEXION_H_
 #define PROCESAR_CONEXION_H_
 
+#include <stdio.h>
+#include <stdlib.h>
 #include <stdint.h>
 #include <pthread.h>
 #include <semaphore.h>

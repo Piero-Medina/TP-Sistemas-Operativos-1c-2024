@@ -7,6 +7,14 @@ int grado_multiprogramacion_global;
 
 bool proceso_en_ejecucion;
 
+bool existe_recursos;
+
+bool sistema_detenido;
+bool stop_largo_plazo;
+bool stop_corto_plazo;
+bool stop_cpu_dispatch;
+bool stop_io;
+
 sem_t mutex_conexion_memoria;
 sem_t mutex_conexion_cpu_dispatch;
 sem_t mutex_conexion_cpu_interrupt;
@@ -29,8 +37,15 @@ sem_t mutex_proceso_en_ejecucion;
 
 sem_t mutex_diccionario_interfaces;
 
+sem_t mutex_diccionario_recursos;
+
 sem_t sem_peticiones_io_por_procesar;
 sem_t sem_interfaz_io_libre;
+
+sem_t sem_stop_largo_plazo;
+sem_t sem_stop_corto_plazo;
+sem_t sem_stop_cpu_dispatch;
+sem_t sem_stop_io;
 
 t_queue* cola_new;
 t_queue* cola_ready;
@@ -53,6 +68,12 @@ void init_kernel(void){
     contador_pid = 0;
     grado_multiprogramacion_global = config->grado_max_multiprogramacion;
     proceso_en_ejecucion = false;
+
+    sistema_detenido = false;
+    stop_largo_plazo = false;
+    stop_corto_plazo = false;
+    stop_cpu_dispatch = false;
+    stop_io = false;
     
     algorimo_elegido();
     init_diccionarios();
@@ -75,7 +96,7 @@ void sigint_handler(int signum){
 }
 
 void escuchar_kernel(void *arg){
-    while(server_listen(logger, "KERNEL", server_fd, (void*)procesar_conexion_io));
+    while(server_listen(logger, "CONEXION IO", server_fd, (void*)procesar_conexion_io));
 }
 
 void liberar_kernel(void){
@@ -114,10 +135,17 @@ void init_semaforos(void){
 
     sem_init(&mutex_proceso_en_ejecucion, 0, 1);
 
-    sem_init(&mutex_diccionario_interfaces,0, 1);
+    sem_init(&mutex_diccionario_interfaces, 0, 1);
 
-    sem_init(&sem_peticiones_io_por_procesar,0, 0);
-    sem_init(&sem_interfaz_io_libre,0, 0);
+    sem_init(&mutex_diccionario_recursos, 0, 1);
+
+    sem_init(&sem_peticiones_io_por_procesar, 0, 0); // Contador
+    sem_init(&sem_interfaz_io_libre, 0, 0);          // Contador
+
+    sem_init(&sem_stop_largo_plazo, 0, 1);
+    sem_init(&sem_stop_corto_plazo, 0, 1);
+    sem_init(&sem_stop_cpu_dispatch, 0, 1);
+    sem_init(&sem_stop_io, 0, 1);
 }
 
 void liberar_semaforos(void){
@@ -144,8 +172,15 @@ void liberar_semaforos(void){
 
     sem_destroy(&mutex_diccionario_interfaces);
 
+    sem_destroy(&mutex_diccionario_recursos);
+
     sem_destroy(&sem_peticiones_io_por_procesar);
     sem_destroy(&sem_interfaz_io_libre);
+
+    sem_destroy(&sem_stop_largo_plazo);
+    sem_destroy(&sem_stop_corto_plazo);
+    sem_destroy(&sem_stop_cpu_dispatch);
+    sem_destroy(&sem_stop_io);
 }
 
 void init_colas(void){
@@ -219,10 +254,12 @@ void iniciar_recursos(void){
 			dictionary_put(recursos, nombre_recurso, (void*)tmp);
 		}
 		log_info(logger, "Se Tiene Recursos \n");
+        existe_recursos = true;
 
 	}
 	else{
 		log_info(logger, "No se Tiene Recursos \n");
+        existe_recursos = false;
 	}
 }
 

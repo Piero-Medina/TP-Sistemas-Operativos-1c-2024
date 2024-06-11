@@ -11,7 +11,15 @@ void procesar_conexion_io(void *args){
 
     while (procesar_conexion_en_ejecucion) {
         int cod_op = recibir_operacion(socket);
-        log_info(logger_k, "Se recibió el cod operacion %d en %s", cod_op, nombre_servidor);
+        log_info(logger_k, "Se recibió el cod operacion (%d) en %s", cod_op, nombre_servidor);
+
+        if(sistema_detenido){
+            stop_io = true;
+            log_info(logger, "STOP IO");
+            sem_wait(&sem_stop_io);
+            log_info(logger, "RESUME IO");
+        }
+
         switch (cod_op) {
             case HANDSHAKE:
                 char* modulo = recibir_handshake(socket);
@@ -41,8 +49,17 @@ void procesar_conexion_io(void *args){
                 uint32_t pid = recibo_generico_entero(socket);
                 
                 log_info(logger, "PID: <%u> - Solicitud de IO_GEN_SLEEP Finalizada", pid);
-                // movemos el proceso a la lista de ready                
-                mover_blocked_a_ready((int)pid);
+
+                // movemos el proceso a la lista de ready (segun)
+                sem_wait(&mutex_cola_blocked);
+                    t_PCB* pcb = buscar_pcb_por_pid_y_obtener((int)pid, cola_blocked->elements);
+                sem_post(&mutex_cola_blocked);
+                if((algoritmo_elegido == VRR) && (pcb->quantum != 0)){
+                    mover_blocked_a_ready_aux((int)pid);
+                }
+                else{
+                    mover_blocked_a_ready((int)pid);
+                }                
 
                 // cambiar el estado (sacando del diccionario) (tenemos el key nombre_interfaz)
                 sem_wait(&mutex_diccionario_interfaces);
@@ -52,7 +69,7 @@ void procesar_conexion_io(void *args){
                 sem_post(&mutex_diccionario_interfaces);
 
                 // post semaforo avisando que hay una interfaz de io disponible
-                sem_post(&sem_interfaz_io_libre); // aviso que hay una instancia de io
+                sem_post(&sem_interfaz_io_libre);
                 break;
             }
             case -1:
@@ -80,7 +97,15 @@ void procesar_conexion_cpu_dispatch(void *args){
 
     while (procesar_conexion_en_ejecucion) {
         int cod_op = recibir_operacion(conexion_cpu_dispatch); // bloqueante
-        log_info(logger, "Se recibió el cod operacion %d de el server %s", cod_op, nombre_modulo_server);
+        log_info(logger, "Se recibió el cod operacion (%d) de el server %s", cod_op, nombre_modulo_server);
+        
+        if(sistema_detenido){
+            stop_cpu_dispatch = true;
+            log_info(logger, "STOP CPU DISPATCH");
+            sem_wait(&sem_stop_cpu_dispatch);
+            log_info(logger, "RESUME CPU DISPATCH");
+        }
+        
         sem_wait(&mutex_conexion_cpu_dispatch);
         switch (cod_op) {
             case DESALOJO:
@@ -96,19 +121,119 @@ void procesar_conexion_cpu_dispatch(void *args){
                 // IIIIII -> luego revisar si puede haber otros motivos de desalojo
                 log_info(logger, "PID: <%u> - Desalojado por fin de Quantum", pcb->pid);
 
-                mover_execute_a_ready(pcb);
+                if((algoritmo_elegido == VRR) && (pcb->quantum != 0)){
+                    mover_execute_a_ready_aux(pcb);
+                }
+                else{
+                    mover_execute_a_ready(pcb);
+                }
 
                 sem_post(&sem_cpu_disponible); 
                 break;
             }
             case WAIT_KERNEL:
-                // TODO
+            {   
+                sem_wait(&mutex_proceso_en_ejecucion);
+                    proceso_en_ejecucion = false;
+                sem_post(&mutex_proceso_en_ejecucion);
+
+                t_PCB* pcb = recibir_pcb(conexion_cpu_dispatch);
+                ignorar_op_code(conexion_cpu_dispatch);
+                char* nombre_recurso = recibir_generico_string(conexion_cpu_dispatch);
+                log_info(logger, "PID: <%u> - WAIT_KERNEL", pcb->pid);
+
+                sem_wait(&mutex_diccionario_recursos);
+				if( dictionary_has_key(recursos, nombre_recurso) ){
+                    // en caso que el Recurso exista 
+					t_recurso* recurso = (t_recurso*)dictionary_get(recursos, nombre_recurso);
+
+					if(recurso->instancias < 0){
+                        // mandar a la cola de bloqueados del mismo recurso
+
+                        // sacamos la pcb vieja de execute y la liberamos, dejando cola execute vacia
+                        sem_wait(&mutex_cola_execute);
+                            t_PCB* pcb_vieja = (t_PCB*) queue_pop(cola_execute);
+                            liberar_PCB(pcb_vieja);
+                        sem_post(&mutex_cola_execute);
+
+						// metemos la pcb actualizada, de modo que no haga falta actualizarla cuando se desbloquee
+                        log_info(logger, "PID: <%u> - WAIT: (%s) - Instancias: (%d) - Se Bloquea", pcb->pid, nombre_recurso, recurso->instancias);
+                        log_info(logger, "PID: <%u> - Bloqueado por: <RECURSO (%s)>", pcb->pid, nombre_recurso);
+                        queue_push(recurso->cola_recurso, (void*) pcb);
+            
+						sem_post(&sem_cpu_disponible);
+					}
+					else{
+						recurso->instancias -= 1;
+                        // devolvemos el proceso para que siga ejecutando (respetando el algoritmo)
+                        // por ese motivo no dejamos la cpu libre
+                        log_info(logger, "PID: <%u> - WAIT: (%s) - Instancias: (%d)", pcb->pid, nombre_recurso, recurso->instancias);
+						devolver_a_execute(pcb); 
+					}
+				}
+				else{
+                    // en caso que el recurso no exista el Proceso se manda Exit
+                    char* motivo = malloc(sizeof(char) * 50);
+                    snprintf(motivo, 50, "INVALID_RESOURCE (%s)", nombre_recurso); // agregar al final '\0'
+                    mover_execute_a_exit(pcb, motivo);
+                    free(motivo);
+
+					sem_post(&sem_grado_multiprogramacion);
+					sem_post(&sem_cpu_disponible);
+				}
+				sem_post(&mutex_diccionario_recursos);
+
+                free(nombre_recurso);
+
                 sem_post(&mutex_conexion_cpu_dispatch);
                 break;
+            }
             case SIGNAL_KERNEL:
-                // TODO
+            {   
+                sem_wait(&mutex_proceso_en_ejecucion);
+                    proceso_en_ejecucion = false;
+                sem_post(&mutex_proceso_en_ejecucion);
+
+                t_PCB* pcb = recibir_pcb(conexion_cpu_dispatch);
+                ignorar_op_code(conexion_cpu_dispatch);
+                char* nombre_recurso = recibir_generico_string(conexion_cpu_dispatch);
+                log_info(logger, "PID: <%u> - SIGNAL_KERNEL", pcb->pid);
+
+                sem_wait(&mutex_diccionario_recursos);
+				if( dictionary_has_key(recursos, nombre_recurso) ){ 
+                    // en caso que el Recurso exista 
+					t_recurso* recurso = (t_recurso*)dictionary_get(recursos, nombre_recurso);
+
+					recurso->instancias += 1;
+					if(!queue_is_empty(recurso->cola_recurso)){
+						t_PCB* pcb_desbloqueada = (t_PCB*)queue_pop(recurso->cola_recurso);
+
+                        // mandar el proceso recien desbloqueado a Ready o Ready plus (segun el algortimo)
+                        log_info(logger, "PID: <%u> - SIGNAL: (%s) - Instancias: (%d) - Desbloquea a PID <%u>", pcb->pid, nombre_recurso, recurso->instancias, pcb_desbloqueada->pid);
+                        mover_a_ready_o_ready_aux(pcb_desbloqueada);
+					}
+					// devolvemos el proceso para que siga ejecutando (respetando el algoritmo)
+                    // por ese motivo no dejamos la cpu libre
+                    log_info(logger, "PID: <%u> - SIGNAL: (%s) - Instancias: (%d)", pcb->pid, nombre_recurso, recurso->instancias);
+                    devolver_a_execute(pcb); 
+				}
+				else{
+                    // en caso que el recurso no exista el Proceso se manda Exit
+					char* motivo = malloc(sizeof(char) * 50);
+                    snprintf(motivo, 50, "INVALID_RESOURCE (%s)", nombre_recurso); // agregar al final '\0'
+                    mover_execute_a_exit(pcb, motivo);
+                    free(motivo);
+
+					sem_post(&sem_grado_multiprogramacion);
+					sem_post(&sem_cpu_disponible);
+				}
+				sem_post(&mutex_diccionario_recursos);
+
+                free(nombre_recurso);
+
                 sem_post(&mutex_conexion_cpu_dispatch);
                 break;
+            }
             case PETICION_IO: // mandamos a blocked, o sino a exit
             {
                 // TODO
@@ -154,7 +279,6 @@ void procesar_conexion_cpu_dispatch(void *args){
                 return; // finalizando hilo
         }
     }
-
 }
 
 

@@ -88,7 +88,7 @@ int esperar_clientes(t_log* logger, const char* name, int socket_servidor) {
 
     int socket_cliente = accept(socket_servidor, (void*) &dir_cliente, &tam_direccion);
 	//printf("Cliente conectado (a %s)\n", name);
-    log_info(logger, "Cliente conectado (a %s)", name);
+    log_info(logger, "Cliente conectado a (%s)", name);
 
     return socket_cliente;
 }

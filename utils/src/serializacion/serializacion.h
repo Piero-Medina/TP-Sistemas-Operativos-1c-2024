@@ -19,26 +19,26 @@
  */
  
  typedef struct {
-    uint32_t size; // Tamaño del payload
+    uint32_t size;   // Tamaño del payload
     uint32_t offset; // Desplazamiento dentro del payload
-    void* stream; // Payload
+    void* stream;    // Payload
  }t_buffer;
 
  typedef struct {
-    uint8_t codigo_operacion; 
+    uint8_t codigo_operacion;  
     t_buffer* buffer;
  }t_paquete;
 
- // - crea un paquete con un buffer inicializado con un tamanio especifico
+ // - Crea un paquete con un buffer inicializado con un tamanio especifico
  t_paquete* paquete_create_with_buffer_size(uint32_t size_buffer, uint8_t codigo_operacion);
 
- // - crea un paquete recibiendo un buffer externo
+ // - Crea un paquete recibiendo un buffer externo
  t_paquete* paquete_create_add_buffer(t_buffer* buffer, uint8_t codigo_operacion);
  
- // - crea un paquete con un buffer NULL (vacio)
+ // - Crea un paquete con un buffer NULL (vacio)
  t_paquete* paquete_create_with_buffer_null(uint8_t codigo_operacion);
 
- // - Libera la memoria asociada a un paquete
+ // - Libera la memoria asociada a un paquete (Tambien memoria del buffer)
  void paquete_detroy(t_paquete* paquete); 
  
  // - Crea un buffer de tamanio (size), offset (0) y reservando memoria para stream (size)
@@ -59,10 +59,13 @@
  // - Agrega un int al buffer
  void buffer_add_int(t_buffer *buffer, int data);
 
- // - Agrega un uint32_t al buffer
- void buffer_add_uint32(t_buffer *buffer, uint32_t data);
+ // - Agrega un (signed) int32_t al buffer
+ void buffer_add_int32(t_buffer* buffer, int32_t data);
 
- // - Agrega un uint8_t al buffer
+ // - Agrega un (unsigned) uint32_t al buffer
+ void buffer_add_uint32(t_buffer* buffer, uint32_t data);
+
+ // - Agrega un (unsigned) uint8_t al buffer
  void buffer_add_uint8(t_buffer *buffer, uint8_t data);
 
  // - Agrega string al buffer con un uint32_t adelante indicando su longitud
@@ -70,17 +73,20 @@
 
 // --------------------------  leer tipos de dato -----------------------
 
- // - Lee un int del buffer y avanza el offset
- int buffer_read_int(t_buffer *buffer);
+ // - Lee un int del buffer 
+ int buffer_read_int(t_buffer* buffer);
 
- // - Lee un uint32_t del buffer y avanza el offset
- uint32_t buffer_read_uint32(t_buffer *buffer);
+ // - Lee un (signed) int32_t del buffer
+ int32_t buffer_read_int32(t_buffer* buffer);
 
- // - Lee un uint8_t del buffer y avanza el offset 
- uint8_t buffer_read_uint8(t_buffer *buffer);
+ // - Lee un (unsigned) uint32_t del buffer 
+ uint32_t buffer_read_uint32(t_buffer* buffer);
 
- // - Lee un string y su longitud del buffer y avanza el offset
- char* buffer_read_string(t_buffer *buffer);
+ // - Lee un (unsigned) uint8_t del buffer 
+ uint8_t buffer_read_uint8(t_buffer* buffer);
+
+ // - Lee un string y su longitud del buffer 
+ char* buffer_read_string(t_buffer* buffer);
 
 //-------------------------------------- EXTRAS --------------------------------
 

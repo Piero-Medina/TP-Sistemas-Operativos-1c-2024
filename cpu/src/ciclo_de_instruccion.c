@@ -19,7 +19,8 @@ void ejecutar_ciclo_de_instruccion(int conexion, t_PCB* pcb){
         solicitar_intruccion_a_memoria(conexion_memoria, SOLICITAR_INTRUCCION_MEMORIA, pcb->pid, pcb->program_counter);
         ignorar_op_code(conexion_memoria);
         instruccion = recibir_instruccion(conexion_memoria);
- 
+
+        // MOV_IN, MOV_OUT, RESIZE, COPY_STRING, IO_STDIN_READ,IO_STDOUT_WRITE
         switch (instruccion->identificador){
             case SET:
             {
@@ -33,6 +34,14 @@ void ejecutar_ciclo_de_instruccion(int conexion, t_PCB* pcb){
 
                 log_info(logger, "PID: <%u> - Finalizando: <SET> - (%s = %u)", pcb->pid, registro, (uint32_t)valor);
                 break;
+            }
+            case MOV_IN:
+            {
+                //TODO
+            }
+            case MOV_OUT:
+            {
+                //TODO
             }
             case SUM:
             {
@@ -79,6 +88,55 @@ void ejecutar_ciclo_de_instruccion(int conexion, t_PCB* pcb){
                 log_info(logger, "PID: <%u> - Finalizando: <JNZ> (PC = %u)", pcb->pid, pcb->program_counter); 
                 break;
             }
+            case RESIZE:
+            {
+                //TODO
+            }
+            case COPY_STRING:
+            {
+                //TODO
+            }
+            case WAIT:
+            {
+                char* nombre_recurso = (char*) list_get(instruccion->parametros, 0);
+
+                log_info(logger, "PID: <%u> - Ejecutando: <WAIT> - <%s>", pcb->pid, nombre_recurso);
+                
+                // porque el pcb se va de cpu, si no lo hacemos tendra el PC desactualizado
+                incrementar_program_counter(pcb, 1);
+
+                establecer_tiempo_restante_de_ejecucion(pcb, inicio, final); 
+
+                log_info(logger, "PID: <%u> - Se va de CPU", pcb->pid);
+                log_info(logger, "PID: <%u> - Quantum_restante (%u)", pcb->pid, pcb->quantum);
+                enviar_pcb(conexion, pcb, WAIT_KERNEL);
+                envio_generico_string(conexion, IGNORAR_OP_CODE, nombre_recurso);
+                puede_seguir_ejecutando = false;
+                proceso_sigue_en_cpu = false;
+
+                log_info(logger, "PID: <%u> - Finalizando: <WAIT> - <%s>", pcb->pid, nombre_recurso);
+                break;
+            }
+            case SIGNAL:
+            {
+                char* nombre_recurso = (char*) list_get(instruccion->parametros, 0);
+
+                log_info(logger, "PID: <%u> - Ejecutando: <SIGNAL> - <%s>", pcb->pid, nombre_recurso);
+                
+                // porque el pcb se va de cpu, si no lo hacemos tendra el PC desactualizado
+                incrementar_program_counter(pcb, 1);
+
+                establecer_tiempo_restante_de_ejecucion(pcb, inicio, final); 
+
+                log_info(logger, "PID: <%u> - Se va de CPU", pcb->pid);
+                log_info(logger, "PID: <%u> - Quantum_restante (%u)", pcb->pid, pcb->quantum);
+                enviar_pcb(conexion, pcb, SIGNAL_KERNEL);
+                envio_generico_string(conexion, IGNORAR_OP_CODE, nombre_recurso);
+                puede_seguir_ejecutando = false;
+                proceso_sigue_en_cpu = false;
+
+                log_info(logger, "PID: <%u> - Finalizando: <SIGNAL> - <%s>", pcb->pid, nombre_recurso);
+            }
             case IO_GEN_SLEEP:
             {
                 char* nombre_interfaz = (char*) list_get(instruccion->parametros, 0);
@@ -92,6 +150,7 @@ void ejecutar_ciclo_de_instruccion(int conexion, t_PCB* pcb){
                 establecer_tiempo_restante_de_ejecucion(pcb, inicio, final); 
 
                 log_info(logger, "PID: <%u> - Se va de CPU", pcb->pid);
+                log_info(logger, "PID: <%u> - Quantum_restante (%u)", pcb->pid, pcb->quantum);
                 enviar_pcb(conexion, pcb, PETICION_IO);
                 envio_generico_string(conexion, GENERICA, nombre_interfaz);
                 envio_generico_entero(conexion, IO_GEN_SLEEP, (uint32_t)unidades_de_trabajo);
@@ -100,6 +159,14 @@ void ejecutar_ciclo_de_instruccion(int conexion, t_PCB* pcb){
 
                 log_info(logger, "PID: <%u> - Finalizando: <IO_GEN_SLEEP> ", pcb->pid);
                 break;
+            }
+            case IO_STDIN_READ:
+            {
+                //TODO
+            }
+            case IO_STDOUT_WRITE:
+            {
+                //TODO
             }
             case EXIT_I:
             {
@@ -111,6 +178,7 @@ void ejecutar_ciclo_de_instruccion(int conexion, t_PCB* pcb){
                 establecer_tiempo_restante_de_ejecucion(pcb, inicio, final); 
 
                 log_info(logger, "PID: <%u> - Se va de CPU", pcb->pid);
+                log_info(logger, "PID: <%u> - Quantum_restante (%u)", pcb->pid, pcb->quantum);
                 enviar_pcb(conexion, pcb, PROCESO_FINALIZADO);
                 puede_seguir_ejecutando = false;
                 proceso_sigue_en_cpu = false;
@@ -139,6 +207,7 @@ void ejecutar_ciclo_de_instruccion(int conexion, t_PCB* pcb){
                     establecer_tiempo_restante_de_ejecucion(pcb, inicio, final);
 
                     log_info(logger, "PID: <%u> - Se va de CPU", pcb->pid);
+                    log_info(logger, "PID: <%u> - Quantum_restante (%u)", pcb->pid, pcb->quantum);
                     enviar_pcb(conexion, pcb, DESALOJO);
                     
                     desalojo = false;
@@ -162,7 +231,7 @@ void ejecutar_ciclo_de_instruccion(int conexion, t_PCB* pcb){
 
 }
 
-void establecer_tiempo_restante_de_ejecucion(t_PCB* pcb,struct timeval inicio, struct timeval final){
+void establecer_tiempo_restante_de_ejecucion(t_PCB* pcb, struct timeval inicio, struct timeval final){
     gettimeofday(&final, NULL);
     int tiempo_ejecucion_ms = (final.tv_sec - inicio.tv_sec) * 1000;
     int tiempo_restante_ms = pcb->quantum - tiempo_ejecucion_ms;

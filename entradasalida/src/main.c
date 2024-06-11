@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <utils/hello.h>
+#include <utils/utils.h>
 
 #include <logging/logging.h>
 #include <commons/log.h>
@@ -13,7 +14,10 @@
 #include <comunicacion/comunicacion.h>
 #include "init.h"
 
+#include <stdint.h>
 #include <unistd.h> // para dormir
+#include "bloques_dialFs.h"
+#include "bit_map_dialFs.h"
 
 t_log* logger;
 t_entradaSalida_config* config;
@@ -22,8 +26,7 @@ int conexion_kernel;
 int conexion_memoria;
 
 int main(int argc, char* argv[]) {
-    
-    if (argc != 3) {
+    if(argc != 3){
         printf("Error: Se esperan dos parámetros\n");
         printf("%s <nombre_interfaz> <archivo_configuracion>\n", argv[0]);
         exit(EXIT_FAILURE);

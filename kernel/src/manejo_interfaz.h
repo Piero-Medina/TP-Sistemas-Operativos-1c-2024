@@ -47,8 +47,19 @@ void manejador_de_procesos_pendientes_io(void* arg);
 void mandar_a_procesar_io(int conexion_interfaz, t_io_pendiente* pendiente);
 void solicitar_IO_GEN_SLEEP(int conexion_interfaz, t_io_pendiente* pendiente);
 
-// busca un pcb mediante el pid en una lista y lo remueve
+// - Busca un pcb mediante el pid en una lista y lo remueve
+// - Retorna NULL en caso de no encontrar el pid en la lista
 t_PCB* buscar_pcb_por_pid_y_remover(int pid, t_list* lista);
+// - Busca un pcb mediante el pid en una lista y lo obtiene
+// - Retorna NULL en caso de no encontrar el pid en la lista
+t_PCB* buscar_pcb_por_pid_y_obtener(int pid, t_list* lista);
+// - Busca un pcb mediante el pid en una lista y devuelve su posicion en la lista
+// - Retorna (-1) en caso de no encontrar el pid en la lista
 int posicion_de_pcb_por_pid(int pid, t_list* lista);
+
+
+t_io_pendiente* buscar_io_pendiente_por_pid_y_obtener(uint32_t pid, t_list* lista);
+t_io_pendiente* buscar_io_pendiente_por_pid_y_remover(uint32_t pid, t_list* lista);
+int posicion_de_io_pendiente_por_pid(uint32_t pid, t_list* lista);
 
 #endif 

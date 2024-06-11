@@ -16,7 +16,7 @@
 ///////////////////////////////////////// WRAPPERS //////////////////////////////////////
 void avisar_nuevo_proceso_memoria(int conexion_memoria, int pid, char* path_intrucciones);
 void avisar_desalojo_a_cpu(int conexion_cpu, int op_code, char* motivo);
-void solicitar_intruccion_a_memoria(int conexion, int op_code, int pid, int pc);
+void solicitar_intruccion_a_memoria(int conexion, uint8_t op_code, uint32_t pid, uint32_t pc);
 /////////////////////////////////////////////////////////////////////////////////////////
 
 // - envio generico de un op_code

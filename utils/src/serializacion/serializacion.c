@@ -64,6 +64,10 @@ void buffer_destroy(t_buffer* buffer){
     buffer_add(buffer, (void *) &data, sizeof(int));
  }
 
+ void buffer_add_int32(t_buffer* buffer, int32_t data){
+    buffer_add(buffer, (void*) &data, sizeof(int32_t));
+ }
+
  void buffer_add_uint32(t_buffer* buffer, uint32_t data){
     buffer_add(buffer, (void *) &data, sizeof(uint32_t ));
  }
@@ -79,19 +83,26 @@ void buffer_destroy(t_buffer* buffer){
 
 // --------------------------  leer tipos de dato de un buffer -----------------------
 
- int buffer_read_int(t_buffer *buffer){
+ int buffer_read_int(t_buffer* buffer){
     int tmp;
     buffer_read(buffer, (void*) &tmp, sizeof(int));
     return tmp;
  }
 
- uint32_t buffer_read_uint32(t_buffer *buffer){
+ int32_t buffer_read_int32(t_buffer* buffer){
+    int32_t tmp;
+    buffer_read(buffer, (void*)&tmp, sizeof(int32_t));
+    return tmp;
+ }
+
+
+ uint32_t buffer_read_uint32(t_buffer* buffer){
     uint32_t tmp;
     buffer_read(buffer, (void*) &tmp, sizeof(uint32_t));
     return tmp;
  }
 
- uint8_t buffer_read_uint8(t_buffer *buffer){
+ uint8_t buffer_read_uint8(t_buffer* buffer){
     uint8_t  tmp;
     buffer_read(buffer, (void*) &tmp, sizeof(uint8_t));
     return tmp;

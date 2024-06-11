@@ -72,6 +72,14 @@ extern algoritmo algoritmo_elegido;
 
 extern bool proceso_en_ejecucion; 
 
+extern bool existe_recursos;
+
+extern bool sistema_detenido;
+extern bool stop_largo_plazo;
+extern bool stop_corto_plazo;
+extern bool stop_cpu_dispatch;
+extern bool stop_io;
+
 // semaforos
 extern sem_t mutex_conexion_memoria;
 extern sem_t mutex_conexion_cpu_dispatch;
@@ -95,8 +103,15 @@ extern sem_t mutex_proceso_en_ejecucion;
 
 extern sem_t mutex_diccionario_interfaces;
 
+extern sem_t mutex_diccionario_recursos;
+
 extern sem_t sem_peticiones_io_por_procesar;
 extern sem_t sem_interfaz_io_libre;
+
+extern sem_t sem_stop_largo_plazo;
+extern sem_t sem_stop_corto_plazo;
+extern sem_t sem_stop_cpu_dispatch;
+extern sem_t sem_stop_io;
 
 // colas
 extern t_queue* cola_new;

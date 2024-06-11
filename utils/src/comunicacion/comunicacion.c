@@ -8,7 +8,7 @@ void avisar_desalojo_a_cpu(int conexion_cpu, int op_code, char* motivo){
     envio_generico_string(conexion_cpu, op_code, motivo);
 }
 
-void solicitar_intruccion_a_memoria(int conexion, int op_code, int pid, int pc){
+void solicitar_intruccion_a_memoria(int conexion, uint8_t op_code, uint32_t pid, uint32_t pc){
     envio_generico_doble_entero(conexion, op_code, pid, pc);
 }
 
@@ -138,7 +138,7 @@ int recibo_generico_op_code(int conexion){
 
 void validar_respuesta_op_code(int conexion, uint8_t op_code_esperado, t_log* logger){
     int respuesta = recibo_generico_op_code(conexion);
-    if(respuesta == op_code_esperado) log_info(logger, "Respuesta OK \n");
+    if(respuesta == op_code_esperado) log_info(logger, "Respuesta OK");
     if(respuesta != op_code_esperado) log_info(logger, "Respuesta Fallida \n");
 }
 

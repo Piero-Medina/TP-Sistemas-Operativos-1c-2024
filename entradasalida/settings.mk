@@ -12,5 +12,5 @@ CRELEASE=-O3 -Wall -DNDEBUG -fcommon
 ARGS=TECLADO entradaSalida1.config
 
 # Valgrind flags
-MEMCHECK_FLAGS=--track-origins=yes
+MEMCHECK_FLAGS=--track-origins=yes --leak-check=full --show-leak-kinds=all
 HELGRIND_FLAGS=

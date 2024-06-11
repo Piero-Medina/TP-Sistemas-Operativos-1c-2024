@@ -228,7 +228,20 @@ void solicitar_IO_GEN_SLEEP(int conexion_interfaz, t_io_pendiente* pendiente){
 
 t_PCB* buscar_pcb_por_pid_y_remover(int pid, t_list* lista){
     int posicion = posicion_de_pcb_por_pid(pid, lista);
-    return (t_PCB*) list_remove(lista, posicion);
+    if(posicion != -1){
+       return (t_PCB*) list_remove(lista, posicion); 
+    }else{
+        return NULL;
+    }
+}
+
+t_PCB* buscar_pcb_por_pid_y_obtener(int pid, t_list* lista){
+    int posicion = posicion_de_pcb_por_pid(pid, lista);
+    if(posicion != -1){
+        return (t_PCB*) list_get(lista, posicion);
+    }else{
+        return NULL;
+    }
 }
 
 int posicion_de_pcb_por_pid(int pid, t_list* lista){
@@ -239,7 +252,7 @@ int posicion_de_pcb_por_pid(int pid, t_list* lista){
 	while ((*indirect) != NULL) {
 		pcb = (t_PCB*) (*indirect)->data;
         
-        if(pcb->pid == pid){
+        if( ((int)pcb->pid) == pid ){
             return contador;
         }
 		indirect = &(*indirect)->next;
@@ -249,4 +262,36 @@ int posicion_de_pcb_por_pid(int pid, t_list* lista){
     contador = -1;
 
     return contador;
+}
+
+t_io_pendiente* buscar_io_pendiente_por_pid_y_obtener(uint32_t pid, t_list* lista){
+    int posicion = posicion_de_io_pendiente_por_pid(pid, lista);
+    if(posicion != -1){
+        return (t_io_pendiente*) list_get(lista, posicion);
+    }else{
+        return NULL;
+    }
+}
+
+t_io_pendiente* buscar_io_pendiente_por_pid_y_remover(uint32_t pid, t_list* lista){
+    int posicion = posicion_de_io_pendiente_por_pid(pid, lista);
+    if(posicion != -1){
+        return (t_io_pendiente*) list_remove(lista, posicion);
+    }else{
+        return NULL;
+    }
+}
+
+int posicion_de_io_pendiente_por_pid(uint32_t pid, t_list* lista){
+    t_io_pendiente* pendiente = NULL;
+    int tamanio = list_size(lista);
+
+    for (int i = 0; i < tamanio; i++){
+        pendiente = (t_io_pendiente*) list_get(lista, i);
+        if(pendiente->pid == pid){
+            return i;
+        }
+    }
+
+    return -1;
 }

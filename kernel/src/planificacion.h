@@ -28,7 +28,7 @@ void func_corto_plazo(void* arg);
 void mover_new_a_ready(void);
 
 // movemos un proceso de ready a execute
-void mover_ready_a_execute(void);
+void mover_ready_a_execute(uint32_t* pid);
 
 // movemos un proceso de execute a blocked (dentro se actualiza el contexto)
 void mover_execute_a_blocked(t_PCB* pcb);
@@ -38,6 +38,18 @@ t_PCB* actualizar_contexto(t_PCB* pcb_nueva, t_PCB* pcb_vieja);
 
 // movemos un proceso de blocked a ready | luego ver si hace falta actualizar el contexto
 void mover_blocked_a_ready(int pid);
+
+// movemos un proceso de execute a ready (dentro se actualiza el contexto)
+void mover_execute_a_ready(t_PCB* pcb_nueva);
+
+// - mover un proceso de la cola ready de mayor prioridad a execute (VRR)
+void mover_ready_aux_a_execute(uint32_t* pid, uint32_t* quantum_restante);
+
+// - mover un proceso de execute a la cola ready de mayor prioridad (VRR)
+void mover_execute_a_ready_aux(t_PCB* pcb_nueva);
+
+// - mover un proceso de Blocked a la cola ready de mayor prioridad (VRR)
+void mover_blocked_a_ready_aux(int pid);
 
 /*
     dado que podemos mandar a exit desde diferentes estados 
@@ -51,10 +63,16 @@ void mover_blocked_a_ready(int pid);
 */
 void mandar_a_exit(t_PCB* pcb, char* motivo);
 
-// movemos un proceso de execute a ready (dentro se actualiza el contexto)
-void mover_execute_a_ready(t_PCB* pcb_nueva);
-
 // movimientos a exit
 void mover_execute_a_exit(t_PCB* pcb, char* motivo);
+
+// - Devuelve un proceso a execute
+// - Se encarga de cumplir el algoritmo actual que maneja el Kernel (mediante un hilo)
+// - Actualiza el contexto de ejecucion
+void devolver_a_execute(t_PCB* pcb);
+void mini_planificador_corto_plazo(void* arg);
+void mover_execute_a_execute(uint32_t* pid, uint32_t* quantum_restante);
+// - Mueve a la cola ready cumpliendo el agoritmo actual (el pcb debe estar actualizado de antemano)
+void mover_a_ready_o_ready_aux(t_PCB* pcb);
 
 #endif 
