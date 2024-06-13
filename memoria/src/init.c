@@ -24,8 +24,8 @@ void sigint_handler(int signum){
     procesar_conexion_en_ejecucion = false; 
     
     log_info(logger, "¡Este proceso nunca debió existir! \n\n\n");
+    libera_espacio_memoria(memoria,logger);
     liberar_memoria();
-
     exit(EXIT_SUCCESS);
 }
 

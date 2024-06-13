@@ -12,13 +12,27 @@
 typedef struct {
     int pid;
     t_list* instrucciones; // (t_instruccion*)
+    t_list* marcos;// marcos asignados
 }t_proceso;
+
+struct pagina{
+    unsigned int marco; /*id del marco, unico por cada porcion de memoria*/
+    void* dato;/*es la direccion al primer byte del marco */
+    bool asignada;
+}typedef t_pagina;
+
+struct memoria_paginada{
+    unsigned int tamano_pagina;
+    unsigned int tamano_memoria;
+    t_pagina* paginas;
+}typedef t_memoria_paginada;
 
 
 // declarado en main.c
 extern t_log* logger;
 extern t_memoria_config* config;
 
+extern t_memoria_paginada* memoria;
 extern int server_fd;
 
 // declarado en init.c
