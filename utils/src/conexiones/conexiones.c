@@ -48,6 +48,10 @@ int iniciar_servidor(char* name ,char* ip, char* puerto, t_log* logger){
 	socket_servidor = socket(servinfo->ai_family,
                          	 servinfo->ai_socktype,
                          	 servinfo->ai_protocol);
+	
+	// Configurar SO_REUSEADDR para reutilizar el puerto 
+    int opt = 1;
+    setsockopt(socket_servidor, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
 
 	// Asociamos el socket a un puerto (toma le socket recien creado y lo pega al puerto)
 	bind(socket_servidor, servinfo->ai_addr, servinfo->ai_addrlen);

@@ -135,7 +135,11 @@ void func_ejecutar_script(char* leido){
     char** split = NULL;
     split = string_split(leido, " ");
 
-    FILE* archivo = leer_archivo(split[1]);
+    char* modificado = remover_primer_char_si_machea(split[1], '/'); ////
+
+    FILE* archivo = leer_archivo(modificado);
+
+    free(modificado); ////
 
     char* buffer = malloc(sizeof(char) * MAX);
     char* linea = NULL; // no es necesario liberar
@@ -163,42 +167,56 @@ void func_iniciar_proceso(char* leido){
     contador_pid ++;
     sem_post(&mutex_pid);
 
+    char* modificado = remover_primer_char_si_machea(split[1], '/'); ////
+
     log_info(logger, "Avisando a Memoria sobre la entrada de Nuevo Preceso PID: <%u> ", pcb->pid);
     sem_wait(&mutex_conexion_memoria);
-        envio_generico_entero_y_string(conexion_memoria, NUEVO_PROCESO_MEMORIA, pcb->pid, split[1]);
+        envio_generico_entero_y_string(conexion_memoria, NUEVO_PROCESO_MEMORIA, pcb->pid, modificado);
         validar_respuesta_op_code(conexion_memoria, MEMORIA_OK, logger);
     sem_post(&mutex_conexion_memoria);
 
     mover_a_new(pcb);    
 
+    free(modificado); ////
     string_array_destroy(split);
 }
 
-// TODO
 void func_finalizar_proceso(char* leido){
     //printf("Ejecutando comando func_finalizar_proceso\n");
     char** split = string_split(leido, " ");
     int pid = atoi(split[1]);
 
-    // luego ver como hacer un return cuando apenas finalize asi no recorre todas la colas
-    finalizar_proceso_NEW(pid);
-    finalizar_proceso_READY(pid);
-    
-    if(algoritmo_elegido == VRR){
-        finalizar_proceso_READY_AUX(pid);
+    if(finalizar_proceso_NEW(pid)){
+        return;
     }
 
-    finalizar_proceso_EXECUTE(pid); // dijeron que no finalizarian un proceso en ejecucion, capas no hace falta implementarlo
-    finalizar_proceso_BLOCKED(pid);
+    if(finalizar_proceso_READY(pid)){
+        return;
+    }
+    
+    if(algoritmo_elegido == VRR){
+        if(finalizar_proceso_READY_AUX(pid)){
+            return;
+        }
+    }
+
+    if(finalizar_proceso_EXECUTE(pid)){ // dijeron que no finalizarian un proceso en ejecucion, capas no hace falta implementarlo
+        return;
+    }
+
+    if(finalizar_proceso_BLOCKED(pid)){
+        return;
+    }
     
     if(existe_recursos){
-        finalizar_proceso_BLOCKED_RECURSO(pid);
+        if(finalizar_proceso_BLOCKED_RECURSO(pid)){
+            return;
+        }
     }
 
     string_array_destroy(split);
 }
 
-// TODO
 void func_detener_planificacion(void){
     //printf("Ejecutando comando func_detener_planificacion\n");
     // por si quieren detener de nuevo por error
@@ -212,7 +230,6 @@ void func_detener_planificacion(void){
     }
 }
 
-// TODO
 void func_iniciar_planificacion(void){
     //printf("Ejecutando comando func_iniciar_planificacion\n");
     if(sistema_detenido){
@@ -347,9 +364,14 @@ void imprimir_recursos_bloqueados(void){
     sem_post(&mutex_diccionario_recursos);
 }
 
-void finalizar_proceso_NEW(int pid){
+bool finalizar_proceso_NEW(int pid){
     sem_wait(&mutex_cola_new);
-        t_PCB* pcb = (t_PCB*)buscar_pcb_por_pid_y_remover(pid, cola_new->elements);
+    t_PCB* pcb = (t_PCB*)buscar_pcb_por_pid_y_remover(pid, cola_new->elements);
+    
+    if(pcb == NULL){
+        return false;
+        sem_post(&mutex_cola_new);
+    }
 
     if(pcb != NULL){
         log_info(logger, "Finalizando PID: <%u> que estaba en estado <NEW>", pcb->pid);
@@ -359,11 +381,18 @@ void finalizar_proceso_NEW(int pid){
         sem_post(&sem_grado_multiprogramacion);
     }
     sem_post(&mutex_cola_new);
+
+    return true;
 }
 
-void finalizar_proceso_READY(int pid){
+bool finalizar_proceso_READY(int pid){
     sem_wait(&mutex_cola_ready);
-        t_PCB* pcb = (t_PCB*)buscar_pcb_por_pid_y_remover(pid, cola_ready->elements);
+    t_PCB* pcb = (t_PCB*)buscar_pcb_por_pid_y_remover(pid, cola_ready->elements);
+
+    if(pcb == NULL){
+        sem_post(&mutex_cola_ready);
+        return false;
+    }
 
     if(pcb != NULL){
         log_info(logger, "Finalizando PID: <%u> que estaba en estado <READY>", pcb->pid);
@@ -373,11 +402,18 @@ void finalizar_proceso_READY(int pid){
         sem_post(&sem_grado_multiprogramacion);
     }
     sem_post(&mutex_cola_ready);
+
+    return true;
 }
 
-void finalizar_proceso_READY_AUX(int pid){
+bool finalizar_proceso_READY_AUX(int pid){
     sem_wait(&mutex_cola_ready_aux);
         t_PCB* pcb = (t_PCB*)buscar_pcb_por_pid_y_remover(pid, cola_ready_aux->elements);
+
+    if(pcb == NULL){
+        sem_post(&mutex_cola_ready_aux);
+        return false;
+    }
 
     if(pcb != NULL){
         log_info(logger, "Finalizando PID: <%u> que estaba en estado <READY_AUX>", pcb->pid);
@@ -387,9 +423,11 @@ void finalizar_proceso_READY_AUX(int pid){
         sem_post(&sem_grado_multiprogramacion);
     }
     sem_post(&mutex_cola_ready_aux);
+
+    return true;
 }
 
-void finalizar_proceso_BLOCKED_RECURSO(int pid){
+bool finalizar_proceso_BLOCKED_RECURSO(int pid){
     t_PCB* pcb = NULL;
 
     sem_wait(&mutex_diccionario_recursos);
@@ -402,9 +440,6 @@ void finalizar_proceso_BLOCKED_RECURSO(int pid){
 
         pcb = (t_PCB*)buscar_pcb_por_pid_y_remover(pid, recurso->cola_recurso->elements);
         if(pcb != NULL){
-            // si estaba bloqueado es por un wait
-            // le sacamos el pedido de recurso
-            recurso->instancias += 1;
             break;
         }
     }
@@ -413,15 +448,21 @@ void finalizar_proceso_BLOCKED_RECURSO(int pid){
         
     sem_post(&mutex_diccionario_recursos);
 
+    if(pcb == NULL){
+        return false;
+    }
+
     if(pcb != NULL){
         log_info(logger, "Finalizando PID: <%u> que estaba en estado <BLOCKED_RECURSO>", pcb->pid);
         mandar_a_exit(pcb, "FINALIZADO POR CONSOLA INTERACTIVA");
 
         sem_post(&sem_grado_multiprogramacion);
     }
+
+    return true;
 }
 
-void finalizar_proceso_EXECUTE(int pid){
+bool finalizar_proceso_EXECUTE(int pid){
     /*  
         Habria que considerar 2 casos, en donde el pcb esta excutanto en cpu y aun no
         volvio a kernel, en donde ya esta en kernel y esta en medio de una funcion o caso
@@ -440,12 +481,44 @@ void finalizar_proceso_EXECUTE(int pid){
         nuestro problema.
         Recordemos que con el Mutex solo pueden estar de a uno en la zona critica.
     */
+    t_PCB* pcb = NULL;
+
+    sem_wait(&mutex_cola_execute);
+    pcb = buscar_pcb_por_pid_y_obtener(pid, cola_execute->elements);
+
+    if(pcb == NULL){
+        sem_post(&mutex_cola_execute);
+        return false;
+    }
+
+    if(pcb != NULL){
+        sem_wait(&mutex_proceso_en_ejecucion);
+        if(proceso_en_ejecucion){
+            // luego que llegue el proceso nos encargamos de dejar la cpu libre y mandar a exit en el case.
+            log_info(logger, "PID <%u> pendiente de Finalizacion cuando vuelva de CPU", pcb->pid);
+            
+            // con esto treamos el proceso de CPU en caso que no este
+            sem_wait(&mutex_conexion_cpu_interrupt);
+                envio_generico_op_code(conexion_cpu_interrupt, DESALOJO);
+            sem_post(&mutex_conexion_cpu_interrupt);
+
+            finalizacion_execute_afuera_kernel = true;
+        }
+        else
+        {
+            // antes de cada transicion hacer un if y mandarlo a exit | capas usamos una varibale global
+            log_info(logger, "PID <%u> pendiente de Finalizacion ante una transicion", pcb->pid);
+            finalizacion_execute_dentro_kernel = true;
+        }
+        sem_post(&mutex_proceso_en_ejecucion);
+    }
+    
+    sem_post(&mutex_cola_execute);
+
+    return true;   
 }
 
-void finalizar_proceso_BLOCKED(int pid){
-    t_PCB* pcb = NULL;
-    t_interfaz* interfaz = NULL;
-    t_io_pendiente* io_pendiente = NULL;
+bool finalizar_proceso_BLOCKED(int pid){
     /*
     si esta en blocked, es porque esta por realizar o esperando un IO
     - si esta por realizarlo, significa que t_pendiente de io con su pid
@@ -458,8 +531,18 @@ void finalizar_proceso_BLOCKED(int pid){
     -> Una vez removido analizar que semaforos se hacen post y cuales wait.
     -> envolver todo en el semaforo de diccionario recursos para evitar inconsistencias
     */
+    
+    t_PCB* pcb = NULL;
+    t_interfaz* interfaz = NULL;
+    t_io_pendiente* io_pendiente = NULL;
+
     sem_wait(&mutex_cola_blocked);
     pcb = buscar_pcb_por_pid_y_obtener(pid, cola_blocked->elements);
+
+    if(pcb == NULL){
+        sem_post(&mutex_cola_blocked);
+        return false;
+    }
 
     if(pcb != NULL){
         pcb = NULL; // libero para poder usarlo despues
@@ -484,14 +567,24 @@ void finalizar_proceso_BLOCKED(int pid){
                 sem_post(&sem_grado_multiprogramacion);
 
                 liberar_elemento_io_pendiente((void*) io_pendiente);
-                break;
+
+                list_destroy(lista_interfaces);
+                sem_post(&mutex_diccionario_interfaces);
+                sem_post(&mutex_cola_blocked); 
+                return true; // salimos de la funcion
             }
         }
 
         if (io_pendiente == NULL){
-            // si entramos aca es porque termino el ciclo pero nuca encontro un io.
+            // si entramos aca es porque termino el ciclo pero nunca encontro un io.
             // agregamos el pid la lista glbal de victimas de io.
             // pasamos la responsbilidad al procesar_io;
+            int* pid_victima = malloc(sizeof(int));
+            *pid_victima = pid;
+            sem_wait(&mutex_victimas_pendientes_io);
+                list_add(victimas_pendientes_io, (void*) pid_victima);
+            sem_post(&mutex_victimas_pendientes_io);    
+            log_info(logger, "Finalizacion PID: <%d> pendiente por estar ejecutando IO", pid);
         }
 
         list_destroy(lista_interfaces);
@@ -499,6 +592,8 @@ void finalizar_proceso_BLOCKED(int pid){
     }
 
     sem_post(&mutex_cola_blocked);
+
+    return true;
 }
 
 void finalizar_proceso_EXIT(int pid){

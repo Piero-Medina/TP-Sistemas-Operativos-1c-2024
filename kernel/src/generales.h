@@ -24,11 +24,17 @@ typedef struct {
 }t_recurso;
 
 typedef struct {
+	uint32_t pid;
+	char* recurso;
+	bool devuelto;
+}t_registro_recurso;
+
+typedef struct {
 	int tipo;
 	int socket;
 	bool ocupado;
 	sem_t semaforo;
-	t_queue* cola;
+	t_queue* cola;  // (t_io_pendiente)
 }t_interfaz;
 
 typedef struct {
@@ -80,6 +86,10 @@ extern bool stop_corto_plazo;
 extern bool stop_cpu_dispatch;
 extern bool stop_io;
 
+// - no necesita semaforo, sera usada cuando se use la cola bloqueados, por lo que compartira su mutex
+extern bool finalizacion_execute_afuera_kernel;
+extern bool finalizacion_execute_dentro_kernel;
+
 // semaforos
 extern sem_t mutex_conexion_memoria;
 extern sem_t mutex_conexion_cpu_dispatch;
@@ -113,6 +123,8 @@ extern sem_t sem_stop_corto_plazo;
 extern sem_t sem_stop_cpu_dispatch;
 extern sem_t sem_stop_io;
 
+extern sem_t mutex_victimas_pendientes_io;
+
 // colas
 extern t_queue* cola_new;
 extern t_queue* cola_ready;
@@ -126,7 +138,8 @@ extern t_dictionary* recursos;
 extern t_dictionary* interfaces;
 
 // listas
-extern t_list* pendientes_io;
+extern t_list* victimas_pendientes_io;
+extern t_list* recursos_asignados;
 
 // hilo
 extern pthread_t hilo_planificador_LP;

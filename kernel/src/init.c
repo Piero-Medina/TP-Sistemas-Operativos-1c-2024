@@ -15,6 +15,9 @@ bool stop_corto_plazo;
 bool stop_cpu_dispatch;
 bool stop_io;
 
+bool finalizacion_execute_afuera_kernel;
+bool finalizacion_execute_dentro_kernel;
+
 sem_t mutex_conexion_memoria;
 sem_t mutex_conexion_cpu_dispatch;
 sem_t mutex_conexion_cpu_interrupt;
@@ -47,6 +50,8 @@ sem_t sem_stop_corto_plazo;
 sem_t sem_stop_cpu_dispatch;
 sem_t sem_stop_io;
 
+sem_t mutex_victimas_pendientes_io;
+
 t_queue* cola_new;
 t_queue* cola_ready;
 t_queue* cola_ready_aux;
@@ -57,7 +62,8 @@ t_queue* cola_exit;
 t_dictionary* recursos;
 t_dictionary* interfaces;
 
-t_list* pendientes_io;
+t_list* victimas_pendientes_io;
+t_list* recursos_asignados;
 
 pthread_t hilo_planificador_LP;
 pthread_t hilo_planificador_CP;
@@ -65,7 +71,7 @@ pthread_t hilo_planificador_CP;
 void init_kernel(void){
     signal(SIGINT, sigint_handler);
     procesar_conexion_en_ejecucion = true;
-    contador_pid = 0;
+    contador_pid = 1;
     grado_multiprogramacion_global = config->grado_max_multiprogramacion;
     proceso_en_ejecucion = false;
 
@@ -74,6 +80,9 @@ void init_kernel(void){
     stop_corto_plazo = false;
     stop_cpu_dispatch = false;
     stop_io = false;
+
+    finalizacion_execute_afuera_kernel = false;
+    finalizacion_execute_dentro_kernel = false;
     
     algorimo_elegido();
     init_diccionarios();
@@ -146,6 +155,8 @@ void init_semaforos(void){
     sem_init(&sem_stop_corto_plazo, 0, 1);
     sem_init(&sem_stop_cpu_dispatch, 0, 1);
     sem_init(&sem_stop_io, 0, 1);
+
+    sem_init(&mutex_victimas_pendientes_io, 0, 1);
 }
 
 void liberar_semaforos(void){
@@ -181,6 +192,8 @@ void liberar_semaforos(void){
     sem_destroy(&sem_stop_corto_plazo);
     sem_destroy(&sem_stop_cpu_dispatch);
     sem_destroy(&sem_stop_io);
+
+    sem_destroy(&mutex_victimas_pendientes_io);
 }
 
 void init_colas(void){
@@ -299,11 +312,13 @@ void init_planificadores(void){
 }
 
 void init_listas(void){
-    pendientes_io = list_create();
+    victimas_pendientes_io = list_create();
+    recursos_asignados = list_create();
 }
 
 void liberar_listas(void){
-    list_destroy_and_destroy_elements(pendientes_io, liberar_elemento_io_pendiente);
+    list_destroy_and_destroy_elements(victimas_pendientes_io, free);
+    list_destroy_and_destroy_elements(recursos_asignados, liberar_elemento_t_registro_recurso);
 }
 
 void liberar_elemento_io_pendiente(void* elemento){
@@ -313,6 +328,12 @@ void liberar_elemento_io_pendiente(void* elemento){
         free(tmp->parametro_string);
     }
 
+    free(tmp);
+}
+
+void liberar_elemento_t_registro_recurso(void* elemento){
+    t_registro_recurso* tmp = (t_registro_recurso*) elemento;
+    free(tmp->recurso);
     free(tmp);
 }
 

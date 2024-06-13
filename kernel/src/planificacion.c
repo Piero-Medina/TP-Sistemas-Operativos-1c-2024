@@ -61,6 +61,8 @@ void func_corto_plazo(void* arg){
             log_info(logger, "RESUME CORTO PLAZO");
         }
 
+        // si un proceso en ready justo fue mandado a exit?, habria que salir de la funcion
+
         if(algoritmo_elegido == FIFO){
             sem_wait(&sem_cpu_disponible);
             mover_ready_a_execute(&pid);
@@ -136,8 +138,20 @@ void mover_ready_a_execute(uint32_t* pid){
     sem_post(&mutex_proceso_en_ejecucion);
 }
 
-void mover_execute_a_blocked(t_PCB* pcb_nueva){
+bool mover_execute_a_blocked(t_PCB* pcb_nueva){
     sem_wait(&mutex_cola_execute);
+        if(finalizacion_execute_dentro_kernel){
+            finalizacion_execute_dentro_kernel = false;
+            t_PCB* tmp = (t_PCB*) queue_pop(cola_execute);
+            liberar_PCB(tmp);
+
+            log_info(logger, "PID: <%u> - Finalizado antes de pasar a <BLOCKED>", pcb_nueva->pid);
+            mandar_a_exit(pcb_nueva, "FINALIZADO POR CONSOLA INTERACTIVA");
+
+            sem_post(&mutex_cola_execute);
+            return false;
+        }
+
         t_PCB* pcb_vieja = (t_PCB*) queue_pop(cola_execute);
     sem_post(&mutex_cola_execute);
 
@@ -150,6 +164,8 @@ void mover_execute_a_blocked(t_PCB* pcb_nueva){
     sem_wait(&mutex_cola_blocked);
         queue_push(cola_blocked, (void*) pcb_actualizada);
     sem_post(&mutex_cola_blocked);
+
+    return true;
 }
 
 t_PCB* actualizar_contexto(t_PCB* pcb_nueva, t_PCB* pcb_vieja){
@@ -178,8 +194,19 @@ void mover_blocked_a_ready(int pid){
     sem_post(&sem_procesos_esperando_en_ready);
 }
 
-void mover_execute_a_ready(t_PCB* pcb_nueva){
+bool mover_execute_a_ready(t_PCB* pcb_nueva){
     sem_wait(&mutex_cola_execute);
+        if(finalizacion_execute_dentro_kernel){
+            finalizacion_execute_dentro_kernel = false;
+            t_PCB* tmp = (t_PCB*) queue_pop(cola_execute);
+            liberar_PCB(tmp);
+
+            log_info(logger, "PID: <%u> - Finalizado antes de pasar a <READY>", pcb_nueva->pid);
+            mandar_a_exit(pcb_nueva, "FINALIZADO POR CONSOLA INTERACTIVA");
+
+            sem_post(&mutex_cola_execute);
+            return false;
+        }
         t_PCB* pcb_vieja = (t_PCB*) queue_pop(cola_execute);
     sem_post(&mutex_cola_execute);
 
@@ -197,10 +224,23 @@ void mover_execute_a_ready(t_PCB* pcb_nueva){
     sem_post(&mutex_cola_ready);
 
     sem_post(&sem_procesos_esperando_en_ready);
+
+    return true;
 }
 
-void mover_execute_a_ready_aux(t_PCB* pcb_nueva){
+bool mover_execute_a_ready_aux(t_PCB* pcb_nueva){
     sem_wait(&mutex_cola_execute);
+        if(finalizacion_execute_dentro_kernel){
+            finalizacion_execute_dentro_kernel = false;
+            t_PCB* tmp = (t_PCB*) queue_pop(cola_execute);
+            liberar_PCB(tmp);
+
+            log_info(logger, "PID: <%u> - Finalizado antes de pasar a <READY_AUX>", pcb_nueva->pid);
+            mandar_a_exit(pcb_nueva, "FINALIZADO POR CONSOLA INTERACTIVA");
+
+            sem_post(&mutex_cola_execute);
+            return false;
+        }
         t_PCB* pcb_vieja = (t_PCB*) queue_pop(cola_execute);
     sem_post(&mutex_cola_execute);
 
@@ -218,6 +258,8 @@ void mover_execute_a_ready_aux(t_PCB* pcb_nueva){
     sem_post(&mutex_cola_ready_aux);
 
     sem_post(&sem_procesos_esperando_en_ready);
+
+    return true;
 }
 
 void mover_ready_aux_a_execute(uint32_t* pid, uint32_t* quantum_restante){
@@ -279,6 +321,13 @@ void mandar_a_exit(t_PCB* pcb, char* motivo){
         validar_respuesta_op_code(conexion_memoria, MEMORIA_OK, logger);
     sem_post(&mutex_conexion_memoria);
 
+    if(existe_recursos){
+        sem_wait(&mutex_diccionario_recursos);
+            log_info(logger, "Liberando recursos retenidos por el proceso PID: <%u>", pcb->pid);
+            devolver_recursos(pcb->pid);
+        sem_post(&mutex_diccionario_recursos);
+    }
+
     log_info(logger, "PID: <%u> - Estado Anterior: <%s> - Estado Actual: <EXIT>", pcb->pid, estado_anterior);
 
     /* 
@@ -290,14 +339,27 @@ void mandar_a_exit(t_PCB* pcb, char* motivo){
     sem_post(&mutex_cola_exit);
 }
 
-void mover_execute_a_exit(t_PCB* pcb_nueva, char* motivo){
+bool mover_execute_a_exit(t_PCB* pcb_nueva, char* motivo){
     sem_wait(&mutex_cola_execute);
+        if(finalizacion_execute_dentro_kernel){
+            finalizacion_execute_dentro_kernel = false;
+            t_PCB* tmp = (t_PCB*) queue_pop(cola_execute);
+            liberar_PCB(tmp);
+
+            log_info(logger, "PID: <%u> - Finalizado antes de pasar a <EXIT>", pcb_nueva->pid);
+            mandar_a_exit(pcb_nueva, "FINALIZADO POR CONSOLA INTERACTIVA");
+
+            sem_post(&mutex_cola_execute);
+            return false;
+        }
         t_PCB* pcb_vieja = (t_PCB*) queue_pop(cola_execute);
     sem_post(&mutex_cola_execute);
 
     t_PCB* pcb_actualizada = actualizar_contexto(pcb_nueva, pcb_vieja); 
 
     mandar_a_exit(pcb_actualizada, motivo);
+    
+    return true;
 }
 
 void devolver_a_execute(t_PCB* pcb){
@@ -413,4 +475,76 @@ void mover_a_ready_o_ready_aux(t_PCB* pcb){
 
         sem_post(&sem_procesos_esperando_en_ready);
     }  
+}
+
+
+void agregar_registro_recurso(uint32_t pid, char* recurso){
+    t_registro_recurso* tmp = malloc(sizeof(t_registro_recurso));
+
+    tmp->pid = pid;
+    tmp->recurso = strdup(recurso);
+    tmp->devuelto = false;
+
+    log_info(logger,"PID <%u> consumiendo recurso (%s)", tmp->pid, tmp->recurso);
+    list_add(recursos_asignados, (void*) tmp);
+}
+
+void eliminar_registro_recurso(uint32_t pid, char* recurso){
+    int size_lista = list_size(recursos_asignados);
+    t_registro_recurso* registro_recurso = NULL;
+
+    if(size_lista == 0){
+        return;
+    }
+
+    for(int i = 0; i < size_lista; i++){
+        registro_recurso = (t_registro_recurso*) list_get(recursos_asignados, i);
+        if((registro_recurso->pid == pid) && (strcmp(registro_recurso->recurso, recurso) == 0)){
+            registro_recurso = (t_registro_recurso*) list_remove(recursos_asignados, i);
+            log_info(logger,"PID: <%u> Devolviendo recurso (%s)", registro_recurso->pid, registro_recurso->recurso);
+            liberar_elemento_t_registro_recurso((void*) registro_recurso);
+            return;
+        }
+    }
+}
+
+void devolver_recursos(uint32_t pid){
+    int size_lista = list_size(recursos_asignados);
+    t_registro_recurso* registro_recurso = NULL;
+    t_recurso* recurso = NULL;
+    t_PCB* pcb = NULL;
+
+    if(size_lista == 0){
+        return;
+    }
+    
+    for(int i = 0; i < size_lista; i++){
+        registro_recurso = (t_registro_recurso*) list_get(recursos_asignados, i);
+        
+        if((registro_recurso->pid == pid) && (!registro_recurso->devuelto)){
+            recurso = (t_recurso*) dictionary_get(recursos, registro_recurso->recurso);
+
+            recurso->instancias += 1;
+
+            registro_recurso->devuelto = true;
+
+            if(recurso->instancias > 0){
+                pcb = (t_PCB*) queue_pop(recurso->cola_recurso);
+                
+                // mandar el proceso recien desbloqueado a Ready o Ready plus (segun el algortimo)
+                log_info(logger, "PID: <%u> - LIBERA: (%s) - Instancias: (%d) - Desbloquea a PID <%u>", pid, registro_recurso->recurso, recurso->instancias, pcb->pid);
+                mover_a_ready_o_ready_aux(pcb);
+            }
+        }
+    }
+
+    eliminar_devueltos();
+}
+
+void eliminar_devueltos(void){
+    bool condicion (void* elemento){
+        t_registro_recurso* tmp = (t_registro_recurso*) elemento;
+        return tmp->devuelto;
+    }
+    list_remove_and_destroy_all_by_condition(recursos_asignados, condicion, liberar_elemento_t_registro_recurso);
 }

@@ -60,4 +60,9 @@ int calcular_bloques_necesarios(int bytes, int tamanio_bloque);
 char* eliminar_caracteres_finales(const char* buffer, char caracter);
 char* eliminar_caracteres(const char* buffer, char caracter);
 
+// - funcion para remover el primer char de un string (liberar memoria)
+// - (La usamos porque los path /scripts_kernel no las pueden leer los modulos, pero si scripts_kernel)
+// - /scripts_kernel/PRUEBA_PLANI -> fun(string, '/') -> scripts_kernel/PRUEBA_PLANI
+char* remover_primer_char_si_machea(const char* str, char char_to_remove);
+
 #endif

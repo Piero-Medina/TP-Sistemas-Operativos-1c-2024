@@ -13,7 +13,7 @@
 
 t_log* logger;
 t_memoria_config* config;
-t_memoria_paginada* memoria;
+//t_memoria_paginada* memoria;
 int server_fd;
 
 int main(int argc, char* argv[]) {
@@ -26,6 +26,7 @@ int main(int argc, char* argv[]) {
     config = init_memoria_config("memoria.config");
     
     /*inicializo la memoria*/
+    /*
     t_memoria_paginada* memoria = inicializar_memoria_paginada(config->tam_memoria,config->tam_pagina,logger);
     if(memoria == NULL){
         log_error(logger, "no se pudo asignar alguno de los valores necesarios para la memoria");
@@ -35,16 +36,20 @@ int main(int argc, char* argv[]) {
     proceso.instrucciones = list_create();
     proceso.marcos = list_create();
     proceso.pid = 1;
+    */
     /*Incializo el servidor*/
     server_fd = iniciar_servidor("MEMORIA", config->ip_memoria, config->puerto_escucha_memoria, logger);
     log_info(logger, "MEMORIA Escuchando Conexiones \n");
-    /*Espera de mensaje*/
-    //while (server_listen(logger, "MEMORIA", server_fd, (void*) procesar_conexion_general));
+    while (server_listen(logger, "MEMORIA", server_fd, (void*) procesar_conexion_general));
+    
+    /*
     log_info(logger, "asigno marcos al proceso: \n");
     if(asignar_paginas_a_proceso(&proceso, memoria,logger))
         log_info(logger,"asignada");
+    */    
     /*Libero memoria*/
-    libera_espacio_memoria(memoria,logger);
+    //libera_espacio_memoria(memoria,logger);
     liberar_memoria();
+    
     return 0;
 }

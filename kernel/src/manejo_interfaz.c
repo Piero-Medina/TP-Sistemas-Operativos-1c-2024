@@ -65,7 +65,12 @@ void verificar_operacion_generica(int conexion, char* nombre_interfaz, t_PCB* pc
         }
 
         log_info(logger, "PID: <%u> - Bloqueado por: <INTERFAZ (%s)>", pcb->pid, nombre_interfaz);
-        mover_execute_a_blocked(pcb); // aca dentro se actualiza el contexto de ejecucion
+
+        // aca dentro se actualiza el contexto de ejecucion
+        if(mover_execute_a_blocked(pcb) == false){
+           log_info(logger, "PID: <%u> - interceptado antes de bloquearse", pcb->pid);
+           return; // salimos de la funcion
+        }
 
         t_io_pendiente* pendiente_de_io = NULL;
         pendiente_de_io = inicializar_io_pendiente(pcb->pid, operacion, true, NULL, unidades_genericas, 0, 0, 0); //
@@ -226,6 +231,7 @@ void solicitar_IO_GEN_SLEEP(int conexion_interfaz, t_io_pendiente* pendiente){
 }
 
 
+/////////////////////////////////////////////////////////////////////////////////////77
 t_PCB* buscar_pcb_por_pid_y_remover(int pid, t_list* lista){
     int posicion = posicion_de_pcb_por_pid(pid, lista);
     if(posicion != -1){
@@ -294,4 +300,23 @@ int posicion_de_io_pendiente_por_pid(uint32_t pid, t_list* lista){
     }
 
     return -1;
+}
+
+bool pid_pendiente_finalizacion(uint32_t pid, t_list* lista){
+    sem_wait(&mutex_victimas_pendientes_io);
+    
+    int* tmp = NULL;
+    int pid_cast = (int)pid;
+    int tamanio = list_size(lista);
+
+    for (int i = 0; i < tamanio; i++){
+        tmp = (int*) list_get(lista, i);
+        if(*tmp == pid_cast){
+            list_remove_and_destroy_element(lista, i, free);
+            sem_post(&mutex_victimas_pendientes_io);
+            return true;
+        }
+    }
+    sem_post(&mutex_victimas_pendientes_io);
+    return false;
 }

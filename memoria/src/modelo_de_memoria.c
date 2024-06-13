@@ -82,7 +82,7 @@ bool asignar_paginas_a_proceso(t_proceso* proceso,t_memoria_paginada* memoria,t_
         return false;
     }
     mem_libre->asignada = true;
-    list_add(proceso->marcos,mem_libre->marco);
+    //list_add(proceso->marcos,mem_libre->marco);
     return true;
 }
 

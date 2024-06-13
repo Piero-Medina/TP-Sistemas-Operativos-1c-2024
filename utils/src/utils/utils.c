@@ -3,7 +3,7 @@
 FILE* leer_archivo(char *path){
 	FILE * archivo = fopen(path, "r");
 	if(archivo == NULL){
-		printf("no se pudo leer archivo");
+		printf("no se pudo leer archivo \n");
 		exit(EXIT_FAILURE);
 	}
 	return archivo;
@@ -262,4 +262,36 @@ char* eliminar_caracteres(const char* buffer, char caracter){
     }
     nuevo_buffer[cantidad_a_mantener] = '\0'; // Agrega el carácter nulo al final
     return nuevo_buffer;
+}
+
+
+char* remover_primer_char_si_machea(const char* str, char char_to_remove){
+    size_t len = strlen(str);
+
+    // Verificar si el primer carácter es el que queremos eliminar
+    if (str[0] == char_to_remove) {
+        // Asignar memoria para la nueva cadena, sin el primer carácter
+        char* new_str = (char*)malloc((len) * sizeof(char));
+        if (new_str == NULL) {
+            perror("malloc failed");
+            exit(EXIT_FAILURE);
+        }
+
+        // Copiar la cadena original a la nueva cadena, omitiendo el primer carácter
+        strcpy(new_str, str + 1);
+
+        return new_str;
+    } else {
+        // Asignar memoria para la nueva cadena con la misma longitud que la cadena original
+        char* new_str = (char*)malloc((len + 1) * sizeof(char));
+        if (new_str == NULL) {
+            perror("malloc failed");
+            exit(EXIT_FAILURE);
+        }
+
+        // Copiar la cadena original a la nueva cadena
+        strcpy(new_str, str);
+
+        return new_str;
+    }
 }

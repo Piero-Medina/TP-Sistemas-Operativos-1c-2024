@@ -136,6 +136,7 @@ void ejecutar_ciclo_de_instruccion(int conexion, t_PCB* pcb){
                 proceso_sigue_en_cpu = false;
 
                 log_info(logger, "PID: <%u> - Finalizando: <SIGNAL> - <%s>", pcb->pid, nombre_recurso);
+                break;
             }
             case IO_GEN_SLEEP:
             {

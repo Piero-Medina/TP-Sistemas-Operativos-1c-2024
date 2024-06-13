@@ -123,6 +123,7 @@ void set_registro(t_PCB *pcb, uint32_t valor, e_registro registro){
             break;
         case PC:
             pcb->registros->PC = valor;
+            pcb->program_counter = valor;
             break;
         default:
             printf("Error: Índice de registro inválido.\n");

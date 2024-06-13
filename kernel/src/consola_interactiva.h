@@ -16,7 +16,7 @@
 #include <pcb/pcb.h>
 #include <utils/utils.h>
 
-#define MAX 30
+#define MAX 200
 
 typedef enum{
     EJECUTAR_SCRIPT,
@@ -52,12 +52,12 @@ void func_proceso_estado(void);
 
 void imprimir_recursos_bloqueados(void);
 
-void finalizar_proceso_NEW(int pid);
-void finalizar_proceso_READY(int pid);
-void finalizar_proceso_READY_AUX(int pid);
-void finalizar_proceso_EXECUTE(int pid);
-void finalizar_proceso_BLOCKED(int pid);
-void finalizar_proceso_BLOCKED_RECURSO(int pid);
+bool finalizar_proceso_NEW(int pid);
+bool finalizar_proceso_READY(int pid);
+bool finalizar_proceso_READY_AUX(int pid);
+bool finalizar_proceso_EXECUTE(int pid);
+bool finalizar_proceso_BLOCKED(int pid);
+bool finalizar_proceso_BLOCKED_RECURSO(int pid);
 void finalizar_proceso_EXIT(int pid);
 
 #endif 

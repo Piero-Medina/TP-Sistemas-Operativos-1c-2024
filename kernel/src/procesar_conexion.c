@@ -50,16 +50,30 @@ void procesar_conexion_io(void *args){
                 
                 log_info(logger, "PID: <%u> - Solicitud de IO_GEN_SLEEP Finalizada", pid);
 
-                // movemos el proceso a la lista de ready (segun)
                 sem_wait(&mutex_cola_blocked);
-                    t_PCB* pcb = buscar_pcb_por_pid_y_obtener((int)pid, cola_blocked->elements);
+                        t_PCB* pcb = buscar_pcb_por_pid_y_obtener((int)pid, cola_blocked->elements);
                 sem_post(&mutex_cola_blocked);
-                if((algoritmo_elegido == VRR) && (pcb->quantum != 0)){
-                    mover_blocked_a_ready_aux((int)pid);
+
+                // ANTE FINALIZACION CUANDO IO ESTA EJECUTANDO - REPLICAR EN TODAS LA IO
+                if(pid_pendiente_finalizacion(pid, victimas_pendientes_io)){
+                    //mandar de bloque
+                    sem_wait(&mutex_cola_blocked);
+                        t_PCB* pcb_a_finalizar = buscar_pcb_por_pid_y_remover((int)pid, cola_blocked->elements);
+                    sem_post(&mutex_cola_blocked);
+
+                    mandar_a_exit(pcb_a_finalizar, "FINALIZADO POR CONSOLA INTERACTIVA");
+                    sem_post(&sem_grado_multiprogramacion);
                 }
                 else{
-                    mover_blocked_a_ready((int)pid);
-                }                
+                    // movemos el proceso a la lista de ready (segun algoritmo)
+                    if((algoritmo_elegido == VRR) && (pcb->quantum != 0)){
+                        mover_blocked_a_ready_aux((int)pid);
+                    }
+                    else{
+                        mover_blocked_a_ready((int)pid);
+                    } 
+                }
+                //
 
                 // cambiar el estado (sacando del diccionario) (tenemos el key nombre_interfaz)
                 sem_wait(&mutex_diccionario_interfaces);
@@ -117,15 +131,38 @@ void procesar_conexion_cpu_dispatch(void *args){
 
                 t_PCB* pcb = recibir_pcb(conexion_cpu_dispatch);
                 sem_post(&mutex_conexion_cpu_dispatch);
+
+                // si entra, se mando a finalizar al proceso antes de que llegue de CPU
+                sem_wait(&mutex_cola_execute);
+                if(finalizacion_execute_afuera_kernel){
+                    finalizacion_execute_afuera_kernel = false;
+
+                    t_PCB* tmp = buscar_pcb_por_pid_y_remover((int)pcb->pid, cola_execute->elements);
+                    // liberamos el pcb viejo
+                    liberar_PCB(tmp);
+                    // mandamos el pcb recien llegado a exit (estara actualizado)
+                    mandar_a_exit(pcb, "FINALIZADO POR CONSOLA INTERACTIVA");
+                    sem_post(&sem_grado_multiprogramacion); 
+                    sem_post(&sem_cpu_disponible);
+
+                    sem_post(&mutex_cola_execute);
+                    break; // salimos del case.
+                }
+                sem_post(&mutex_cola_execute);
+                ////////////////////////////////////////////////////////////////////// 
                 
                 // IIIIII -> luego revisar si puede haber otros motivos de desalojo
                 log_info(logger, "PID: <%u> - Desalojado por fin de Quantum", pcb->pid);
 
                 if((algoritmo_elegido == VRR) && (pcb->quantum != 0)){
-                    mover_execute_a_ready_aux(pcb);
+                    if(mover_execute_a_ready_aux(pcb) == false){
+                        log_info(logger, "PID: <%u> - interceptado antes de pasar a READY AUX", pcb->pid);
+                    }
                 }
                 else{
-                    mover_execute_a_ready(pcb);
+                    if(mover_execute_a_ready(pcb) == false){
+                        log_info(logger, "PID: <%u> - interceptado antes de pasar a READY", pcb->pid); 
+                    }
                 }
 
                 sem_post(&sem_cpu_disponible); 
@@ -147,7 +184,7 @@ void procesar_conexion_cpu_dispatch(void *args){
                     // en caso que el Recurso exista 
 					t_recurso* recurso = (t_recurso*)dictionary_get(recursos, nombre_recurso);
 
-					if(recurso->instancias < 0){
+					if(recurso->instancias <= 0){
                         // mandar a la cola de bloqueados del mismo recurso
 
                         // sacamos la pcb vieja de execute y la liberamos, dejando cola execute vacia
@@ -159,6 +196,7 @@ void procesar_conexion_cpu_dispatch(void *args){
 						// metemos la pcb actualizada, de modo que no haga falta actualizarla cuando se desbloquee
                         log_info(logger, "PID: <%u> - WAIT: (%s) - Instancias: (%d) - Se Bloquea", pcb->pid, nombre_recurso, recurso->instancias);
                         log_info(logger, "PID: <%u> - Bloqueado por: <RECURSO (%s)>", pcb->pid, nombre_recurso);
+                        
                         queue_push(recurso->cola_recurso, (void*) pcb);
             
 						sem_post(&sem_cpu_disponible);
@@ -167,6 +205,7 @@ void procesar_conexion_cpu_dispatch(void *args){
 						recurso->instancias -= 1;
                         // devolvemos el proceso para que siga ejecutando (respetando el algoritmo)
                         // por ese motivo no dejamos la cpu libre
+                        agregar_registro_recurso(pcb->pid, nombre_recurso);
                         log_info(logger, "PID: <%u> - WAIT: (%s) - Instancias: (%d)", pcb->pid, nombre_recurso, recurso->instancias);
 						devolver_a_execute(pcb); 
 					}
@@ -175,7 +214,11 @@ void procesar_conexion_cpu_dispatch(void *args){
                     // en caso que el recurso no exista el Proceso se manda Exit
                     char* motivo = malloc(sizeof(char) * 50);
                     snprintf(motivo, 50, "INVALID_RESOURCE (%s)", nombre_recurso); // agregar al final '\0'
-                    mover_execute_a_exit(pcb, motivo);
+                    
+                    if(mover_execute_a_exit(pcb, motivo) == false){
+                        log_info(logger, "PID: <%u> - interceptado antes de pasar a exit con el motivo <%s>", pcb->pid, motivo);
+                    }
+
                     free(motivo);
 
 					sem_post(&sem_grado_multiprogramacion);
@@ -198,6 +241,7 @@ void procesar_conexion_cpu_dispatch(void *args){
                 ignorar_op_code(conexion_cpu_dispatch);
                 char* nombre_recurso = recibir_generico_string(conexion_cpu_dispatch);
                 log_info(logger, "PID: <%u> - SIGNAL_KERNEL", pcb->pid);
+                sem_post(&mutex_conexion_cpu_dispatch);
 
                 sem_wait(&mutex_diccionario_recursos);
 				if( dictionary_has_key(recursos, nombre_recurso) ){ 
@@ -214,6 +258,7 @@ void procesar_conexion_cpu_dispatch(void *args){
 					}
 					// devolvemos el proceso para que siga ejecutando (respetando el algoritmo)
                     // por ese motivo no dejamos la cpu libre
+                    eliminar_registro_recurso(pcb->pid, nombre_recurso);
                     log_info(logger, "PID: <%u> - SIGNAL: (%s) - Instancias: (%d)", pcb->pid, nombre_recurso, recurso->instancias);
                     devolver_a_execute(pcb); 
 				}
@@ -221,7 +266,11 @@ void procesar_conexion_cpu_dispatch(void *args){
                     // en caso que el recurso no exista el Proceso se manda Exit
 					char* motivo = malloc(sizeof(char) * 50);
                     snprintf(motivo, 50, "INVALID_RESOURCE (%s)", nombre_recurso); // agregar al final '\0'
-                    mover_execute_a_exit(pcb, motivo);
+
+                    if(mover_execute_a_exit(pcb, motivo) == false){
+                        log_info(logger, "PID: <%u> - interceptado antes de pasar a exit con el motivo <%s>", pcb->pid, motivo);
+                    }
+
                     free(motivo);
 
 					sem_post(&sem_grado_multiprogramacion);
@@ -231,7 +280,7 @@ void procesar_conexion_cpu_dispatch(void *args){
 
                 free(nombre_recurso);
 
-                sem_post(&mutex_conexion_cpu_dispatch);
+                //sem_post(&mutex_conexion_cpu_dispatch);
                 break;
             }
             case PETICION_IO: // mandamos a blocked, o sino a exit
@@ -262,7 +311,9 @@ void procesar_conexion_cpu_dispatch(void *args){
                 t_PCB* pcb = recibir_pcb(conexion_cpu_dispatch);
                 sem_post(&mutex_conexion_cpu_dispatch);
                 
-                mover_execute_a_exit(pcb, "SUCCESS");
+                if(mover_execute_a_exit(pcb, "SUCCESS") == false){
+                    log_info(logger, "PID: <%u> - interceptado antes de pasar a exit con el motivo <SUCCESS>", pcb->pid);
+                }
 
                 sem_post(&sem_cpu_disponible);
 

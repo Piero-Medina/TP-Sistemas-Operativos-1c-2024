@@ -62,4 +62,8 @@ t_io_pendiente* buscar_io_pendiente_por_pid_y_obtener(uint32_t pid, t_list* list
 t_io_pendiente* buscar_io_pendiente_por_pid_y_remover(uint32_t pid, t_list* lista);
 int posicion_de_io_pendiente_por_pid(uint32_t pid, t_list* lista);
 
+// - retorna true si el pid victima se encuentra entre los pendientes de eliminacion, lo remueve y libera la memoria asociada
+// - Dentro garantizamos Mutua Exclusion para t_list* victimas_pendientes_io;
+bool pid_pendiente_finalizacion(uint32_t pid, t_list* lista);
+
 #endif 
