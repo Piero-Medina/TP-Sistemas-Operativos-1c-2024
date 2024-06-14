@@ -22,6 +22,12 @@ typedef enum{
 
     IGNORAR_OP_CODE,                   // para mensajes lo cuales no es necesario leer el op_code
 
+    OUT_OF_MEMORY,
+    SEGMENTATION_FAULT,
+    SOLICITUD_MARCO_MEMORIA,
+    SOLICITUD_LECTURA_MEMORIA,
+    SOLICITUD_ESCRITURA_MEMORIA,
+
     SOLICITUD_IO_GEN_SLEEP,            
     SOLICITUD_IO_GEN_SLEEP_FINALIZADA,
 

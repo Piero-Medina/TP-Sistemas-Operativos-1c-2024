@@ -1,12 +1,15 @@
 #ifndef INIT_H_
 #define INIT_H_
 
-#include "generales.h"
-#include <pthread.h>
-#include <conexiones/conexiones.h>
-#include "procesar_conexion.h"
 #include <signal.h>
 #include <semaphore.h>
+#include <pthread.h>
+
+#include "generales.h"
+#include "procesar_conexion.h"
+#include "tlb.h"
+
+#include <conexiones/conexiones.h>
 
 void init_cpu(void);
 
@@ -21,5 +24,9 @@ void sigint_handler(int signum);
 
 // liberamos - server - conexiones principales - log - config
 void liberar_cpu(void);
+
+void init_tlb(void);
+
+void algorimo_usado(void);
 
 #endif 

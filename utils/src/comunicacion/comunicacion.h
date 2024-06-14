@@ -36,9 +36,13 @@ void recibir_generico_entero_string(int conexion, uint32_t* entero, char** strin
 void envio_generico_string(int conexion, uint8_t op_code, char* string);
 char* recibir_generico_string(int conexion);
 
-// envio y recibo genericode un op_code y entero
+// envio y recibo generico de un op_code y entero
 void envio_generico_entero(int conexion, uint8_t op_code, uint32_t entero);
 uint32_t recibo_generico_entero(int conexion);
+
+// envio y recibo generico de un op code y un int32_t 
+void envio_generico_int32(int conexion, uint8_t op_code, int32_t entero);
+int32_t recibo_generico_int32(int conexion);
 
 // envio y recibo generico de un op_code y dos enteros
 void envio_generico_doble_entero(int conexion, uint8_t op_code, uint32_t entero1, uint32_t entero2);

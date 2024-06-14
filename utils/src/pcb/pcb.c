@@ -175,6 +175,35 @@ uint32_t get_registro(t_PCB *pcb, e_registro registro) {
     return valor;
 }
 
+size_t obtener_tamano_registro(t_PCB* pcb, const char* nombre_registro){
+    if (strcmp(nombre_registro, "PC") == 0) {
+        return sizeof(pcb->registros->PC);
+    } else if (strcmp(nombre_registro, "AX") == 0) {
+        return sizeof(pcb->registros->AX);
+    } else if (strcmp(nombre_registro, "BX") == 0) {
+        return sizeof(pcb->registros->BX);
+    } else if (strcmp(nombre_registro, "CX") == 0) {
+        return sizeof(pcb->registros->CX);
+    } else if (strcmp(nombre_registro, "DX") == 0) {
+        return sizeof(pcb->registros->DX);
+    } else if (strcmp(nombre_registro, "EAX") == 0) {
+        return sizeof(pcb->registros->EAX);
+    } else if (strcmp(nombre_registro, "EBX") == 0) {
+        return sizeof(pcb->registros->EBX);
+    } else if (strcmp(nombre_registro, "ECX") == 0) {
+        return sizeof(pcb->registros->ECX);
+    } else if (strcmp(nombre_registro, "EDX") == 0) {
+        return sizeof(pcb->registros->EDX);
+    } else if (strcmp(nombre_registro, "SI") == 0) {
+        return sizeof(pcb->registros->SI);
+    } else if (strcmp(nombre_registro, "DI") == 0) {
+        return sizeof(pcb->registros->DI);
+    } else {
+        // Si el nombre del registro no coincide con ninguno, retornar 0 o un valor de error
+        return 0;
+    }
+}
+
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 

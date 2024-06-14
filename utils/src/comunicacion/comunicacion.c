@@ -98,6 +98,34 @@ uint32_t recibo_generico_entero(int conexion){
 
 ///////////////////////////////////////////////////////////////////////////////////////
 
+void envio_generico_int32(int conexion, uint8_t op_code, int32_t entero){
+    uint32_t size_buffer = sizeof(int32_t); 
+    
+    t_paquete* paquete = paquete_create_with_buffer_size(size_buffer, op_code);
+
+    buffer_add_int32(paquete->buffer, entero);
+
+    uint32_t size_a_enviar = 0;
+    void* a_enviar = serializar_paquete(paquete, &size_a_enviar);
+
+    send(conexion, a_enviar, size_a_enviar, 0);
+
+    paquete_detroy(paquete);
+    free(a_enviar);
+}
+
+int32_t recibo_generico_int32(int conexion){
+    t_buffer* buffer = recibir_buffer(conexion);
+    
+    int32_t entero = buffer_read_int32(buffer);
+
+    buffer_destroy(buffer);
+
+    return entero;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////
+
 void envio_generico_doble_entero(int conexion, uint8_t op_code, uint32_t entero1, uint32_t entero2){
     uint32_t size_buffer = sizeof(uint32_t) * 2; 
     

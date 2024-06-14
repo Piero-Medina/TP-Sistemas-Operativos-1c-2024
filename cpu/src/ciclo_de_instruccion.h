@@ -11,6 +11,7 @@
 #include <stdint.h>
 
 #include "generales.h"
+#include "mmu.h"
 
 #include <pcb/pcb.h>
 #include <instruccion/instruccion.h>

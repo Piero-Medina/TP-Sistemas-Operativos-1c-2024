@@ -62,6 +62,9 @@ typedef struct {
 
  char* estado_to_string(t_PCB* pcb);
 
+ // - devuelve el tamanio en bytes segun el nombre del registro
+ size_t obtener_tamano_registro(t_PCB* pcb, const char* nombre_registro);
+
 /////////////////////////////// Setter y Getter registros_cpu ///////////////////////////////////
 
  e_registro obtener_registro_por_nombre(char *nombre);

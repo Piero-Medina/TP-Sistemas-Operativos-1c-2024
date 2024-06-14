@@ -20,14 +20,15 @@ int conexion_memoria;
 int server_cpu_dispatch_fd;
 int server_cpu_interrupt_fd; 
 
-int main(int argc, char* argv[]) {
 
-    init_cpu();
+int main(int argc, char* argv[]) {
     
     logger = iniciar_logger("cpu.log", "CPU");
     log_info(logger, "Iniciando Modulo CPU \n");
     
     config = init_cpu_config("cpu.config");
+
+    init_cpu();
 
     conexion_memoria = crear_conexion(config->ip_memoria, config->puerto_memoria, "MEMORIA", logger);
     enviar_handshake(conexion_memoria, HANDSHAKE, "CPU", "MEMORIA", logger);
@@ -48,6 +49,29 @@ int main(int argc, char* argv[]) {
 
     return 0;
 }
+
+/*
+int main(int argc, char* argv[]) {
+    
+    logger = iniciar_logger("cpu.log", "CPU");
+    log_info(logger, "Iniciando Modulo CPU \n");
+    
+    config = init_cpu_config("cpu.config");
+
+    init_cpu();
+
+    int entero1 = 'aloh';
+    int entero2 = 0x6E754D20;
+    int entero3 = 0x6F64;
+
+    puts(&entero1);
+    
+    liberar_cpu();
+    liberar_semaforos();
+
+    return 0;
+}
+*/
 
 
 

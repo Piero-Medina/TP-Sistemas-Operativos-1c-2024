@@ -2,9 +2,14 @@
 
 bool procesar_conexion_en_ejecucion;
 bool desalojo;
+bool tlb_habilitada;
+
+algoritmo algoritmo_elegido;
 
 sem_t sem_test;
 sem_t mutex_desalojo;
+
+t_list* tlb;
 
 void init_cpu(void){
     signal(SIGINT, sigint_handler);
@@ -13,6 +18,8 @@ void init_cpu(void){
     desalojo = false;
 
     init_semaforos();
+    init_tlb();
+    algorimo_usado();
 }
 
 void escuchar_dispatch(void *arg){
@@ -32,9 +39,8 @@ void sigint_handler(int signum){
     procesar_conexion_en_ejecucion = false;
     
     log_info(logger, "¡Este proceso nunca debió existir! \n\n\n");
+    
     liberar_cpu();
-
-    liberar_semaforos();
 
     exit(EXIT_SUCCESS);
 }
@@ -54,4 +60,33 @@ void liberar_cpu(void){
     liberar_cpu_config(config);
     liberar_conexion(server_cpu_dispatch_fd);
     liberar_conexion(server_cpu_interrupt_fd);
+
+    destruir_tlb(tlb);
+    liberar_semaforos();
+}
+
+void init_tlb(void){
+    if(config->cantidad_entradas_tlb != 0){
+        log_info(logger, "TLB Habilitada - Entradas (%d) \n", config->cantidad_entradas_tlb);
+        tlb_habilitada = true;
+        tlb = crear_tlb(config->cantidad_entradas_tlb);
+    }
+    else{
+        log_info(logger, "TLB Deshabilitada \n");
+        tlb_habilitada = false;
+    }
+}
+
+void algorimo_usado(void){
+    if(tlb_habilitada){
+        if(strcmp(config->algoritmo_tlb, "FIFO") == 0) {
+            algoritmo_elegido = FIFO;
+            log_info(logger, "Se eligio el algoritmo de reemplazo FIFO");
+        }
+
+        if(strcmp(config->algoritmo_tlb,"LRU") == 0) {
+            algoritmo_elegido = LRU;
+            log_info(logger, "Se eligio el algoritmo de reemplazo LRU");
+        }
+    }
 }

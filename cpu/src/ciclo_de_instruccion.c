@@ -38,6 +38,25 @@ void ejecutar_ciclo_de_instruccion(int conexion, t_PCB* pcb){
             case MOV_IN:
             {
                 //TODO
+                char* registro_datos = (char*) list_get(instruccion->parametros, 0);
+                char* registro_direccion = (char*) list_get(instruccion->parametros, 1);
+
+                uint32_t direccion_fisica;
+                int estado = mmu((int)get_registro(pcb, obtener_registro_por_nombre(registro_direccion)), 32, pcb->pid, &direccion_fisica);
+
+                if(estado == MEMORIA_OK){
+                    size_t bytes = obtener_tamano_registro(pcb, registro_datos);
+                    envio_generico_doble_entero(conexion_memoria, SOLICITUD_LECTURA_MEMORIA, direccion_fisica, (uint32_t)bytes);
+
+                    // recibo algo de memoria
+                    // almaceno en registro de datos lo traido de memoria
+                }
+
+                if(estado == OUT_OF_MEMORY){
+                    // pcb se va de CPU
+                }
+
+                break;
             }
             case MOV_OUT:
             {

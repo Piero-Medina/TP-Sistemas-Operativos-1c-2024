@@ -2,6 +2,7 @@
 #define GENERALES_H_
 
 #include "cpu_config.h"
+#include "tlb.h"
 #include <commons/log.h>
 #include <stdbool.h>
 #include <semaphore.h>
@@ -17,9 +18,13 @@ extern int server_cpu_interrupt_fd;
 // declarado en init.c
 
 extern bool procesar_conexion_en_ejecucion;
-
 extern bool desalojo;
+extern bool tlb_habilitada;
+
+extern algoritmo algoritmo_elegido;
 
 extern sem_t mutex_desalojo;
+
+extern t_list* tlb;
 
 #endif 
