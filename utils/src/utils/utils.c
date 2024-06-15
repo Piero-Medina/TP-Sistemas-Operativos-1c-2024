@@ -295,3 +295,55 @@ char* remover_primer_char_si_machea(const char* str, char char_to_remove){
         return new_str;
     }
 }
+
+
+uint32_t cadena_a_valor_entero(void* cadena, size_t bytes){
+    uint32_t valor = 0;
+
+    if (bytes != 1 && bytes != 4) {
+        return 0;
+    }
+
+    // Copiar los bytes de la cadena al valor uint32_t
+    memcpy(&valor, cadena, bytes);
+
+    return valor;
+}
+
+char* valor_entero_a_cadena(uint32_t entero, size_t bytes){
+    if (bytes != 1 && bytes != 4) {
+        return NULL;
+    }
+
+    char* cadena = malloc(bytes + 1); 
+
+    // Copiar los bytes del uint32_t a la cadena
+    memcpy(cadena, &entero, bytes);
+
+    // Agregar el carácter nulo al final de la cadena
+    cadena[bytes] = '\0';
+
+    return cadena;
+}
+
+char* convertir_a_cadena(void* data, size_t bytes){
+    // Reasignar memoria para agregar espacio para el carácter nulo
+    char* cadena = (char*)realloc(data, bytes + 1);
+    if (cadena == NULL) {
+        perror("Error en realloc");
+        return NULL;
+    }
+
+    // Agregar el carácter nulo al final de la cadena
+    cadena[bytes] = '\0';
+
+    /*
+    Cuando usas realloc:
+    Éxito: Si puede ajustar el tamaño del bloque en su ubicación actual o moverlo, devuelve un nuevo puntero. 
+           Debes usar este nuevo puntero para futuras operaciones y liberación de memoria. (free(cadena))
+    Fallo: Si no puede ajustar el tamaño del bloque (por falta de memoria, por ejemplo), devuelve NULL. 
+           En este caso, el puntero original sigue siendo válido y no necesita ser liberado. (free(data))
+    */
+    
+    return cadena;
+}

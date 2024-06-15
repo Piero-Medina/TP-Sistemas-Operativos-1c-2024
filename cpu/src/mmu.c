@@ -23,8 +23,8 @@ int mmu(int direccion_logica, int tamanio_pagina, uint32_t pid, uint32_t* direcc
         if(estado == MEMORIA_OK){
             log_info(logger, "PID: <%u> - OBTENER MARCO - Página: <%u> - Marco:<%"PRId32">", pid, numero_pagina, marco);
         }
-        if(estado == OUT_OF_MEMORY){
-            log_info(logger, "PID: <%u> - OBTENER MARCO - Página: <%u> - ERROR (OUT_OF_MEMORY)", pid, numero_pagina);
+        if(estado == SEGMENTATION_FAULT){
+            log_info(logger, "PID: <%u> - OBTENER MARCO - Página: <%u> - ERROR (SEGMENTATION_FAULT)", pid, numero_pagina);
             return estado;
         }
 
@@ -34,12 +34,12 @@ int mmu(int direccion_logica, int tamanio_pagina, uint32_t pid, uint32_t* direcc
         }
 
         *direccion_fisica = (marco * tamanio_pagina) + desplazamiento;
-        return MEMORIA_OK;
+        return MMU_OK;
 
     }
     else{
         log_warning(logger, "Se encontró entrada [Pid (%u)|Pagina (%u)|Marco (%"PRId32")] en la TLB", pid, numero_pagina, marco);
         *direccion_fisica = (marco * tamanio_pagina) + desplazamiento;
-        return MEMORIA_OK;
+        return MMU_OK;
     }
 }

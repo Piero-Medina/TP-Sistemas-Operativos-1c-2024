@@ -48,6 +48,19 @@ int32_t recibo_generico_int32(int conexion);
 void envio_generico_doble_entero(int conexion, uint8_t op_code, uint32_t entero1, uint32_t entero2);
 void recibo_generico_doble_entero(int conexion, uint32_t* entero1, uint32_t* entero2);
 
+/// @brief Envía datos (void*) a través de una conexión.
+/// @param conexion Identificador de la conexión.
+/// @param op_code Código de operación (1 byte).
+/// @param data Puntero a los datos a enviar.
+/// @param bytes Tamaño de los datos a enviar (en bytes).
+void enviar_data(int conexion, uint8_t op_code, void* data, uint32_t bytes);
+
+/// @brief Recibe datos (void*) de una conexión después de procesar un valor uint8_t op_code.
+/// @param conexion Identificador de la conexión.
+/// @param bytes_recibidos Puntero a un uint32_t donde se almacenará el tamaño de los datos recibidos. Puede ser NULL si no se necesita conocer el tamaño.
+/// @return Puntero a los datos recibidos. La memoria debe ser liberada por el llamador.
+void* recibir_data(int conexion, uint32_t* bytes_recibidos);
+
 // funciones para el enviar y recibir un pcb por red
 void enviar_pcb(int conexion, t_PCB* pcb, uint8_t codigo_operacion);
 t_PCB* recibir_pcb(int conexion);

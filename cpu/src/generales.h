@@ -15,6 +15,8 @@ extern int conexion_memoria;
 extern int server_cpu_dispatch_fd; 
 extern int server_cpu_interrupt_fd;
 
+extern int tamanio_pagina_memoria;
+
 // declarado en init.c
 
 extern bool procesar_conexion_en_ejecucion;

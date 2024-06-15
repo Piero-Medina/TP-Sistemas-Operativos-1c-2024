@@ -213,6 +213,39 @@ void recibir_generico_doble_entero_y_string(int conexion, uint32_t* entero1, uin
 
 ///////////////////////////////////////////////////////////////////////////////////////
 
+void enviar_data(int conexion, uint8_t op_code, void* data, uint32_t bytes){
+    uint32_t size_a_enviar = sizeof(uint8_t) + sizeof(uint32_t) + bytes;
+
+    void* a_enviar = malloc(size_a_enviar);
+
+    uint32_t offset = 0;
+    memcpy(a_enviar + offset, &op_code, sizeof(uint8_t));
+    offset += sizeof(uint8_t);
+    memcpy(a_enviar + offset, &bytes, sizeof(uint32_t));
+    offset += sizeof(uint32_t);
+    memcpy(a_enviar + offset, data, bytes);
+
+    send(conexion, a_enviar, size_a_enviar, 0);
+
+    free(a_enviar);
+}
+
+void* recibir_data(int conexion, uint32_t* bytes_recibidos) {
+    uint32_t bytes = 0;
+    recv(conexion, &bytes, sizeof(uint32_t), MSG_WAITALL);
+    
+    void* data = malloc(bytes);
+    recv(conexion, data, bytes, MSG_WAITALL);
+
+    if (bytes_recibidos != NULL) {
+        *bytes_recibidos = bytes;
+    }
+
+    return data;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////
+
 void enviar_pcb(int conexion, t_PCB* pcb, uint8_t codigo_operacion){
     t_paquete* paquete = paquete_create_with_buffer_null(codigo_operacion);
     paquete->buffer = serializar_pcb(pcb);

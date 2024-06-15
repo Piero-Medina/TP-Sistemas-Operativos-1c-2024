@@ -9,6 +9,7 @@ typedef enum{
     KERNEL_OK,                         // kernel -> cualquier modulo (avisa que la operacion se completo)
     MEMORIA_OK,                        // memoria -> cualquier modulo (avisa que la operacion se completo)  
 
+    SOLICITUD_TAMANIO_PAGINA,          // de cpu -> memoria - solicitud de tamanio de pagina que usa memoria
     NUEVO_PROCESO_MEMORIA,             // de kernel -> memoria - avisar sobre la creacion de un proceso
     PROCESO_FINALIZADO_MEMORIA,        // de kernel -> memoria - avisar sobre la eliminacion de un proceso
     EJECUTAR_PROCESO,                  // de kernel -> CPU - manda contexto para ser ejecutado en cpu
@@ -22,6 +23,7 @@ typedef enum{
 
     IGNORAR_OP_CODE,                   // para mensajes lo cuales no es necesario leer el op_code
 
+    MMU_OK,
     OUT_OF_MEMORY,
     SEGMENTATION_FAULT,
     SOLICITUD_MARCO_MEMORIA,

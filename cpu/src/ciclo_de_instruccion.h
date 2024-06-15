@@ -17,6 +17,7 @@
 #include <instruccion/instruccion.h>
 #include <comunicacion/comunicacion.h>
 #include <enum/enum.h>
+#include <utils/utils.h>
 
 // ejecutamos un clico de intruccion hasta que surga un evento
 void ejecutar_ciclo_de_instruccion(int conexion, t_PCB* pcb);

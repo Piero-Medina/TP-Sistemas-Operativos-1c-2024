@@ -19,6 +19,12 @@ void procesar_conexion_general(void *args){
                 responder_handshake(socket);
                 free(modulo);
                 break;
+            case SOLICITUD_TAMANIO_PAGINA: // KERNEL
+                log_info(logger_m, "Solicitud de tamanio de pagina de CPU");
+
+                log_info(logger_m, "Enviando a CPU tamanio de pagina (%d) \n", config->tam_pagina);
+                envio_generico_entero(socket, MEMORIA_OK, (uint32_t)config->tam_memoria);
+                break;
             case NUEVO_PROCESO_MEMORIA: // KERNEL
                 // se crea un proceso en memoria a partir de path (en memoria) enviado por el kernel
                 log_info(logger_m, "solicitud de Nuevo Proceso del KERNEL \n");

@@ -65,4 +65,31 @@ char* eliminar_caracteres(const char* buffer, char caracter);
 // - /scripts_kernel/PRUEBA_PLANI -> fun(string, '/') -> scripts_kernel/PRUEBA_PLANI
 char* remover_primer_char_si_machea(const char* str, char char_to_remove);
 
+
+
+// - convierte una cadena a su equivalente en valor entero (solo permite 1 o 4 bytes).
+// - no importa el largo de la cadena, este solo copiara 1 o 4 bytes.
+uint32_t cadena_a_valor_entero(void* cadena, size_t bytes);
+
+// - convierte un valor entero a su equivalente en cadena (solo permite 1 o 4 bytes)
+// - (Liberar memoria)
+char* valor_entero_a_cadena(uint32_t entero, size_t bytes);
+
+/// @brief Convierte un bloque de datos en una cadena de caracteres.
+/// Esta función reasigna memoria para agregar un carácter nulo (`'\0'`) al final
+/// del bloque de datos, convirtiéndolo en una cadena de caracteres.
+/// 
+/// @param data Un puntero al bloque de datos que se va a convertir. Debe apuntar
+///             a una memoria previamente asignada con `malloc` o similar.
+/// @param bytes El tamaño del bloque de datos en bytes.
+/// @return Un puntero a la cadena de caracteres resultante, o `NULL` si `realloc` falla.
+/// 
+/// @note Si `realloc` falla, se imprime un mensaje de error y se retorna `NULL`.
+/// @note La memoria original apuntada por `data` no debe ser liberada directamente
+///       después de llamar a esta función. En su lugar, se debe usar el puntero 
+///       retornado por esta función para liberar la memoria con `free`.
+/// @note - (Liberar el puntero retornado en caso de exito realloc)
+/// @note - (Liberar data retornado en caso de fallar realloc).        
+char* convertir_a_cadena(void* data, size_t bytes);
+
 #endif

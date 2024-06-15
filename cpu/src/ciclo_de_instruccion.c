@@ -37,23 +37,50 @@ void ejecutar_ciclo_de_instruccion(int conexion, t_PCB* pcb){
             }
             case MOV_IN:
             {
-                //TODO
                 char* registro_datos = (char*) list_get(instruccion->parametros, 0);
                 char* registro_direccion = (char*) list_get(instruccion->parametros, 1);
 
-                uint32_t direccion_fisica;
-                int estado = mmu((int)get_registro(pcb, obtener_registro_por_nombre(registro_direccion)), 32, pcb->pid, &direccion_fisica);
+                log_info(logger, "PID: <%u> - Ejecutando: <MOV_IN> - <%s> - <%s>", pcb->pid, registro_datos, registro_direccion);
 
-                if(estado == MEMORIA_OK){
+                uint32_t direccion_fisica;
+                int estado = mmu((int)get_registro(pcb, obtener_registro_por_nombre(registro_direccion)), tamanio_pagina_memoria, pcb->pid, &direccion_fisica);
+
+                if(estado == MMU_OK){
                     size_t bytes = obtener_tamano_registro(pcb, registro_datos);
                     envio_generico_doble_entero(conexion_memoria, SOLICITUD_LECTURA_MEMORIA, direccion_fisica, (uint32_t)bytes);
 
                     // recibo algo de memoria
+                    ignorar_op_code(conexion_memoria);
+                    void* data = recibir_data(conexion_memoria, NULL);
+
+                    char* data_leida = convertir_a_cadena(data, bytes);
+                    log_info(logger, "PID: <%u> - Acción: <LEER> - Dirección Física: <%u> - Valor: <%s>", pcb->pid, direccion_fisica, data_leida);
+
                     // almaceno en registro de datos lo traido de memoria
+                    uint32_t valor_entero = cadena_a_valor_entero((void*)data_leida, bytes);
+                    set_registro(pcb, valor_entero, obtener_registro_por_nombre(registro_datos));
+                    
+                    // asumiendo que realloc tuvo exito
+                    free(data_leida);
+
+                    log_info(logger, "PID: <%u> - Finalizando: <MOV_IN> - (%s = %u)", pcb->pid, registro_datos, valor_entero);
                 }
 
-                if(estado == OUT_OF_MEMORY){
-                    // pcb se va de CPU
+                if(estado == SEGMENTATION_FAULT){
+
+                    log_info(logger, "PID: <%u> - ERROR (SEGMENTATION FAULT): <MOV_IN> - <%s> - <%s>", pcb->pid, registro_datos, registro_direccion);
+                    
+                    // porque el pcb se va de cpu, si no lo hacemos tendra el PC desactualizado
+                    incrementar_program_counter(pcb, 1);
+
+                    establecer_tiempo_restante_de_ejecucion(pcb, inicio, final); 
+
+                    log_info(logger, "PID: <%u> - Se va de CPU", pcb->pid);
+                    enviar_pcb(conexion, pcb, SEGMENTATION_FAULT);
+                    puede_seguir_ejecutando = false;
+                    proceso_sigue_en_cpu = false;
+
+                    log_info(logger, "PID: <%u> - Finalizando: <MOV_IN> - <%s> - <%s>", pcb->pid, registro_datos, registro_direccion);
                 }
 
                 break;
@@ -127,7 +154,6 @@ void ejecutar_ciclo_de_instruccion(int conexion, t_PCB* pcb){
                 establecer_tiempo_restante_de_ejecucion(pcb, inicio, final); 
 
                 log_info(logger, "PID: <%u> - Se va de CPU", pcb->pid);
-                log_info(logger, "PID: <%u> - Quantum_restante (%u)", pcb->pid, pcb->quantum);
                 enviar_pcb(conexion, pcb, WAIT_KERNEL);
                 envio_generico_string(conexion, IGNORAR_OP_CODE, nombre_recurso);
                 puede_seguir_ejecutando = false;
@@ -148,7 +174,6 @@ void ejecutar_ciclo_de_instruccion(int conexion, t_PCB* pcb){
                 establecer_tiempo_restante_de_ejecucion(pcb, inicio, final); 
 
                 log_info(logger, "PID: <%u> - Se va de CPU", pcb->pid);
-                log_info(logger, "PID: <%u> - Quantum_restante (%u)", pcb->pid, pcb->quantum);
                 enviar_pcb(conexion, pcb, SIGNAL_KERNEL);
                 envio_generico_string(conexion, IGNORAR_OP_CODE, nombre_recurso);
                 puede_seguir_ejecutando = false;
@@ -170,7 +195,6 @@ void ejecutar_ciclo_de_instruccion(int conexion, t_PCB* pcb){
                 establecer_tiempo_restante_de_ejecucion(pcb, inicio, final); 
 
                 log_info(logger, "PID: <%u> - Se va de CPU", pcb->pid);
-                log_info(logger, "PID: <%u> - Quantum_restante (%u)", pcb->pid, pcb->quantum);
                 enviar_pcb(conexion, pcb, PETICION_IO);
                 envio_generico_string(conexion, GENERICA, nombre_interfaz);
                 envio_generico_entero(conexion, IO_GEN_SLEEP, (uint32_t)unidades_de_trabajo);
@@ -198,7 +222,6 @@ void ejecutar_ciclo_de_instruccion(int conexion, t_PCB* pcb){
                 establecer_tiempo_restante_de_ejecucion(pcb, inicio, final); 
 
                 log_info(logger, "PID: <%u> - Se va de CPU", pcb->pid);
-                log_info(logger, "PID: <%u> - Quantum_restante (%u)", pcb->pid, pcb->quantum);
                 enviar_pcb(conexion, pcb, PROCESO_FINALIZADO);
                 puede_seguir_ejecutando = false;
                 proceso_sigue_en_cpu = false;
@@ -227,7 +250,6 @@ void ejecutar_ciclo_de_instruccion(int conexion, t_PCB* pcb){
                     establecer_tiempo_restante_de_ejecucion(pcb, inicio, final);
 
                     log_info(logger, "PID: <%u> - Se va de CPU", pcb->pid);
-                    log_info(logger, "PID: <%u> - Quantum_restante (%u)", pcb->pid, pcb->quantum);
                     enviar_pcb(conexion, pcb, DESALOJO);
                     
                     desalojo = false;
