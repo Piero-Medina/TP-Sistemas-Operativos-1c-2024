@@ -81,4 +81,20 @@ void eliminar_registro_recurso(uint32_t pid, char* recurso);
 void devolver_recursos(uint32_t pid);
 void eliminar_devueltos(void);
 
+
+/// @brief Obtiene una cadena que describe un motivo de salida según el enum motivo_exit.
+///        Esta función toma un valor del tipo motivo_exit y opcionalmente un nombre adicional,
+///        y devuelve un string asignado dinámicamente que describe el motivo de salida.
+///
+/// @param motivo El motivo de salida del tipo motivo_exit.
+/// @param nombre Opcional. Nombre adicional para agregar al motivo de salida.
+/// @return Un puntero a un string asignado dinámicamente que describe el motivo de salida.
+///         Es responsabilidad del llamador liberar esta memoria utilizando free().
+/// @note Ejemplos:
+/// @note - Para motivo SALIDA_SUCCESS y nombre "Archivo guardado": devuelve "SUCCESS (Archivo guardado)".
+/// @note - Para motivo SALIDA_OUT_OF_MEMORY sin nombre: devuelve "OUT_OF_MEMORY".
+char* obtener_motivo_salida(motivo_exit motivo, const char* nombre);
+
+
+
 #endif 

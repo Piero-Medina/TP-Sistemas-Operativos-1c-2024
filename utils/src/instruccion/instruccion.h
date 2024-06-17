@@ -42,6 +42,7 @@ typedef struct{
 }t_parser;
 
 t_identificador convertir_a_identificador(char* identificador);
+char* convertir_a_string(t_identificador identificador);
 
 t_instruccion* crear_instruccion_mediante_array_string(char** split);
 

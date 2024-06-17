@@ -246,6 +246,32 @@ void* recibir_data(int conexion, uint32_t* bytes_recibidos) {
 
 ///////////////////////////////////////////////////////////////////////////////////////
 
+void enviar_lista_peticiones_memoria(int conexion, uint8_t codigo_operacion, t_list* lista){
+    t_paquete* paquete = paquete_create_with_buffer_null(codigo_operacion);
+
+    paquete->buffer = serializar_lista_de_t_peticion_memoria(lista);
+
+    uint32_t size_a_enviar = 0;
+    void* a_enviar = serializar_paquete(paquete, &size_a_enviar);
+    send(conexion, a_enviar, size_a_enviar, 0);
+    
+    paquete_detroy(paquete);
+    free(a_enviar);
+
+}
+
+t_list* recibir_lista_peticiones_memoria(int conexion){
+    t_buffer* buffer = recibir_buffer(conexion);
+
+    t_list* tmp = deserializar_lista_de_t_peticion_memoria(buffer);
+
+    buffer_destroy(buffer);
+
+    return tmp;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////
+
 void enviar_pcb(int conexion, t_PCB* pcb, uint8_t codigo_operacion){
     t_paquete* paquete = paquete_create_with_buffer_null(codigo_operacion);
     paquete->buffer = serializar_pcb(pcb);
@@ -435,3 +461,4 @@ t_list* buffer_read_list_string(t_buffer* buffer){
 }
 
 //////////////////////////////////////////////////////////////////////////////////////
+

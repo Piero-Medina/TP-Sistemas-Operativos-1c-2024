@@ -23,7 +23,6 @@ int server_cpu_interrupt_fd;
 
 int tamanio_pagina_memoria;
 
-
 int main(int argc, char* argv[]) {
     
     logger = iniciar_logger("cpu.log", "CPU");
@@ -58,6 +57,7 @@ int main(int argc, char* argv[]) {
 
 
 
+
 /*
 int main(int argc, char* argv[]) {
     
@@ -72,14 +72,14 @@ int main(int argc, char* argv[]) {
     //uint32_t entero_d = 1634496328;
     //uint32_t entero_d = 1634496328;
 
-    uint32_t entero = 0;
-    size_t size = 3;
+    uint32_t entero = 10;
+    size_t size = 4;
     
     char* aux = "pollsasasas";
     printf("Cadena test (%s)\n", aux);
 
-    entero = cadena_a_valor_entero((void*) aux, size);
-    printf("Entero (%u)\n", entero);
+    //entero = cadena_a_valor_entero((void*) aux, size);
+    //printf("Entero (%u)\n", entero);
 
     char* cadena = valor_entero_a_cadena(entero, size);
     printf("Cadena almacenada (%s)\n", cadena);
@@ -92,6 +92,7 @@ int main(int argc, char* argv[]) {
     return 0;
 }
 */
+
 
 
 

@@ -548,3 +548,57 @@ void eliminar_devueltos(void){
     }
     list_remove_and_destroy_all_by_condition(recursos_asignados, condicion, liberar_elemento_t_registro_recurso);
 }
+
+
+
+/////////////////////////////////////////////////////////////////////////////////////
+char* obtener_motivo_salida(motivo_exit motivo, const char* nombre){
+    char* motivo_str = NULL;
+    const char* base_str = NULL;
+
+    switch (motivo) {
+        case SALIDA_SUCCESS:
+            base_str = "SUCCESS";
+            break;
+        case SALIDA_INVALID_RESOURCE:
+            base_str = "INVALID_RESOURCE";
+            break;
+        case SALIDA_SEGMENTATION_FAULT:
+            base_str = "SEGMENTATION_FAULT";
+            break;
+        case SALIDA_OUT_OF_MEMORY:
+            base_str = "OUT_OF_MEMORY";
+            break;
+        case SALIDA_INVALID_INTERFACE:
+            base_str = "INVALID_INTERFACE";
+            break;
+        case SALIDA_INVALID_INTERFACE_OPERATION:
+            base_str = "INVALID_INTERFACE_OPERATION";
+            break;
+        case SALIDA_INTERRUPTED_BY_USER:
+            base_str = "INTERRUPTED_BY_USER";
+            break;
+        default:
+            base_str = "UNKNOWN";
+            break;
+    }
+
+    // Si nombre no es NULL, concatenar base_str y nombre
+    if (nombre != NULL) {
+        // Calcular la longitud total del string final
+        size_t len_base = strlen(base_str);
+        size_t len_nombre = strlen(nombre);
+        size_t total_len = len_base + len_nombre + 2; // +2 para espacio y '\0'
+
+        // Asignar memoria para el string final
+        motivo_str = (char*)malloc(total_len * sizeof(char));
+        if (motivo_str != NULL) {
+            snprintf(motivo_str, total_len, "%s (%s)", base_str, nombre);
+        }
+    } else {
+        // Si nombre es NULL, solo copiar base_str
+        motivo_str = strdup(base_str); // strdup asigna memoria y copia el string
+    }
+
+    return motivo_str;
+}

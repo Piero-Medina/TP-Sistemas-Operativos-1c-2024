@@ -133,6 +133,7 @@ void procesar_conexion_cpu_dispatch(void *args){
                 sem_post(&mutex_conexion_cpu_dispatch);
 
                 // si entra, se mando a finalizar al proceso antes de que llegue de CPU
+                ////////////////////////////////////////////////////////////////////// 
                 sem_wait(&mutex_cola_execute);
                 if(finalizacion_execute_afuera_kernel){
                     finalizacion_execute_afuera_kernel = false;
@@ -177,6 +178,28 @@ void procesar_conexion_cpu_dispatch(void *args){
                 t_PCB* pcb = recibir_pcb(conexion_cpu_dispatch);
                 ignorar_op_code(conexion_cpu_dispatch);
                 char* nombre_recurso = recibir_generico_string(conexion_cpu_dispatch);
+                sem_post(&mutex_conexion_cpu_dispatch);
+
+                // si entra, se mando a finalizar al proceso antes de que llegue de CPU
+                ////////////////////////////////////////////////////////////////////// 
+                sem_wait(&mutex_cola_execute);
+                if(finalizacion_execute_afuera_kernel){
+                    finalizacion_execute_afuera_kernel = false;
+
+                    t_PCB* tmp = buscar_pcb_por_pid_y_remover((int)pcb->pid, cola_execute->elements);
+                    // liberamos el pcb viejo
+                    liberar_PCB(tmp);
+                    // mandamos el pcb recien llegado a exit (estara actualizado)
+                    mandar_a_exit(pcb, "FINALIZADO POR CONSOLA INTERACTIVA");
+                    sem_post(&sem_grado_multiprogramacion); 
+                    sem_post(&sem_cpu_disponible);
+
+                    sem_post(&mutex_cola_execute);
+                    break; // salimos del case.
+                }
+                sem_post(&mutex_cola_execute);
+                ////////////////////////////////////////////////////////////////////// 
+
                 log_info(logger, "PID: <%u> - WAIT_KERNEL", pcb->pid);
 
                 sem_wait(&mutex_diccionario_recursos);
@@ -212,8 +235,9 @@ void procesar_conexion_cpu_dispatch(void *args){
 				}
 				else{
                     // en caso que el recurso no exista el Proceso se manda Exit
-                    char* motivo = malloc(sizeof(char) * 50);
-                    snprintf(motivo, 50, "INVALID_RESOURCE (%s)", nombre_recurso); // agregar al final '\0'
+                    char* motivo = obtener_motivo_salida(SALIDA_INVALID_RESOURCE, nombre_recurso);
+                    //char* motivo = malloc(sizeof(char) * 50);
+                    //snprintf(motivo, 50, "INVALID_RESOURCE (%s)", nombre_recurso); // agregar al final '\0'
                     
                     if(mover_execute_a_exit(pcb, motivo) == false){
                         log_info(logger, "PID: <%u> - interceptado antes de pasar a exit con el motivo <%s>", pcb->pid, motivo);
@@ -240,8 +264,29 @@ void procesar_conexion_cpu_dispatch(void *args){
                 t_PCB* pcb = recibir_pcb(conexion_cpu_dispatch);
                 ignorar_op_code(conexion_cpu_dispatch);
                 char* nombre_recurso = recibir_generico_string(conexion_cpu_dispatch);
-                log_info(logger, "PID: <%u> - SIGNAL_KERNEL", pcb->pid);
                 sem_post(&mutex_conexion_cpu_dispatch);
+                
+                // si entra, se mando a finalizar al proceso antes de que llegue de CPU
+                ////////////////////////////////////////////////////////////////////// 
+                sem_wait(&mutex_cola_execute);
+                if(finalizacion_execute_afuera_kernel){
+                    finalizacion_execute_afuera_kernel = false;
+
+                    t_PCB* tmp = buscar_pcb_por_pid_y_remover((int)pcb->pid, cola_execute->elements);
+                    // liberamos el pcb viejo
+                    liberar_PCB(tmp);
+                    // mandamos el pcb recien llegado a exit (estara actualizado)
+                    mandar_a_exit(pcb, "FINALIZADO POR CONSOLA INTERACTIVA");
+                    sem_post(&sem_grado_multiprogramacion); 
+                    sem_post(&sem_cpu_disponible);
+
+                    sem_post(&mutex_cola_execute);
+                    break; // salimos del case.
+                }
+                sem_post(&mutex_cola_execute);
+                ////////////////////////////////////////////////////////////////////// 
+                
+                log_info(logger, "PID: <%u> - SIGNAL_KERNEL", pcb->pid);
 
                 sem_wait(&mutex_diccionario_recursos);
 				if( dictionary_has_key(recursos, nombre_recurso) ){ 
@@ -264,8 +309,9 @@ void procesar_conexion_cpu_dispatch(void *args){
 				}
 				else{
                     // en caso que el recurso no exista el Proceso se manda Exit
-					char* motivo = malloc(sizeof(char) * 50);
-                    snprintf(motivo, 50, "INVALID_RESOURCE (%s)", nombre_recurso); // agregar al final '\0'
+                    char* motivo = obtener_motivo_salida(SALIDA_INVALID_RESOURCE, nombre_recurso);
+					//char* motivo = malloc(sizeof(char) * 50);
+                    //snprintf(motivo, 50, "INVALID_RESOURCE (%s)", nombre_recurso); // agregar al final '\0'
 
                     if(mover_execute_a_exit(pcb, motivo) == false){
                         log_info(logger, "PID: <%u> - interceptado antes de pasar a exit con el motivo <%s>", pcb->pid, motivo);
@@ -309,11 +355,35 @@ void procesar_conexion_cpu_dispatch(void *args){
                 sem_post(&mutex_proceso_en_ejecucion);
                 
                 t_PCB* pcb = recibir_pcb(conexion_cpu_dispatch);
+                int motivo_salida = recibo_generico_op_code(conexion_memoria);
                 sem_post(&mutex_conexion_cpu_dispatch);
-                
-                if(mover_execute_a_exit(pcb, "SUCCESS") == false){
-                    log_info(logger, "PID: <%u> - interceptado antes de pasar a exit con el motivo <SUCCESS>", pcb->pid);
+
+                // si entra, se mando a finalizar al proceso antes de que llegue de CPU
+                ////////////////////////////////////////////////////////////////////// 
+                sem_wait(&mutex_cola_execute);
+                if(finalizacion_execute_afuera_kernel){
+                    finalizacion_execute_afuera_kernel = false;
+
+                    t_PCB* tmp = buscar_pcb_por_pid_y_remover((int)pcb->pid, cola_execute->elements);
+                    // liberamos el pcb viejo
+                    liberar_PCB(tmp);
+                    // mandamos el pcb recien llegado a exit (estara actualizado)
+                    mandar_a_exit(pcb, "FINALIZADO POR CONSOLA INTERACTIVA");
+                    sem_post(&sem_grado_multiprogramacion); 
+                    sem_post(&sem_cpu_disponible);
+
+                    sem_post(&mutex_cola_execute);
+                    break; // salimos del case.
                 }
+                sem_post(&mutex_cola_execute);
+                ////////////////////////////////////////////////////////////////////// 
+
+                // posibles: success|out_of_memory|segmentation_fault
+                char* motivo = obtener_motivo_salida(motivo_salida, NULL);
+                if(mover_execute_a_exit(pcb, motivo) == false){
+                    log_info(logger, "PID: <%u> - interceptado antes de pasar a exit con el motivo <%s>", pcb->pid, motivo);
+                }
+                free(motivo);
 
                 sem_post(&sem_cpu_disponible);
 

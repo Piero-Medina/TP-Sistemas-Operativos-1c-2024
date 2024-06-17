@@ -72,8 +72,14 @@ char* remover_primer_char_si_machea(const char* str, char char_to_remove);
 uint32_t cadena_a_valor_entero(void* cadena, size_t bytes);
 
 // - convierte un valor entero a su equivalente en cadena (solo permite 1 o 4 bytes)
+// - Al convertir en cadena le agrega el (`'\0'`) al final, por lo que la cadena
+//   resultante terminara teniendo un 1 byte mas de tamanio.
 // - (Liberar memoria)
 char* valor_entero_a_cadena(uint32_t entero, size_t bytes);
+
+// - devuelve una cadena nueva con memoria asignada a partir de un entero.
+// - (liberar memoria)
+char* valor_entero_a_cadena_nueva(uint32_t entero, size_t bytes); 
 
 /// @brief Convierte un bloque de datos en una cadena de caracteres.
 /// Esta función reasigna memoria para agregar un carácter nulo (`'\0'`) al final
@@ -91,5 +97,9 @@ char* valor_entero_a_cadena(uint32_t entero, size_t bytes);
 /// @note - (Liberar el puntero retornado en caso de exito realloc)
 /// @note - (Liberar data retornado en caso de fallar realloc).        
 char* convertir_a_cadena(void* data, size_t bytes);
+
+// - devuelve una cadena nueva con memoria asignada a partir de una data.
+// - (liberar memoria)
+char* convertir_a_cadena_nueva(void* data, size_t bytes);
 
 #endif

@@ -12,6 +12,7 @@
 
 #include <pcb/pcb.h>
 #include <instruccion/instruccion.h>
+#include <peticion_memoria/peticion_memoria.h>
 
 ///////////////////////////////////////// WRAPPERS //////////////////////////////////////
 void avisar_nuevo_proceso_memoria(int conexion_memoria, int pid, char* path_intrucciones);
@@ -53,6 +54,8 @@ void recibo_generico_doble_entero(int conexion, uint32_t* entero1, uint32_t* ent
 /// @param op_code Código de operación (1 byte).
 /// @param data Puntero a los datos a enviar.
 /// @param bytes Tamaño de los datos a enviar (en bytes).
+/// @note - si el (void* data) tiene un tamanio mayor al que se especifica en bytes
+///         este solo enviara por red la cantidad de bytes que se especifico desde el comienzo 
 void enviar_data(int conexion, uint8_t op_code, void* data, uint32_t bytes);
 
 /// @brief Recibe datos (void*) de una conexión después de procesar un valor uint8_t op_code.
@@ -60,6 +63,10 @@ void enviar_data(int conexion, uint8_t op_code, void* data, uint32_t bytes);
 /// @param bytes_recibidos Puntero a un uint32_t donde se almacenará el tamaño de los datos recibidos. Puede ser NULL si no se necesita conocer el tamaño.
 /// @return Puntero a los datos recibidos. La memoria debe ser liberada por el llamador.
 void* recibir_data(int conexion, uint32_t* bytes_recibidos);
+
+// - lista de (t_peticion_memoria*);
+void enviar_lista_peticiones_memoria(int conexion, uint8_t codigo_operacion, t_list* lista);
+t_list* recibir_lista_peticiones_memoria(int conexion);
 
 // funciones para el enviar y recibir un pcb por red
 void enviar_pcb(int conexion, t_PCB* pcb, uint8_t codigo_operacion);

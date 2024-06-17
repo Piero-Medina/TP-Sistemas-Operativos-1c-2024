@@ -27,4 +27,7 @@ void establecer_tiempo_restante_de_ejecucion(t_PCB* pcb,struct timeval inicio, s
 
 void incrementar_program_counter(t_PCB* pcb, int en_cuanto);
 
+// - funcion para no repertir la logica cuando un proceso se va de CPU por tal motivo
+void finalizar_pcb_motivo_salida(t_PCB* pcb, struct timeval inicio, struct timeval final, int conexion, motivo_exit motivo, bool* puede_seguir_ejecutando, bool* proceso_sigue_en_cpu);
+
 #endif 

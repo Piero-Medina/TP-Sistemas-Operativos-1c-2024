@@ -47,20 +47,16 @@ void verificar_operacion_generica(int conexion, char* nombre_interfaz, t_PCB* pc
 
         // validar que exista el nombre de interfaz
         sem_wait(&mutex_diccionario_interfaces);
-        if(!dictionary_has_key(interfaces, nombre_interfaz)){
+        if(!validar_existencia_nombre_interfaz(interfaces, operacion, nombre_interfaz, pcb)){
             sem_post(&mutex_diccionario_interfaces);
-            log_info(logger, "PID: <%u> - PETICION_IO - operacion <IO_GEN_SLEEP> (Denegada porque no existe la interfaz (%s) en el Kernel)", pcb->pid, nombre_interfaz);
-            mover_execute_a_exit(pcb, "INTERFAZ SOLICITADA NO EXISTE"); // aca dentro se actualiza el contexto de ejecucion
             return;
         }
         
         interfaz = (t_interfaz*) dictionary_get(interfaces, nombre_interfaz);
-        
+
         // validar que admite la operacion
-        if(!validar_operacion(interfaz->tipo, operacion)){
+        if(!validar_que_interfaz_admita_operacion(interfaz, operacion, nombre_interfaz, pcb)){
             sem_post(&mutex_diccionario_interfaces);
-            log_info(logger, "PID: <%u> - PETICION_IO - operacion <IO_GEN_SLEEP> (Denegada porque la interfaz (%s) no admite la operacion)", pcb->pid, nombre_interfaz);
-            mover_execute_a_exit(pcb, "INTERFAZ SOLCITADA NO ADMITE OPERACION PEDIDA");
             return;
         }
 
@@ -138,6 +134,40 @@ bool validar_operacion(tipo_interfaz tipo_de_interfaz, t_identificador operacion
             return operacion == IO_FS_CREATE || operacion == IO_FS_DELETE || operacion == IO_FS_TRUNCATE || operacion == IO_FS_WRITE || operacion == IO_FS_READ;
         default:
             return false; // Si la interfaz no es válida, retornamos falso
+    }
+}
+
+bool validar_existencia_nombre_interfaz(t_dictionary* diccionario, int operacion, char* nombre_interfaz, t_PCB* pcb){
+    if(dictionary_has_key(interfaces, nombre_interfaz)){
+        return true;
+    }else{
+        // ejemplo (IO_GEN_SLEEP)
+        char* nombre_operacion = convertir_a_string(operacion);
+
+        log_info(logger, "PID: <%u> - PETICION_IO - operacion <%s> (Denegada porque no existe la interfaz (%s) en el Kernel)", pcb->pid, nombre_operacion, nombre_interfaz);
+            
+        char* motivo = obtener_motivo_salida(SALIDA_INVALID_INTERFACE, nombre_interfaz);
+        mover_execute_a_exit(pcb, motivo); // aca dentro se actualiza el contexto de ejecucion
+        free(motivo);
+
+        return false;
+    }      
+}
+
+bool validar_que_interfaz_admita_operacion(t_interfaz* interfaz, int operacion, char* nombre_interfaz, t_PCB* pcb){
+    if(validar_operacion(interfaz->tipo, operacion)){
+        return true;
+    }else{
+        // ejemplo (IO_GEN_SLEEP)
+        char* nombre_operacion = convertir_a_string(operacion);
+
+        log_info(logger, "PID: <%u> - PETICION_IO - operacion <%s> (Denegada porque la interfaz (%s) no admite la operacion (%s))", pcb->pid, nombre_operacion, nombre_interfaz, nombre_operacion);
+            
+        char* motivo = obtener_motivo_salida(SALIDA_INVALID_INTERFACE_OPERATION, "IO_GEN_SLEEP");
+        mover_execute_a_exit(pcb, motivo);
+        free(motivo);
+
+        return false;
     }
 }
 

@@ -504,8 +504,7 @@ bool finalizar_proceso_EXECUTE(int pid){
 
             finalizacion_execute_afuera_kernel = true;
         }
-        else
-        {
+        else{
             // antes de cada transicion hacer un if y mandarlo a exit | capas usamos una varibale global
             log_info(logger, "PID <%u> pendiente de Finalizacion ante una transicion", pcb->pid);
             finalizacion_execute_dentro_kernel = true;

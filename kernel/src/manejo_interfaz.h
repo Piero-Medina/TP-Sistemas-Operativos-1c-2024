@@ -36,6 +36,8 @@ void verificar_operacion_dialFs(int conexion, char* nombre_interfaz, int operaci
 
 // valida si el tipo de interfaz acepta tal operacion
 bool validar_operacion(tipo_interfaz tipo_de_interfaz, t_identificador operacion);
+bool validar_existencia_nombre_interfaz(t_dictionary* diccionario, int operacion, char* nombre_interfaz, t_PCB* pcb);
+bool validar_que_interfaz_admita_operacion(t_interfaz* interfaz, int operacion, char* nombre_interfaz, t_PCB* pcb);
 
 // se inicializa y se reserva memoria para un io_pendiente
 t_io_pendiente* inicializar_io_pendiente(uint32_t pid, int operacion, bool interfaz_ocupada, char* param_string, uint32_t param_int_1, uint32_t param_int_2, uint32_t param_int_3, uint32_t param_int_4);

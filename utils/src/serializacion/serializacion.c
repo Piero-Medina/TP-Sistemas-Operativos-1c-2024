@@ -95,7 +95,6 @@ void buffer_destroy(t_buffer* buffer){
     return tmp;
  }
 
-
  uint32_t buffer_read_uint32(t_buffer* buffer){
     uint32_t tmp;
     buffer_read(buffer, (void*) &tmp, sizeof(uint32_t));

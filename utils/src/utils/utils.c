@@ -300,9 +300,11 @@ char* remover_primer_char_si_machea(const char* str, char char_to_remove){
 uint32_t cadena_a_valor_entero(void* cadena, size_t bytes){
     uint32_t valor = 0;
 
+    /*
     if (bytes != 1 && bytes != 4) {
         return 0;
     }
+    */
 
     // Copiar los bytes de la cadena al valor uint32_t
     memcpy(&valor, cadena, bytes);
@@ -311,10 +313,11 @@ uint32_t cadena_a_valor_entero(void* cadena, size_t bytes){
 }
 
 char* valor_entero_a_cadena(uint32_t entero, size_t bytes){
+    /*
     if (bytes != 1 && bytes != 4) {
         return NULL;
     }
-
+    */
     char* cadena = malloc(bytes + 1); 
 
     // Copiar los bytes del uint32_t a la cadena
@@ -325,6 +328,30 @@ char* valor_entero_a_cadena(uint32_t entero, size_t bytes){
 
     return cadena;
 }
+
+char* valor_entero_a_cadena_nueva(uint32_t entero, size_t bytes) {
+    /*
+    if (bytes != 1 && bytes != 4) {
+        return NULL;
+    }
+    */
+
+    // Asignar memoria para la cadena incluyendo el carácter nulo
+    char* cadena = malloc(bytes + 1);
+    if (cadena == NULL) {
+        perror("Error en malloc");
+        return NULL;
+    }
+
+    // Copiar los bytes del uint32_t a la cadena
+    memcpy(cadena, &entero, bytes);
+
+    // Agregar el carácter nulo al final de la cadena
+    cadena[bytes] = '\0';
+
+    return cadena;
+}
+
 
 char* convertir_a_cadena(void* data, size_t bytes){
     // Reasignar memoria para agregar espacio para el carácter nulo
@@ -345,5 +372,22 @@ char* convertir_a_cadena(void* data, size_t bytes){
            En este caso, el puntero original sigue siendo válido y no necesita ser liberado. (free(data))
     */
     
+    return cadena;
+}
+
+char* convertir_a_cadena_nueva(void* data, size_t bytes){
+    // Asignar memoria para la nueva cadena incluyendo el carácter nulo
+    char* cadena = (char*)malloc(bytes + 1);
+    if (cadena == NULL) {
+        perror("Error en malloc");
+        return NULL;
+    }
+
+    // Copiar los datos originales a la nueva cadena
+    memcpy(cadena, data, bytes);
+
+    // Agregar el carácter nulo al final de la cadena
+    cadena[bytes] = '\0';
+
     return cadena;
 }
