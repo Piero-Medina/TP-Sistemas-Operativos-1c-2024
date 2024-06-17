@@ -15,6 +15,7 @@
 #include <comunicacion/comunicacion.h>
 #include <pcb/pcb.h>
 #include <utils/utils.h>
+#include <io_pendiente/io_pendiente.h>
 
 #define MAX 200
 

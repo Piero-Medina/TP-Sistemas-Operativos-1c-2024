@@ -26,6 +26,10 @@ typedef struct {
 
 t_list* crear_tlb(int cantidad_entradas);
 
+void imprimir_entrada_tlb(t_entrada_tlb* entrada);
+void imprimir_lista_entrada_tlb_completa(t_list* lista);
+void imprimir_lista_entrada_tlb_sin_tiempo(t_list* lista);
+
 void destruir_tlb(t_list* tlb);
 
 int32_t buscar_entrada_tlb(t_list* tlb, algoritmo algoritmo_elegido, int32_t pid, int32_t numero_pagina, t_log* logger);

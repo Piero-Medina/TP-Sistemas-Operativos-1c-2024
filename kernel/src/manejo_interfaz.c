@@ -69,7 +69,7 @@ void verificar_operacion_generica(int conexion, char* nombre_interfaz, t_PCB* pc
         }
 
         t_io_pendiente* pendiente_de_io = NULL;
-        pendiente_de_io = inicializar_io_pendiente(pcb->pid, operacion, true, NULL, unidades_genericas, 0, 0, 0); //
+        pendiente_de_io = inicializar_io_pendiente(pcb->pid, operacion, true, NULL, NULL, unidades_genericas, 0, 0, 0); //
             
         queue_push(interfaz->cola, (void*) pendiente_de_io);
         sem_post(&mutex_diccionario_interfaces);
@@ -171,27 +171,6 @@ bool validar_que_interfaz_admita_operacion(t_interfaz* interfaz, int operacion, 
     }
 }
 
-
-t_io_pendiente* inicializar_io_pendiente(uint32_t pid, int operacion, bool interfaz_ocupada, char* param_string, uint32_t param_int_1, uint32_t param_int_2, uint32_t param_int_3, uint32_t param_int_4){
-    t_io_pendiente *nueva_io_pendiente = malloc(sizeof(t_io_pendiente));
-    
-    nueva_io_pendiente->pid = pid;
-    nueva_io_pendiente->operacion = operacion;
-    nueva_io_pendiente->interfaz_ocupada = interfaz_ocupada;
-    if (param_string == NULL) {
-        nueva_io_pendiente->parametro_string = NULL;
-    } else {
-        nueva_io_pendiente->parametro_string = strdup(param_string); // copia dinamica que luego se tiene que liberar
-    }
-    nueva_io_pendiente->parametro_int_1 = param_int_1;
-    nueva_io_pendiente->parametro_int_2 = param_int_2;
-    nueva_io_pendiente->parametro_int_3 = param_int_3;
-    nueva_io_pendiente->parametro_int_4 = param_int_4;
-    
-    return nueva_io_pendiente;
-}
-
-
 void manejador_de_procesos_pendientes_io(void* arg){
     while(procesar_conexion_en_ejecucion){
         sem_wait(&sem_peticiones_io_por_procesar);
@@ -211,7 +190,7 @@ void manejador_de_procesos_pendientes_io(void* arg){
                 tmp->ocupado = true;
                 pendientes_io = (t_io_pendiente*) queue_pop(tmp->cola); //
                 mandar_a_procesar_io(tmp->socket, pendientes_io);
-                liberar_elemento_io_pendiente((void*) pendientes_io);
+                liberar_elemento_t_io_pendiente((void*) pendientes_io);
             }    
         }
         list_destroy(lista_keys);
@@ -298,38 +277,6 @@ int posicion_de_pcb_por_pid(int pid, t_list* lista){
     contador = -1;
 
     return contador;
-}
-
-t_io_pendiente* buscar_io_pendiente_por_pid_y_obtener(uint32_t pid, t_list* lista){
-    int posicion = posicion_de_io_pendiente_por_pid(pid, lista);
-    if(posicion != -1){
-        return (t_io_pendiente*) list_get(lista, posicion);
-    }else{
-        return NULL;
-    }
-}
-
-t_io_pendiente* buscar_io_pendiente_por_pid_y_remover(uint32_t pid, t_list* lista){
-    int posicion = posicion_de_io_pendiente_por_pid(pid, lista);
-    if(posicion != -1){
-        return (t_io_pendiente*) list_remove(lista, posicion);
-    }else{
-        return NULL;
-    }
-}
-
-int posicion_de_io_pendiente_por_pid(uint32_t pid, t_list* lista){
-    t_io_pendiente* pendiente = NULL;
-    int tamanio = list_size(lista);
-
-    for (int i = 0; i < tamanio; i++){
-        pendiente = (t_io_pendiente*) list_get(lista, i);
-        if(pendiente->pid == pid){
-            return i;
-        }
-    }
-
-    return -1;
 }
 
 bool pid_pendiente_finalizacion(uint32_t pid, t_list* lista){

@@ -565,7 +565,7 @@ bool finalizar_proceso_BLOCKED(int pid){
 
                 sem_post(&sem_grado_multiprogramacion);
 
-                liberar_elemento_io_pendiente((void*) io_pendiente);
+                liberar_elemento_t_io_pendiente((void*) io_pendiente);
 
                 list_destroy(lista_interfaces);
                 sem_post(&mutex_diccionario_interfaces);

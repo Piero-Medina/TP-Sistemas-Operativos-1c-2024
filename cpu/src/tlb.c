@@ -21,6 +21,49 @@ t_list* crear_tlb(int cantidad_entradas){
     return tlb_tmp;
 }
 
+void imprimir_entrada_tlb(t_entrada_tlb* entrada){
+    if (entrada == NULL) {
+        fprintf(stderr, "Puntero nulo.\n");
+        return;
+    }
+
+    printf("Pid: %d\n", entrada->pid);
+    printf("Pagina: %d\n", entrada->pagina);
+    printf("Marco: %d\n", entrada->marco);
+    printf("Instante de Carga: (%ld) segundos, (%06ld) microsegundos\n", entrada->instante_carga.tv_sec, entrada->instante_carga.tv_usec);
+    printf("Instante de Ultima Referencia: (%ld) segundos, (%06ld) microsegundos\n", entrada->instante_ultima_referencia.tv_sec, entrada->instante_ultima_referencia.tv_usec);
+}
+
+void imprimir_lista_entrada_tlb_completa(t_list* lista){
+    if (lista == NULL) {
+        fprintf(stderr, "Puntero nulo a la lista.\n");
+        return;
+    }
+
+    int tamanio = list_size(lista);
+    for (int i = 0; i < tamanio; i++) {
+        t_entrada_tlb* entrada = (t_entrada_tlb*) list_get(lista, i);
+        printf("Entrada (%d) [PID %d | Pagina %d | Marco %d | Instante de Carga %ld segundos %06ld microsegundos | Instante de Ultima Referencia %ld segundos %06ld microsegundos]\n",
+           i, entrada->pid, entrada->pagina, entrada->marco,
+           entrada->instante_carga.tv_sec, entrada->instante_carga.tv_usec,
+           entrada->instante_ultima_referencia.tv_sec, entrada->instante_ultima_referencia.tv_usec);
+    }
+}
+
+void imprimir_lista_entrada_tlb_sin_tiempo(t_list* lista) {
+    if (lista == NULL) {
+        fprintf(stderr, "Puntero nulo a la lista.\n");
+        return;
+    }
+
+    int tamanio = list_size(lista);
+    for (int i = 0; i < tamanio; i++) {
+        t_entrada_tlb* entrada = (t_entrada_tlb*) list_get(lista, i);
+        printf("Entrada (%d) [PID %d | Pagina %d | Marco %d]\n", i, entrada->pid, entrada->pagina, entrada->marco);
+    }
+}
+
+
 void destruir_tlb(t_list* tlb){
     list_destroy_and_destroy_elements(tlb, free);
 }

@@ -15,6 +15,7 @@
 #include <comunicacion/comunicacion.h>
 #include <instruccion/instruccion.h>
 #include <pcb/pcb.h>
+#include <io_pendiente/io_pendiente.h>
 
 #include "generales.h"
 #include "init.h"
@@ -39,9 +40,6 @@ bool validar_operacion(tipo_interfaz tipo_de_interfaz, t_identificador operacion
 bool validar_existencia_nombre_interfaz(t_dictionary* diccionario, int operacion, char* nombre_interfaz, t_PCB* pcb);
 bool validar_que_interfaz_admita_operacion(t_interfaz* interfaz, int operacion, char* nombre_interfaz, t_PCB* pcb);
 
-// se inicializa y se reserva memoria para un io_pendiente
-t_io_pendiente* inicializar_io_pendiente(uint32_t pid, int operacion, bool interfaz_ocupada, char* param_string, uint32_t param_int_1, uint32_t param_int_2, uint32_t param_int_3, uint32_t param_int_4);
-
 // verifica que interfaces estan libres para procesar una IO
 void manejador_de_procesos_pendientes_io(void* arg);
 
@@ -58,11 +56,6 @@ t_PCB* buscar_pcb_por_pid_y_obtener(int pid, t_list* lista);
 // - Busca un pcb mediante el pid en una lista y devuelve su posicion en la lista
 // - Retorna (-1) en caso de no encontrar el pid en la lista
 int posicion_de_pcb_por_pid(int pid, t_list* lista);
-
-
-t_io_pendiente* buscar_io_pendiente_por_pid_y_obtener(uint32_t pid, t_list* lista);
-t_io_pendiente* buscar_io_pendiente_por_pid_y_remover(uint32_t pid, t_list* lista);
-int posicion_de_io_pendiente_por_pid(uint32_t pid, t_list* lista);
 
 // - retorna true si el pid victima se encuentra entre los pendientes de eliminacion, lo remueve y libera la memoria asociada
 // - Dentro garantizamos Mutua Exclusion para t_list* victimas_pendientes_io;

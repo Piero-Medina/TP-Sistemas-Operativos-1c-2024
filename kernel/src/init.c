@@ -298,7 +298,7 @@ void liberar_elemento_interfaz(void* elemento){
     t_interfaz* tmp = (t_interfaz*) elemento;
 
     sem_destroy(&tmp->semaforo);
-    queue_destroy_and_destroy_elements(tmp->cola, (void*)liberar_elemento_io_pendiente);
+    queue_destroy_and_destroy_elements(tmp->cola, (void*)liberar_elemento_t_io_pendiente);
     
     free(tmp);
 }
@@ -319,16 +319,6 @@ void init_listas(void){
 void liberar_listas(void){
     list_destroy_and_destroy_elements(victimas_pendientes_io, free);
     list_destroy_and_destroy_elements(recursos_asignados, liberar_elemento_t_registro_recurso);
-}
-
-void liberar_elemento_io_pendiente(void* elemento){
-    t_io_pendiente* tmp = (t_io_pendiente*) elemento;
-
-    if(tmp->parametro_string != NULL){
-        free(tmp->parametro_string);
-    }
-
-    free(tmp);
 }
 
 void liberar_elemento_t_registro_recurso(void* elemento){

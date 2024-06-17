@@ -23,6 +23,7 @@ int server_cpu_interrupt_fd;
 
 int tamanio_pagina_memoria;
 
+
 int main(int argc, char* argv[]) {
     
     logger = iniciar_logger("cpu.log", "CPU");
@@ -56,9 +57,7 @@ int main(int argc, char* argv[]) {
 }
 
 
-
-
-/*
+/* TEST MMU MULTIPAGINAS
 int main(int argc, char* argv[]) {
     
     logger = iniciar_logger("cpu.log", "CPU");
@@ -68,24 +67,35 @@ int main(int argc, char* argv[]) {
 
     init_cpu();
 
-    //uint32_t entero_h = 0x616C6F48;
-    //uint32_t entero_d = 1634496328;
-    //uint32_t entero_d = 1634496328;
+    tamanio_pagina_memoria = 32;
 
-    uint32_t entero = 10;
-    size_t size = 4;
-    
-    char* aux = "pollsasasas";
-    printf("Cadena test (%s)\n", aux);
+    int direccion_logica = 31;
+    uint32_t pid = 1;
+    uint32_t tamanio_bytes = 96;
 
-    //entero = cadena_a_valor_entero((void*) aux, size);
-    //printf("Entero (%u)\n", entero);
+    // Agregamos algunas entradas para llenar la TLB
+    agregar_entrada_tlb(tlb, FIFO, pid, 0, 0); // pid=1, pagina=0, marco=0
+    agregar_entrada_tlb(tlb, FIFO, pid, 1, 1); // pid=2, pagina=1, marco=1
+    agregar_entrada_tlb(tlb, FIFO, pid, 2, 2); // pid=3, pagina=2, marco=2
+    agregar_entrada_tlb(tlb, FIFO, pid, 3, 3); // pid=4, pagina=3, marco=3
 
-    char* cadena = valor_entero_a_cadena(entero, size);
-    printf("Cadena almacenada (%s)\n", cadena);
+    // Mostramos el estado final de la TLB
+    printf("\nEstado final de la TLB:\n");
+    imprimir_lista_entrada_tlb_sin_tiempo(tlb);
     
-    free(cadena);
+    printf("\nUSANDO MMU\n\n");
+    t_list* direcciones_fisicas = list_create();
+    int estado = MMU(direccion_logica, tamanio_pagina_memoria, pid, (uint32_t)tamanio_bytes, direcciones_fisicas);
+
+    if(estado == MMU_OK){
+        printf("\nMMU_OK\n");
+    }
+
+    printf("\nEstado final de las Peticiones de memoria:\n");
+    imprimir_lista_peticion_memoria(direcciones_fisicas);
     
+    liberar_lista_de_peticiones_memoria(direcciones_fisicas);
+
     liberar_cpu();
     liberar_semaforos();
 

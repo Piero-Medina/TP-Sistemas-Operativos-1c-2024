@@ -10,6 +10,7 @@
 #include <commons/collections/dictionary.h>
 
 #include <enum/enum.h>
+#include <io_pendiente/io_pendiente.h>
 
 
 typedef enum{
@@ -34,19 +35,8 @@ typedef struct {
 	int socket;
 	bool ocupado;
 	sem_t semaforo;
-	t_queue* cola;  // (t_io_pendiente)
+	t_queue* cola;  // (t_io_pendiente*)
 }t_interfaz;
-
-typedef struct {
-	uint32_t pid;
-	int operacion;
-	bool interfaz_ocupada;
-	char* parametro_string;
-	uint32_t parametro_int_1;
-	uint32_t parametro_int_2;
-	uint32_t parametro_int_3;
-	uint32_t parametro_int_4;
-}t_io_pendiente;
 
 /**
  * @DESC: variables declaradas en main.c
@@ -138,8 +128,8 @@ extern t_dictionary* recursos;
 extern t_dictionary* interfaces;
 
 // listas
-extern t_list* victimas_pendientes_io;
-extern t_list* recursos_asignados;
+extern t_list* victimas_pendientes_io; // (t_io_pendiente*)
+extern t_list* recursos_asignados; // (t_registro_recurso*)
 
 // hilo
 extern pthread_t hilo_planificador_LP;

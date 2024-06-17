@@ -15,6 +15,7 @@
 
 #include <conexiones/conexiones.h>
 #include <pcb/pcb.h>
+#include <io_pendiente/io_pendiente.h>
 
 // 
 void init_kernel(void);
@@ -60,7 +61,6 @@ void init_planificadores(void);
 //
 void init_listas(void);
 void liberar_listas(void);
-void liberar_elemento_io_pendiente(void* elemento);
 void liberar_elemento_t_registro_recurso(void* elemento);
 
 //

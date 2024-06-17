@@ -118,7 +118,7 @@ void ejecutar_ciclo_de_instruccion(int conexion, t_PCB* pcb){
 
                         // Solicitudes a memoria
                         envio_generico_doble_entero(conexion_memoria, SOLICITUD_ESCRITURA_MEMORIA, tmp->direccion_fisica, tmp->bytes);
-                        enviar_data(conexion_memoria, IGNORAR_OP_CODE, data_leida, bytes);
+                        enviar_data(conexion_memoria, IGNORAR_OP_CODE, data_leida, tmp->bytes);
                         ignorar_op_code(conexion_memoria);
 
                         char* string_leido = convertir_a_cadena_nueva(data_leida, tmp->bytes);

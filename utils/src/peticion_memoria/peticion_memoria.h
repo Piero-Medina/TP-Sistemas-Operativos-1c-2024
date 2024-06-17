@@ -9,6 +9,9 @@
 #include <commons/collections/list.h>
 
 #include <serializacion/serializacion.h>
+#include <enum/enum.h>
+#include <comunicacion/comunicacion.h>
+#include <utils/utils.h>
 
 typedef struct {
     uint32_t base;
@@ -17,7 +20,10 @@ typedef struct {
 }t_peticion_memoria;
 
 t_peticion_memoria* crear_peticion_memoria(uint32_t base, uint32_t direccion_fisica, uint32_t bytes);
+
 void imprimir_peticion_memoria(t_peticion_memoria* peticion);
+void imprimir_lista_peticion_memoria(t_list* lista);
+
 void liberar_elemento_peticion_memoria(void* elemento);
 void liberar_lista_de_peticiones_memoria(t_list* lista);
 
@@ -29,5 +35,8 @@ t_list* buffer_read_list_t_peticion_memoria(t_buffer* buffer);
 
 t_buffer* serializar_lista_de_t_peticion_memoria(t_list* lista);
 t_list* deserializar_lista_de_t_peticion_memoria(t_buffer* buffer);
+
+void gestionar_escritura_multipagina(int conexion_memoria, t_list* peticiones, uint32_t pid, void* data_a_escribir, t_log* logger);
+void gestionar_lectura_multipagina(int conexion_memoria, t_list* peticiones, uint32_t pid, void* data_leida, uint32_t bytes, t_log* logger);
 
 #endif 

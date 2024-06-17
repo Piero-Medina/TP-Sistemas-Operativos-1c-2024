@@ -25,6 +25,13 @@ void imprimir_peticion_memoria(t_peticion_memoria* peticion){
     printf("Bytes: %u\n", peticion->bytes);
 }
 
+void imprimir_lista_peticion_memoria(t_list* lista){
+    for (int i = 0; i < list_size(lista); i++) {
+        t_peticion_memoria* peticion = (t_peticion_memoria* )list_get(lista, i);
+        printf("Peticion (%d) [Base %u| Direccion Fisica %u | Bytes %u]\n", i, peticion->base, peticion->direccion_fisica, peticion->bytes);
+    }
+}
+
 void liberar_elemento_peticion_memoria(void* elemento){
     t_peticion_memoria* peticion = (t_peticion_memoria*) elemento;
 
@@ -90,4 +97,62 @@ t_buffer* serializar_lista_de_t_peticion_memoria(t_list* lista){
 
 t_list* deserializar_lista_de_t_peticion_memoria(t_buffer* buffer){
     return buffer_read_list_t_peticion_memoria(buffer);
+}
+
+void gestionar_escritura_multipagina(int conexion_memoria, t_list* peticiones, uint32_t pid, void* data_a_escribir, t_log* logger){
+    int offset = 0;
+
+    t_peticion_memoria* tmp = NULL;
+    for(int i = 0; i < list_size(peticiones); i++){
+        tmp = (t_peticion_memoria*) list_get(peticiones, i);
+                        
+        // copia a partir del tamanio antes enviado,
+        void* data_leida = malloc(tmp->bytes);
+        memcpy(data_leida, data_a_escribir + offset, tmp->bytes);
+        offset += tmp->bytes;
+
+        // Solicitudes a memoria
+        envio_generico_doble_entero(conexion_memoria, SOLICITUD_ESCRITURA_MEMORIA, tmp->direccion_fisica, tmp->bytes);
+        enviar_data(conexion_memoria, IGNORAR_OP_CODE, data_leida, tmp->bytes);
+        ignorar_op_code(conexion_memoria);
+
+        // seria un pedazo si es multipagina
+        char* string_escrito = convertir_a_cadena_nueva(data_leida, tmp->bytes);
+        log_info(logger, "PID: <%u> - Acción: <ESCRIBIR> - Dirección Física: <%u> - Valor: <%s>", pid, tmp->direccion_fisica, string_escrito);
+        free(string_escrito);
+
+        free(data_leida);
+    }
+
+    // verificando que lo ecrito coincide con lo esperado
+    // return (offset == bytes);
+}
+
+void gestionar_lectura_multipagina(int conexion_memoria, t_list* peticiones, uint32_t pid, void* data_leida, uint32_t bytes, t_log* logger){
+    void* buffer_data = malloc(bytes);
+    int offset = 0;
+
+    t_peticion_memoria* tmp = NULL;
+    for(int i = 0; i < list_size(peticiones); i++){
+        tmp = (t_peticion_memoria*) list_get(peticiones, i);
+                        
+        // Solicitudes a memoria
+        envio_generico_doble_entero(conexion_memoria, SOLICITUD_LECTURA_MEMORIA, tmp->direccion_fisica, tmp->bytes);
+        ignorar_op_code(conexion_memoria);
+        void* data = recibir_data(conexion_memoria, NULL);
+
+        // seria un pedazo si es multipagina
+        char* string_leido = convertir_a_cadena_nueva(data, tmp->bytes);
+        log_info(logger, "PID: <%u> - Acción: <LEER> - Dirección Física: <%u> - Valor: <%s>", pid, tmp->direccion_fisica, string_leido);
+        free(string_leido);
+
+        // va almacenando la data en el buffer
+        memcpy(buffer_data + offset, data, tmp->bytes);
+        offset += tmp->bytes;
+
+        free(data);
+    }
+
+    // verificando que leido coincide con lo esperado
+    // return (offset == bytes);
 }
