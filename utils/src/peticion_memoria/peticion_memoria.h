@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <inttypes.h>
+#include <stdbool.h>
 
 #include <commons/collections/list.h>
 
@@ -36,7 +37,13 @@ t_list* buffer_read_list_t_peticion_memoria(t_buffer* buffer);
 t_buffer* serializar_lista_de_t_peticion_memoria(t_list* lista);
 t_list* deserializar_lista_de_t_peticion_memoria(t_buffer* buffer);
 
-void gestionar_escritura_multipagina(int conexion_memoria, t_list* peticiones, uint32_t pid, void* data_a_escribir, t_log* logger);
-void gestionar_lectura_multipagina(int conexion_memoria, t_list* peticiones, uint32_t pid, void* data_leida, uint32_t bytes, t_log* logger);
+// - escribe data a memoria segun unas direcciones
+// - (data_a_escribir debe tener memoria asignada o contenido asignado previamente)
+// - realiza un Log final para verificar si lo escrito es lo que se esperaba
+bool gestionar_escritura_multipagina(int conexion_memoria, t_list* peticiones, uint32_t pid, void* data_a_escribir, uint32_t bytes, t_log* logger);
+
+// - lee data de memoria segun unas direcciones
+// - (la data que devuelve debe ser liberada una vez que se deja de usar)
+bool gestionar_lectura_multipagina(int conexion_memoria, t_list* peticiones, uint32_t pid, void* data_leida, uint32_t bytes, t_log* logger);
 
 #endif 

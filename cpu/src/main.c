@@ -37,7 +37,7 @@ int main(int argc, char* argv[]) {
     enviar_handshake(conexion_memoria, HANDSHAKE, "CPU", "MEMORIA", logger);
     envio_generico_op_code(conexion_memoria, SOLICITUD_TAMANIO_PAGINA);
     ignorar_op_code(conexion_memoria);
-    tamanio_pagina_memoria = (int)recibo_generico_entero(conexion_memoria);
+    tamanio_pagina_memoria = (int)recibir_generico_entero(conexion_memoria);
 
     server_cpu_dispatch_fd = iniciar_servidor("CPU DISPATCH", config->ip_cpu, config->puerto_escucha_dispatch, logger);
     log_info(logger, "CPU DISPATCH Escuchando Conexiones \n");

@@ -46,7 +46,7 @@ void procesar_conexion_io(void *args){
             }
             case SOLICITUD_IO_GEN_SLEEP_FINALIZADA:
             {
-                uint32_t pid = recibo_generico_entero(socket);
+                uint32_t pid = recibir_generico_entero(socket);
                 
                 log_info(logger, "PID: <%u> - Solicitud de IO_GEN_SLEEP Finalizada", pid);
 

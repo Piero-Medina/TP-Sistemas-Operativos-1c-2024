@@ -5,43 +5,43 @@ void avisar_nuevo_proceso_memoria(int conexion_memoria, int pid, char* path_intr
 }
 
 void avisar_desalojo_a_cpu(int conexion_cpu, int op_code, char* motivo){
-    envio_generico_string(conexion_cpu, op_code, motivo);
+    enviar_generico_string(conexion_cpu, op_code, motivo);
 }
 
 void solicitar_intruccion_a_memoria(int conexion, uint8_t op_code, uint32_t pid, uint32_t pc){
-    envio_generico_doble_entero(conexion, op_code, pid, pc);
+    enviar_generico_doble_entero(conexion, op_code, pid, pc);
 }
 
-/////////////////////////////////////////////////////////////////////////////////////// 
-void envio_generico_entero_y_string(int conexion, uint8_t op_code, uint32_t entero, char* string){
-    uint32_t length = strlen(string) + 1;
-    uint32_t size_buffer = sizeof(uint32_t) + sizeof(uint32_t) + length; 
-    
-    t_paquete* paquete = paquete_create_with_buffer_size(size_buffer, op_code);
+///////////////////////////////////////////////////////////////////////////////////////
 
-    buffer_add_uint32(paquete->buffer, entero);
-    buffer_add_string(paquete->buffer, length, string);
-
-    uint32_t size_a_enviar = 0;
-    void* a_enviar = serializar_paquete(paquete, &size_a_enviar);
-
-    send(conexion, a_enviar, size_a_enviar, 0);
-
-    paquete_detroy(paquete);
-    free(a_enviar);
+void envio_generico_op_code(int conexion, uint8_t op_code){
+    send(conexion, &op_code, sizeof(uint8_t), 0);
 }
 
-void recibir_generico_entero_string(int conexion, uint32_t* entero, char** string){
-    t_buffer* buffer = recibir_buffer(conexion);
-
-    *entero = buffer_read_uint32(buffer);
-    *string = buffer_read_string(buffer);
-
-    buffer_destroy(buffer);
+int recibo_generico_op_code(int conexion){
+    uint8_t tmp;
+    recv(conexion, &tmp, sizeof(uint8_t), MSG_WAITALL);
+    return (int) tmp;
 }
 
-/////////////////////////////////////////////////////////////////////////////////////// 
-void envio_generico_string(int conexion, uint8_t op_code, char* string){
+void validar_respuesta_op_code(int conexion, uint8_t op_code_esperado, t_log* logger){
+    int respuesta = recibo_generico_op_code(conexion);
+    if(respuesta == op_code_esperado) log_info(logger, "Respuesta OK");
+    if(respuesta != op_code_esperado) log_info(logger, "Respuesta Fallida \n");
+}
+
+void ignorar_op_code(int conexion){
+    /*
+        La siguiente directiva del preprocesador se utiliza para indicar al compilador
+        que la variable 'tmp' puede estar sin usar, evitando así que se emita un warning.
+    */
+    int tmp __attribute__((unused)) = recibo_generico_op_code(conexion);
+    //int tmp = recibo_generico_op_code(conexion);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////// 
+
+void enviar_generico_string(int conexion, uint8_t op_code, char* string){
     uint32_t length = strlen(string) + 1;
     uint32_t size_buffer = sizeof(uint32_t) + length; 
     
@@ -70,35 +70,7 @@ char* recibir_generico_string(int conexion){
 
 ///////////////////////////////////////////////////////////////////////////////////////
 
-void envio_generico_entero(int conexion, uint8_t op_code, uint32_t entero){
-    uint32_t size_buffer = sizeof(uint32_t); 
-    
-    t_paquete* paquete = paquete_create_with_buffer_size(size_buffer, op_code);
-
-    buffer_add_uint32(paquete->buffer, entero);
-
-    uint32_t size_a_enviar = 0;
-    void* a_enviar = serializar_paquete(paquete, &size_a_enviar);
-
-    send(conexion, a_enviar, size_a_enviar, 0);
-
-    paquete_detroy(paquete);
-    free(a_enviar);
-}
-
-uint32_t recibo_generico_entero(int conexion){
-    t_buffer* buffer = recibir_buffer(conexion);
-    
-    uint32_t entero = buffer_read_uint32(buffer);
-
-    buffer_destroy(buffer);
-
-    return entero;
-}
-
-///////////////////////////////////////////////////////////////////////////////////////
-
-void envio_generico_int32(int conexion, uint8_t op_code, int32_t entero){
+void enviar_generico_int32(int conexion, uint8_t op_code, int32_t entero){
     uint32_t size_buffer = sizeof(int32_t); 
     
     t_paquete* paquete = paquete_create_with_buffer_size(size_buffer, op_code);
@@ -114,7 +86,7 @@ void envio_generico_int32(int conexion, uint8_t op_code, int32_t entero){
     free(a_enviar);
 }
 
-int32_t recibo_generico_int32(int conexion){
+int32_t recibir_generico_int32(int conexion){
     t_buffer* buffer = recibir_buffer(conexion);
     
     int32_t entero = buffer_read_int32(buffer);
@@ -126,7 +98,35 @@ int32_t recibo_generico_int32(int conexion){
 
 ///////////////////////////////////////////////////////////////////////////////////////
 
-void envio_generico_doble_entero(int conexion, uint8_t op_code, uint32_t entero1, uint32_t entero2){
+void enviar_generico_entero(int conexion, uint8_t op_code, uint32_t entero){
+    uint32_t size_buffer = sizeof(uint32_t); 
+    
+    t_paquete* paquete = paquete_create_with_buffer_size(size_buffer, op_code);
+
+    buffer_add_uint32(paquete->buffer, entero);
+
+    uint32_t size_a_enviar = 0;
+    void* a_enviar = serializar_paquete(paquete, &size_a_enviar);
+
+    send(conexion, a_enviar, size_a_enviar, 0);
+
+    paquete_detroy(paquete);
+    free(a_enviar);
+}
+
+uint32_t recibir_generico_entero(int conexion){
+    t_buffer* buffer = recibir_buffer(conexion);
+    
+    uint32_t entero = buffer_read_uint32(buffer);
+
+    buffer_destroy(buffer);
+
+    return entero;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////
+
+void enviar_generico_doble_entero(int conexion, uint8_t op_code, uint32_t entero1, uint32_t entero2){
     uint32_t size_buffer = sizeof(uint32_t) * 2; 
     
     t_paquete* paquete = paquete_create_with_buffer_size(size_buffer, op_code);
@@ -143,7 +143,7 @@ void envio_generico_doble_entero(int conexion, uint8_t op_code, uint32_t entero1
     free(a_enviar);
 }
 
-void recibo_generico_doble_entero(int conexion, uint32_t* entero1, uint32_t* entero2){
+void recibir_generico_doble_entero(int conexion, uint32_t* entero1, uint32_t* entero2){
     t_buffer* buffer = recibir_buffer(conexion);
     
     *entero1 = buffer_read_uint32(buffer);
@@ -154,29 +154,62 @@ void recibo_generico_doble_entero(int conexion, uint32_t* entero1, uint32_t* ent
 
 ///////////////////////////////////////////////////////////////////////////////////////
 
-void envio_generico_op_code(int conexion, uint8_t op_code){
-    send(conexion, &op_code, sizeof(uint8_t), 0);
+void enviar_generico_triple_entero(int conexion, uint8_t op_code, uint32_t entero1, uint32_t entero2, uint32_t entero3) {
+    uint32_t size_buffer = sizeof(uint32_t) * 3; 
+    
+    t_paquete* paquete = paquete_create_with_buffer_size(size_buffer, op_code);
+
+    buffer_add_uint32(paquete->buffer, entero1);
+    buffer_add_uint32(paquete->buffer, entero2);
+    buffer_add_uint32(paquete->buffer, entero3);
+
+    uint32_t size_a_enviar = 0;
+    void* a_enviar = serializar_paquete(paquete, &size_a_enviar);
+
+    send(conexion, a_enviar, size_a_enviar, 0);
+
+    paquete_detroy(paquete);
+    free(a_enviar);
 }
 
-int recibo_generico_op_code(int conexion){
-    uint8_t tmp;
-    recv(conexion, &tmp, sizeof(uint8_t), MSG_WAITALL);
-    return (int) tmp;
+void recibir_generico_triple_entero(int conexion, uint32_t* entero1, uint32_t* entero2, uint32_t* entero3) {
+    t_buffer* buffer = recibir_buffer(conexion);
+    
+    *entero1 = buffer_read_uint32(buffer);
+    *entero2 = buffer_read_uint32(buffer);
+    *entero3 = buffer_read_uint32(buffer);
+
+    buffer_destroy(buffer);
 }
 
-void validar_respuesta_op_code(int conexion, uint8_t op_code_esperado, t_log* logger){
-    int respuesta = recibo_generico_op_code(conexion);
-    if(respuesta == op_code_esperado) log_info(logger, "Respuesta OK");
-    if(respuesta != op_code_esperado) log_info(logger, "Respuesta Fallida \n");
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void envio_generico_entero_y_string(int conexion, uint8_t op_code, uint32_t entero, char* string){
+    uint32_t length = strlen(string) + 1;
+    uint32_t size_buffer = sizeof(uint32_t) + 
+                           sizeof(uint32_t) + length; 
+    
+    t_paquete* paquete = paquete_create_with_buffer_size(size_buffer, op_code);
+
+    buffer_add_uint32(paquete->buffer, entero);
+    buffer_add_string(paquete->buffer, length, string);
+
+    uint32_t size_a_enviar = 0;
+    void* a_enviar = serializar_paquete(paquete, &size_a_enviar);
+
+    send(conexion, a_enviar, size_a_enviar, 0);
+
+    paquete_detroy(paquete);
+    free(a_enviar);
 }
 
-void ignorar_op_code(int conexion){
-    /*
-        La siguiente directiva del preprocesador se utiliza para indicar al compilador
-        que la variable 'tmp' puede estar sin usar, evitando así que se emita un warning.
-    */
-    int tmp __attribute__((unused)) = recibo_generico_op_code(conexion);
-    //int tmp = recibo_generico_op_code(conexion);
+void recibir_generico_entero_string(int conexion, uint32_t* entero, char** string){
+    t_buffer* buffer = recibir_buffer(conexion);
+
+    *entero = buffer_read_uint32(buffer);
+    *string = buffer_read_string(buffer);
+
+    buffer_destroy(buffer);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -210,6 +243,41 @@ void recibir_generico_doble_entero_y_string(int conexion, uint32_t* entero1, uin
 
     buffer_destroy(buffer);
 }
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void enviar_generico_triple_entero_y_string(int conexion, uint8_t op_code, uint32_t entero1, uint32_t entero2, uint32_t entero3, char* string){
+    uint32_t length = strlen(string) + 1;
+    uint32_t size_buffer = sizeof(uint32_t) * 3 + 
+                           sizeof(uint32_t) + length; 
+    
+    t_paquete* paquete = paquete_create_with_buffer_size(size_buffer, op_code);
+
+    buffer_add_uint32(paquete->buffer, entero1);
+    buffer_add_uint32(paquete->buffer, entero2);
+    buffer_add_uint32(paquete->buffer, entero3);
+    buffer_add_string(paquete->buffer, length, string);
+
+    uint32_t size_a_enviar = 0;
+    void* a_enviar = serializar_paquete(paquete, &size_a_enviar);
+
+    send(conexion, a_enviar, size_a_enviar, 0);
+
+    paquete_detroy(paquete);
+    free(a_enviar);
+}
+
+void recibir_generico_triple_entero_y_string(int conexion, uint32_t* entero1, uint32_t* entero2, uint32_t* entero3, char** string){
+    t_buffer* buffer = recibir_buffer(conexion);
+    
+    *entero1 = buffer_read_uint32(buffer);
+    *entero2 = buffer_read_uint32(buffer);
+    *entero3 = buffer_read_uint32(buffer);
+    *string = buffer_read_string(buffer);
+
+    buffer_destroy(buffer);
+}
+
 
 ///////////////////////////////////////////////////////////////////////////////////////
 

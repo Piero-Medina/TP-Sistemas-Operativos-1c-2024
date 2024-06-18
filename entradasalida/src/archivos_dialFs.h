@@ -18,12 +18,16 @@
 #include "bit_map_dialFs.h"
 
 #include <utils/utils.h>
+#include <comunicacion/comunicacion.h>
+#include <peticion_memoria/peticion_memoria.h>
 
 #define MAX_READ 4096
 
 estado_interfaz crear_archivo(char* nombre);
 estado_interfaz truncar_archivo(char* nombre, int tamanio_nuevo, int pid);
 estado_interfaz eliminar_archivo(char* nombre);
+estado_interfaz escribir_archivo(char* nombre_archivo, uint32_t bytes, uint32_t puntero, t_list* direcciones, uint32_t pid);
+estado_interfaz leer_archivo_dial(char* nombre_archivo, uint32_t bytes, uint32_t puntero, t_list* direcciones, uint32_t pid);
 
 t_archivo* t_archivo_crear(char* nombre, int bloque_inicial);
 void imprimir_t_archivo(t_archivo* archivo);
@@ -59,4 +63,11 @@ void compactar_archivos_usando_mas_memoria(t_dictionary* archivos, char* nombre_
 // - setea en el metadato un entero en el key elegido y lo guarda
 // - (el metadato debe estar inicializado) 
 void set_key_metadata(t_config* metadato, char* key, int valor);
+
+void hilo_habilitador(int milisegundos);
+void habilitador_de_compactacion(void* args);
+
+estado_interfaz escribir_archivo_test(char* nombre_archivo, uint32_t bytes, uint32_t puntero, void* data_a_escribir, uint32_t pid);
+estado_interfaz leer_archivo_dial_test(char* nombre_archivo, uint32_t bytes, uint32_t puntero, uint32_t pid);
+
 #endif

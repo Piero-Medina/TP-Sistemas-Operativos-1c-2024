@@ -28,8 +28,12 @@ void verificar_tipo_interfaz(int conexion, t_PCB* pcb){
             free(nombre_interfaz);
             break;
         case STDIN:
+            verificar_operacion_stdin(conexion, nombre_interfaz, pcb);
+            free(nombre_interfaz);
             break;
         case STDOUT:
+            verificar_operacion_stdout(conexion, nombre_interfaz, pcb);
+            free(nombre_interfaz);
             break;
         case DIALFS:
             break;
@@ -42,7 +46,7 @@ void verificar_operacion_generica(int conexion, char* nombre_interfaz, t_PCB* pc
     t_interfaz* interfaz = NULL;
 
     if(operacion == IO_GEN_SLEEP){
-        uint32_t unidades_genericas = recibo_generico_entero(conexion);
+        uint32_t unidades_genericas = recibir_generico_entero(conexion);
         sem_post(&mutex_conexion_cpu_dispatch); // terminamos de recibir todos los datos
 
         // validar que exista el nombre de interfaz
@@ -78,47 +82,122 @@ void verificar_operacion_generica(int conexion, char* nombre_interfaz, t_PCB* pc
     }
 }
 
-void verificar_operacion_stdin(int conexion, char* nombre_interfaz, int operacion){
-    if(operacion == IO_STDIN_READ){
-        // validar que exista el nombre de interfaz
-        // validar que admite la operacion
+void verificar_operacion_stdin(int conexion, char* nombre_interfaz, t_PCB* pcb){
+    int operacion = recibo_generico_op_code(conexion); 
 
-        // recien validamos aca para no cortar el envio de la cpu
-        // recibimos todo y dejamos al socket libre para que trabaje
+    t_interfaz* interfaz = NULL;
+
+    if(operacion == IO_STDIN_READ){
+        uint32_t tamanio_bytes = recibir_generico_entero(conexion); //
+        ignorar_op_code(conexion);
+        t_list* direcciones = recibir_lista_peticiones_memoria(conexion); //
+        sem_post(&mutex_conexion_cpu_dispatch); // terminamos de recibir todos los datos
+
+        // validar que exista el nombre de interfaz
+        sem_wait(&mutex_diccionario_interfaces);
+        if(!validar_existencia_nombre_interfaz(interfaces, operacion, nombre_interfaz, pcb)){
+            sem_post(&mutex_diccionario_interfaces);
+            return;
+        }
+        
+        interfaz = (t_interfaz*) dictionary_get(interfaces, nombre_interfaz);
+
+        // validar que admite la operacion
+        if(!validar_que_interfaz_admita_operacion(interfaz, operacion, nombre_interfaz, pcb)){
+            sem_post(&mutex_diccionario_interfaces);
+            return;
+        }
+
+        log_info(logger, "PID: <%u> - Bloqueado por: <INTERFAZ (%s)>", pcb->pid, nombre_interfaz);
+
+        // aca dentro se actualiza el contexto de ejecucion
+        if(mover_execute_a_blocked(pcb) == false){
+           log_info(logger, "PID: <%u> - interceptado antes de bloquearse", pcb->pid);
+           return; // salimos de la funcion
+        }
+
+        // para1 = tamanio_bytes | peticiones = direcciones
+        t_io_pendiente* pendiente_de_io = NULL;
+        pendiente_de_io = inicializar_io_pendiente(pcb->pid, operacion, true, NULL, direcciones, tamanio_bytes, 0, 0, 0); //
+            
+        queue_push(interfaz->cola, (void*) pendiente_de_io);
+        sem_post(&mutex_diccionario_interfaces);
+
+        sem_post(&sem_peticiones_io_por_procesar);
+
     }
 }
 
-void verificar_operacion_stdout(int conexion, char* nombre_interfaz, int operacion){
-    if(operacion == IO_STDIN_READ){
-        // validar que exista el nombre de interfaz
-        // validar que admite la operacion
+void verificar_operacion_stdout(int conexion, char* nombre_interfaz, t_PCB* pcb){
+    int operacion = recibo_generico_op_code(conexion); 
 
-        // recien validamos aca para no cortar el envio de la cpu
-        // recibimos todo y dejamos al socket libre para que trabaje
+    t_interfaz* interfaz = NULL;
+
+    if(operacion == IO_STDOUT_WRITE){
+        uint32_t tamanio_bytes = recibir_generico_entero(conexion); //
+        ignorar_op_code(conexion);
+        t_list* direcciones = recibir_lista_peticiones_memoria(conexion); //
+        sem_post(&mutex_conexion_cpu_dispatch); // terminamos de recibir todos los datos
+
+        // validar que exista el nombre de interfaz
+        sem_wait(&mutex_diccionario_interfaces);
+        if(!validar_existencia_nombre_interfaz(interfaces, operacion, nombre_interfaz, pcb)){
+            sem_post(&mutex_diccionario_interfaces);
+            return;
+        }
+        
+        interfaz = (t_interfaz*) dictionary_get(interfaces, nombre_interfaz);
+
+        // validar que admite la operacion
+        if(!validar_que_interfaz_admita_operacion(interfaz, operacion, nombre_interfaz, pcb)){
+            sem_post(&mutex_diccionario_interfaces);
+            return;
+        }
+
+        log_info(logger, "PID: <%u> - Bloqueado por: <INTERFAZ (%s)>", pcb->pid, nombre_interfaz);
+
+        // aca dentro se actualiza el contexto de ejecucion
+        if(mover_execute_a_blocked(pcb) == false){
+           log_info(logger, "PID: <%u> - interceptado antes de bloquearse", pcb->pid);
+           return; // salimos de la funcion
+        }
+
+        // para1 = tamanio_bytes | peticiones = direcciones
+        t_io_pendiente* pendiente_de_io = NULL;
+        pendiente_de_io = inicializar_io_pendiente(pcb->pid, operacion, true, NULL, direcciones, tamanio_bytes, 0, 0, 0); //
+            
+        queue_push(interfaz->cola, (void*) pendiente_de_io);
+        sem_post(&mutex_diccionario_interfaces);
+
+        sem_post(&sem_peticiones_io_por_procesar);
+
     }
 }
 
-void verificar_operacion_dialFs(int conexion, char* nombre_interfaz, int operacion){
+void verificar_operacion_dialFs(int conexion, char* nombre_interfaz, t_PCB* pcb){
+    int operacion = recibo_generico_op_code(conexion); 
+
     switch (operacion){
         case IO_FS_CREATE:
-            // validar que exista el nombre de interfaz
-            // validar que admite la operacion
-
-            // recien validamos aca para no cortar el envio de la cpu
-             // recibimos todo y dejamos al socket libre para que trabaje
+        {   
             break;
+        }
         case IO_FS_DELETE:
-            //  
+        {
             break;
+        }
         case IO_FS_TRUNCATE:
-            // 
+        {
             break;
+        }
         case IO_FS_WRITE:
-            // 
+        {
             break;
+        }
         case IO_FS_READ:
-            // 
+        {
             break;
+        }
     }
 }
 
@@ -211,32 +290,75 @@ void mandar_a_procesar_io(int conexion_interfaz, t_io_pendiente* pendiente){
             solicitar_IO_GEN_SLEEP(conexion_interfaz, pendiente);
             break;
         case IO_STDIN_READ:
-            //TODO
+            solicitar_IO_STDIN_READ(conexion_interfaz, pendiente);
             break;
         case IO_STDOUT_WRITE:
-            //TODO
+            solicitar_IO_STDOUT_WRITE(conexion_interfaz, pendiente);
             break;
         case IO_FS_CREATE:
-            //TODO
+            solicitar_IO_FS_CREATE(conexion_interfaz, pendiente);
             break;
         case IO_FS_DELETE:
-            //TODO
+            solicitar_IO_FS_DELETE(conexion_interfaz, pendiente);
             break;
         case IO_FS_TRUNCATE:
-            //TODO
+            solicitar_IO_FS_TRUNCATE(conexion_interfaz, pendiente);
             break;
         case IO_FS_WRITE:
-            //TODO
+            solicitar_IO_FS_WRITE(conexion_interfaz, pendiente);
             break;
         case IO_FS_READ:
-            //TODO
+            solicitar_IO_FS_READ(conexion_interfaz, pendiente);
             break;
     }
 }
 
 void solicitar_IO_GEN_SLEEP(int conexion_interfaz, t_io_pendiente* pendiente){
-    // se enviar el pid del proceso y las unidades de trabajo
-    envio_generico_doble_entero(conexion_interfaz, SOLICITUD_IO_GEN_SLEEP, pendiente->pid, pendiente->parametro_int_1);
+    // se enviar el pid del proceso | unidades de trabajo
+    enviar_generico_doble_entero(conexion_interfaz, SOLICITUD_IO_GEN_SLEEP, pendiente->pid, pendiente->parametro_int_1);
+}
+
+void solicitar_IO_STDIN_READ(int conexion_interfaz, t_io_pendiente* pendiente){
+    // se enviar el pid del proceso | tamanio en bytes 
+    enviar_generico_doble_entero(conexion_interfaz, SOLICITUD_IO_STDIN_READ, pendiente->pid, pendiente->parametro_int_1);
+    // se envia direcciones
+    enviar_lista_peticiones_memoria(conexion_interfaz, IGNORAR_OP_CODE, pendiente->peticiones_memoria);
+}
+
+void solicitar_IO_STDOUT_WRITE(int conexion_interfaz, t_io_pendiente* pendiente){
+    // se enviar el pid del proceso | tamanio en bytes 
+    enviar_generico_doble_entero(conexion_interfaz, SOLICITUD_IO_STDOUT_WRITE, pendiente->pid, pendiente->parametro_int_1);
+    // se envia direcciones
+    enviar_lista_peticiones_memoria(conexion_interfaz, IGNORAR_OP_CODE, pendiente->peticiones_memoria);
+}
+
+void solicitar_IO_FS_CREATE(int conexion_interfaz, t_io_pendiente* pendiente){
+    // se enviar el pid del proceso | nombre_archivo 
+    envio_generico_entero_y_string(conexion_interfaz, SOLICITUD_IO_FS_CREATE, pendiente->pid, pendiente->parametro_string);
+}
+
+void solicitar_IO_FS_DELETE(int conexion_interfaz, t_io_pendiente* pendiente){
+    // se enviar el pid del proceso | nombre_archivo 
+    envio_generico_entero_y_string(conexion_interfaz, SOLICITUD_IO_FS_DELETE, pendiente->pid, pendiente->parametro_string);
+}
+
+void solicitar_IO_FS_TRUNCATE(int conexion_interfaz, t_io_pendiente* pendiente){
+    // se enviar el pid del proceso | tamanio en bytes | nombre_archivo 
+    enviar_generico_doble_entero_y_string(conexion_interfaz, SOLICITUD_IO_FS_TRUNCATE, pendiente->pid, pendiente->parametro_int_1, pendiente->parametro_string);
+}
+
+void solicitar_IO_FS_WRITE(int conexion_interfaz, t_io_pendiente* pendiente){
+    // se enviar el pid del proceso | tamanio en bytes | puntero | nombre_archivo 
+    enviar_generico_triple_entero_y_string(conexion_interfaz, SOLICITUD_IO_FS_WRITE, pendiente->pid, pendiente->parametro_int_1, pendiente->parametro_int_2, pendiente->parametro_string);
+    // se envia direcciones
+    enviar_lista_peticiones_memoria(conexion_interfaz, IGNORAR_OP_CODE, pendiente->peticiones_memoria);
+}
+
+void solicitar_IO_FS_READ(int conexion_interfaz, t_io_pendiente* pendiente){
+    // se enviar el pid del proceso | tamanio en bytes | puntero | nombre_archivo 
+    enviar_generico_triple_entero_y_string(conexion_interfaz, SOLICITUD_IO_FS_READ, pendiente->pid, pendiente->parametro_int_1, pendiente->parametro_int_2, pendiente->parametro_string);
+    // se envia direcciones
+    enviar_lista_peticiones_memoria(conexion_interfaz, IGNORAR_OP_CODE, pendiente->peticiones_memoria);
 }
 
 

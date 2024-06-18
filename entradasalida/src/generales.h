@@ -1,6 +1,8 @@
 #ifndef GENERALES_H_
 #define GENERALES_H_
 
+#include <semaphore.h>
+
 #include <commons/log.h>
 #include <commons/collections/dictionary.h>
 #include <stdbool.h>
@@ -39,4 +41,5 @@ extern char* path_archivos;
 
 extern t_dictionary* diccionario_de_archivos;
 
+extern sem_t sem_compactacion;
 #endif 

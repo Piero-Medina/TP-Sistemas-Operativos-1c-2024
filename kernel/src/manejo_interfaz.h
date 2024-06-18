@@ -31,9 +31,9 @@ void verificar_tipo_interfaz(int conexion, t_PCB* pcb);
 
 // verifican el tipo de operacion que se quiere realizar
 void verificar_operacion_generica(int conexion, char* nombre_interfaz, t_PCB* pcb);
-void verificar_operacion_stdin(int conexion, char* nombre_interfaz, int operacion);
-void verificar_operacion_stdout(int conexion, char* nombre_interfaz, int operacion);
-void verificar_operacion_dialFs(int conexion, char* nombre_interfaz, int operacion);
+void verificar_operacion_stdin(int conexion, char* nombre_interfaz, t_PCB* pcb);
+void verificar_operacion_stdout(int conexion, char* nombre_interfaz, t_PCB* pcb);
+void verificar_operacion_dialFs(int conexion, char* nombre_interfaz, t_PCB* pcb);
 
 // valida si el tipo de interfaz acepta tal operacion
 bool validar_operacion(tipo_interfaz tipo_de_interfaz, t_identificador operacion);
@@ -45,7 +45,17 @@ void manejador_de_procesos_pendientes_io(void* arg);
 
 // manda a procesar un paticion de io a una interfaz, dentro discrimina segun la operacion
 void mandar_a_procesar_io(int conexion_interfaz, t_io_pendiente* pendiente);
+
 void solicitar_IO_GEN_SLEEP(int conexion_interfaz, t_io_pendiente* pendiente);
+
+void solicitar_IO_STDIN_READ(int conexion_interfaz, t_io_pendiente* pendiente);
+void solicitar_IO_STDOUT_WRITE(int conexion_interfaz, t_io_pendiente* pendiente);
+
+void solicitar_IO_FS_CREATE(int conexion_interfaz, t_io_pendiente* pendiente);
+void solicitar_IO_FS_DELETE(int conexion_interfaz, t_io_pendiente* pendiente);
+void solicitar_IO_FS_TRUNCATE(int conexion_interfaz, t_io_pendiente* pendiente);
+void solicitar_IO_FS_WRITE(int conexion_interfaz, t_io_pendiente* pendiente);
+void solicitar_IO_FS_READ(int conexion_interfaz, t_io_pendiente* pendiente);
 
 // - Busca un pcb mediante el pid en una lista y lo remueve
 // - Retorna NULL en caso de no encontrar el pid en la lista

@@ -23,7 +23,7 @@ void procesar_conexion_general(void *args){
                 log_info(logger_m, "Solicitud de tamanio de pagina de CPU");
 
                 log_info(logger_m, "Enviando a CPU tamanio de pagina (%d) \n", config->tam_pagina);
-                envio_generico_entero(socket, MEMORIA_OK, (uint32_t)config->tam_memoria);
+                enviar_generico_entero(socket, MEMORIA_OK, (uint32_t)config->tam_memoria);
                 break;
             case NUEVO_PROCESO_MEMORIA: // KERNEL
                 // se crea un proceso en memoria a partir de path (en memoria) enviado por el kernel
@@ -35,7 +35,7 @@ void procesar_conexion_general(void *args){
                 // busca la intruccion pedida y la devuelve a la cpu
                 log_info(logger_m, "solicitud de instruccion de CPU");
                 uint32_t pid, program_counter;
-                recibo_generico_doble_entero(socket,&pid, &program_counter);
+                recibir_generico_doble_entero(socket,&pid, &program_counter);
                 
                 sem_wait(&mutex_lista_de_procesos);
                 t_instruccion* intruccion = buscar_intruccion((int)pid, (int)program_counter);
@@ -49,7 +49,7 @@ void procesar_conexion_general(void *args){
             case PROCESO_FINALIZADO_MEMORIA: // KERNEL
                 // busca la intruccion pedida y la devuelve a la cpu
                 log_info(logger_m, "solicitud de Finalizacion de proceso de KERNEL");
-                uint32_t pid_a_finalizar = recibo_generico_entero(socket);
+                uint32_t pid_a_finalizar = recibir_generico_entero(socket);
 
                 log_info(logger_m, "liberando estructuras administrativas del proceso PID: <%d> \n", pid_a_finalizar);                
                 sem_wait(&mutex_lista_de_procesos);

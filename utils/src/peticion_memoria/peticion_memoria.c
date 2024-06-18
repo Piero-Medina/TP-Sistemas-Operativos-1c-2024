@@ -99,7 +99,10 @@ t_list* deserializar_lista_de_t_peticion_memoria(t_buffer* buffer){
     return buffer_read_list_t_peticion_memoria(buffer);
 }
 
-void gestionar_escritura_multipagina(int conexion_memoria, t_list* peticiones, uint32_t pid, void* data_a_escribir, t_log* logger){
+bool gestionar_escritura_multipagina(int conexion_memoria, t_list* peticiones, uint32_t pid, void* data_a_escribir, uint32_t bytes, t_log* logger){
+    void* buffer_test = malloc(bytes);
+    int bytes_test = 0; 
+
     int offset = 0;
 
     t_peticion_memoria* tmp = NULL;
@@ -112,23 +115,35 @@ void gestionar_escritura_multipagina(int conexion_memoria, t_list* peticiones, u
         offset += tmp->bytes;
 
         // Solicitudes a memoria
-        envio_generico_doble_entero(conexion_memoria, SOLICITUD_ESCRITURA_MEMORIA, tmp->direccion_fisica, tmp->bytes);
+        enviar_generico_doble_entero(conexion_memoria, SOLICITUD_ESCRITURA_MEMORIA, tmp->direccion_fisica, pid);
         enviar_data(conexion_memoria, IGNORAR_OP_CODE, data_leida, tmp->bytes);
-        ignorar_op_code(conexion_memoria);
+        ignorar_op_code(conexion_memoria); // espero una respuesta para poder continuar iterando
 
         // seria un pedazo si es multipagina
         char* string_escrito = convertir_a_cadena_nueva(data_leida, tmp->bytes);
         log_info(logger, "PID: <%u> - Acción: <ESCRIBIR> - Dirección Física: <%u> - Valor: <%s>", pid, tmp->direccion_fisica, string_escrito);
         free(string_escrito);
 
+        // alamcenamos en el (buffer_Test)para luego verificar si lo enviado coincide
+        memcpy(buffer_test + bytes_test, data_leida, tmp->bytes);
+        bytes_test+= tmp->bytes;
+
         free(data_leida);
     }
 
-    // verificando que lo ecrito coincide con lo esperado
-    // return (offset == bytes);
+    // verificamos lo enviado (buffer_test)
+    char* final_escrito = convertir_a_cadena_nueva(buffer_test, bytes);
+    log_info(logger, "PID: <%u> - Valor Final Escrito (%s)", pid, final_escrito);
+    free(final_escrito);
+
+    // liberamos lo almacenado (buffer_test)
+    free(buffer_test);
+
+    // verificando que la cantidad de bytes escritos coincide con lo esperado
+    return (offset == bytes);
 }
 
-void gestionar_lectura_multipagina(int conexion_memoria, t_list* peticiones, uint32_t pid, void* data_leida, uint32_t bytes, t_log* logger){
+bool gestionar_lectura_multipagina(int conexion_memoria, t_list* peticiones, uint32_t pid, void* data_leida, uint32_t bytes, t_log* logger){
     void* buffer_data = malloc(bytes);
     int offset = 0;
 
@@ -137,8 +152,8 @@ void gestionar_lectura_multipagina(int conexion_memoria, t_list* peticiones, uin
         tmp = (t_peticion_memoria*) list_get(peticiones, i);
                         
         // Solicitudes a memoria
-        envio_generico_doble_entero(conexion_memoria, SOLICITUD_LECTURA_MEMORIA, tmp->direccion_fisica, tmp->bytes);
-        ignorar_op_code(conexion_memoria);
+        enviar_generico_triple_entero(conexion_memoria, SOLICITUD_LECTURA_MEMORIA, tmp->direccion_fisica, tmp->bytes, pid);
+        ignorar_op_code(conexion_memoria); // esperando a que me llegue para poder seguir iterando
         void* data = recibir_data(conexion_memoria, NULL);
 
         // seria un pedazo si es multipagina
@@ -153,6 +168,13 @@ void gestionar_lectura_multipagina(int conexion_memoria, t_list* peticiones, uin
         free(data);
     }
 
-    // verificando que leido coincide con lo esperado
-    // return (offset == bytes);
+    data_leida = buffer_data;
+
+    // verificamos lo leido (buffer_test)
+    char* final_leido = convertir_a_cadena_nueva(data_leida, bytes);
+    log_info(logger, "PID: <%u> - Valor Final Leido (%s)", pid, final_leido);
+    free(final_leido);
+
+    // verificando que la cantidad de bytes leidos coincide con lo esperado
+    return (offset == bytes);
 }

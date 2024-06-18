@@ -22,32 +22,48 @@ void solicitar_intruccion_a_memoria(int conexion, uint8_t op_code, uint32_t pid,
 
 // - envio generico de un op_code
 void envio_generico_op_code(int conexion, uint8_t op_code);
+
 // - Dentro de la funcion casteamos (uint8_t -> int)
 int recibo_generico_op_code(int conexion);
+
 void validar_respuesta_op_code(int conexion, uint8_t op_code_esperado, t_log* logger);
+
 // - Ayuda a mantener la integridad del contrato de envío y recepción de datos a través de la red
 // - (evita posible warning)
 void ignorar_op_code(int conexion); 
+
+// envio y recibo generico de un op_code y string
+// void envio_generico_string(int conexion, uint8_t op_code, char* string);
+void enviar_generico_string(int conexion, uint8_t op_code, char* string);
+char* recibir_generico_string(int conexion);
+
+// envio y recibo generico de un op code y un int32_t 
+void enviar_generico_int32(int conexion, uint8_t op_code, int32_t entero);
+int32_t recibir_generico_int32(int conexion);
+
+// envio y recibo generico de un op_code y entero uint32_t
+void enviar_generico_entero(int conexion, uint8_t op_code, uint32_t entero);
+uint32_t recibir_generico_entero(int conexion);
+
+// envio y recibo generico de un op_code y dos enteros uint32_t
+void enviar_generico_doble_entero(int conexion, uint8_t op_code, uint32_t entero1, uint32_t entero2);
+void recibir_generico_doble_entero(int conexion, uint32_t* entero1, uint32_t* entero2);
+
+// envio y recibo generico de un op_code y tres enteros uint32_t
+void enviar_generico_triple_entero(int conexion, uint8_t op_code, uint32_t entero1, uint32_t entero2, uint32_t entero3) ;
+void recibir_generico_triple_entero(int conexion, uint32_t* entero1, uint32_t* entero2, uint32_t* entero3); 
 
 // envio y recibo generico de un op_code, entero y un string
 void envio_generico_entero_y_string(int conexion, uint8_t op_code, uint32_t entero, char* string);
 void recibir_generico_entero_string(int conexion, uint32_t* entero, char** string);
 
-// envio y recibo generico de un op_code y string
-void envio_generico_string(int conexion, uint8_t op_code, char* string);
-char* recibir_generico_string(int conexion);
+// envio y recibo generico de un op_code, 2 enteros (uint32_t) y un string
+void enviar_generico_doble_entero_y_string(int conexion, uint8_t op_code, uint32_t entero1, uint32_t entero2, char* string);
+void recibir_generico_doble_entero_y_string(int conexion, uint32_t* entero1, uint32_t* entero2, char** string);
 
-// envio y recibo generico de un op_code y entero
-void envio_generico_entero(int conexion, uint8_t op_code, uint32_t entero);
-uint32_t recibo_generico_entero(int conexion);
-
-// envio y recibo generico de un op code y un int32_t 
-void envio_generico_int32(int conexion, uint8_t op_code, int32_t entero);
-int32_t recibo_generico_int32(int conexion);
-
-// envio y recibo generico de un op_code y dos enteros
-void envio_generico_doble_entero(int conexion, uint8_t op_code, uint32_t entero1, uint32_t entero2);
-void recibo_generico_doble_entero(int conexion, uint32_t* entero1, uint32_t* entero2);
+// envio y recibo generico de un op_code, 3 enteros (uint32_t) y un string
+void enviar_generico_triple_entero_y_string(int conexion, uint8_t op_code, uint32_t entero1, uint32_t entero2, uint32_t entero3, char* string);
+void recibir_generico_triple_entero_y_string(int conexion, uint32_t* entero1, uint32_t* entero2, uint32_t* entero3, char** string);
 
 /// @brief Envía datos (void*) a través de una conexión.
 /// @param conexion Identificador de la conexión.
@@ -90,8 +106,5 @@ void buffer_add_list_string(t_buffer* buffer, t_list* lista_de_string, uint32_t 
 // lee una lista del buffer y avanza el offset
 t_list* buffer_read_list_string(t_buffer* buffer);
 
-//////////////////////////////////////////////////////////////////////////////////////
-void enviar_generico_doble_entero_y_string(int conexion, uint8_t op_code, uint32_t entero1, uint32_t entero2, char* string);
-void recibir_generico_doble_entero_y_string(int conexion, uint32_t* entero1, uint32_t* entero2, char** string);
 
 #endif

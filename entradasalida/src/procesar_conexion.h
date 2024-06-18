@@ -14,6 +14,8 @@
 #include <comunicacion/comunicacion.h>
 #include <utils/utils.h>
 
+#include <commons/collections/list.h>
+
 
 void procesar_conexion_siendo_io_generica(void *args);
 void procesar_conexion_siendo_io_dialFs(void *args);

@@ -25,6 +25,7 @@ t_entradaSalida_config* config;
 int conexion_kernel;
 int conexion_memoria;
 
+
 int main(int argc, char* argv[]) {
     if(argc != 3){
         printf("Error: Se esperan dos parámetros\n");

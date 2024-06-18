@@ -37,4 +37,8 @@ void crear_bitmap(char* path);
 //
 void init_file_system(void);
 
+void init_semaforos(void);
+void liberar_semaforos(void);
+
+
 #endif 

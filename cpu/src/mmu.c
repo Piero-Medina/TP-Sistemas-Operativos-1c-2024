@@ -10,6 +10,7 @@ int MMU(int direccion_logica, int tamanio_pagina, uint32_t pid, uint32_t bytes, 
     int paginas = (int)floor(leer_hasta / tamanio_pagina) + 1;
     int pedazito_inicial = tamanio_pagina - desplazamiento;
 
+    /*
     printf("numero_pagina: %u\n", numero_pagina);
     printf("desplazamiento: %d\n", desplazamiento);
     printf("leer_hasta: %d\n", leer_hasta);
@@ -17,7 +18,8 @@ int MMU(int direccion_logica, int tamanio_pagina, uint32_t pid, uint32_t bytes, 
     printf("restante: %d\n", restante);
     printf("paginas: %d\n", paginas);
     printf("pedazito_inicial: %d\n", pedazito_inicial);
-
+    */
+   
     log_info(logger, "Paginas necesarias: %d", paginas);
 
     t_peticion_memoria* peticion = NULL;
@@ -125,10 +127,10 @@ int obtener_direccion_fisica(uint32_t numero_pagina, uint32_t pid, int desplazam
         }
 
         log_info(logger, "Solicitando numero de marco a Memoria");
-        envio_generico_entero(conexion_memoria, SOLICITUD_MARCO_MEMORIA, numero_pagina);
+        enviar_generico_entero(conexion_memoria, SOLICITUD_MARCO_MEMORIA, numero_pagina);
 
         int estado = recibo_generico_op_code(conexion_memoria);
-        marco = recibo_generico_int32(conexion_memoria);
+        marco = recibir_generico_int32(conexion_memoria);
         
         if(estado == MEMORIA_OK){
             log_info(logger, "PID: <%u> - OBTENER MARCO - Página: <%u> - Marco:<%"PRId32">", pid, numero_pagina, marco);

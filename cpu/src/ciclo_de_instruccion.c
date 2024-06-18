@@ -44,6 +44,7 @@ void ejecutar_ciclo_de_instruccion(int conexion, t_PCB* pcb){
 
                 t_list* direcciones_fisicas = list_create();
                 size_t bytes = obtener_tamano_registro(pcb, registro_datos);
+                
                 int direccion_logica = (int)get_registro(pcb, obtener_registro_por_nombre(registro_direccion));
 
                 int estado = MMU(direccion_logica, tamanio_pagina_memoria, pcb->pid, (uint32_t)bytes, direcciones_fisicas);
@@ -57,7 +58,7 @@ void ejecutar_ciclo_de_instruccion(int conexion, t_PCB* pcb){
                         tmp = (t_peticion_memoria*) list_get(direcciones_fisicas, i);
                         
                         // Solicitudes a memoria
-                        envio_generico_doble_entero(conexion_memoria, SOLICITUD_LECTURA_MEMORIA, tmp->direccion_fisica, tmp->bytes);
+                        enviar_generico_doble_entero(conexion_memoria, SOLICITUD_LECTURA_MEMORIA, tmp->direccion_fisica, tmp->bytes);
                         ignorar_op_code(conexion_memoria);
                         void* data = recibir_data(conexion_memoria, NULL);
 
@@ -117,7 +118,7 @@ void ejecutar_ciclo_de_instruccion(int conexion, t_PCB* pcb){
                         offset += tmp->bytes;
 
                         // Solicitudes a memoria
-                        envio_generico_doble_entero(conexion_memoria, SOLICITUD_ESCRITURA_MEMORIA, tmp->direccion_fisica, tmp->bytes);
+                        enviar_generico_doble_entero(conexion_memoria, SOLICITUD_ESCRITURA_MEMORIA, tmp->direccion_fisica, tmp->bytes);
                         enviar_data(conexion_memoria, IGNORAR_OP_CODE, data_leida, tmp->bytes);
                         ignorar_op_code(conexion_memoria);
 
@@ -196,7 +197,7 @@ void ejecutar_ciclo_de_instruccion(int conexion, t_PCB* pcb){
 
                 log_info(logger, "PID: <%u> - Ejecutando: <RESIZE> - <%d>", pcb->pid, tamanio);
 
-                envio_generico_entero(conexion_memoria, SOLICITUD_RESIZE_MEMORIA, (uint32_t)tamanio);
+                enviar_generico_entero(conexion_memoria, SOLICITUD_RESIZE_MEMORIA, (uint32_t)tamanio);
 
                 int respuesta = recibo_generico_op_code(conexion_memoria);
 
@@ -240,7 +241,7 @@ void ejecutar_ciclo_de_instruccion(int conexion, t_PCB* pcb){
                         tmp = (t_peticion_memoria*) list_get(direcciones_fisicas_read, i);
                         
                         // Solicitudes a memoria
-                        envio_generico_doble_entero(conexion_memoria, SOLICITUD_LECTURA_MEMORIA, tmp->direccion_fisica, tmp->bytes);
+                        enviar_generico_doble_entero(conexion_memoria, SOLICITUD_LECTURA_MEMORIA, tmp->direccion_fisica, tmp->bytes);
                         ignorar_op_code(conexion_memoria);
                         void* data = recibir_data(conexion_memoria, NULL);
 
@@ -294,7 +295,7 @@ void ejecutar_ciclo_de_instruccion(int conexion, t_PCB* pcb){
                         offset += tmp->bytes;
 
                         // Solicitudes a memoria
-                        envio_generico_doble_entero(conexion_memoria, SOLICITUD_ESCRITURA_MEMORIA, tmp->direccion_fisica, tmp->bytes);
+                        enviar_generico_doble_entero(conexion_memoria, SOLICITUD_ESCRITURA_MEMORIA, tmp->direccion_fisica, tmp->bytes);
                         enviar_data(conexion_memoria, IGNORAR_OP_CODE, data_leida, tmp->bytes);
                         ignorar_op_code(conexion_memoria);
 
@@ -339,7 +340,7 @@ void ejecutar_ciclo_de_instruccion(int conexion, t_PCB* pcb){
 
                 log_info(logger, "PID: <%u> - Se va de CPU", pcb->pid);
                 enviar_pcb(conexion, pcb, WAIT_KERNEL);
-                envio_generico_string(conexion, IGNORAR_OP_CODE, nombre_recurso);
+                enviar_generico_string(conexion, IGNORAR_OP_CODE, nombre_recurso);
                 puede_seguir_ejecutando = false;
                 proceso_sigue_en_cpu = false;
 
@@ -359,7 +360,7 @@ void ejecutar_ciclo_de_instruccion(int conexion, t_PCB* pcb){
 
                 log_info(logger, "PID: <%u> - Se va de CPU", pcb->pid);
                 enviar_pcb(conexion, pcb, SIGNAL_KERNEL);
-                envio_generico_string(conexion, IGNORAR_OP_CODE, nombre_recurso);
+                enviar_generico_string(conexion, IGNORAR_OP_CODE, nombre_recurso);
                 puede_seguir_ejecutando = false;
                 proceso_sigue_en_cpu = false;
 
@@ -380,8 +381,8 @@ void ejecutar_ciclo_de_instruccion(int conexion, t_PCB* pcb){
 
                 log_info(logger, "PID: <%u> - Se va de CPU", pcb->pid);
                 enviar_pcb(conexion, pcb, PETICION_IO); // tipo solicitud
-                envio_generico_string(conexion, GENERICA, nombre_interfaz); // tipo y nombre interfaz
-                envio_generico_entero(conexion, IO_GEN_SLEEP, (uint32_t)unidades_de_trabajo); // tipo operacion y parametros
+                enviar_generico_string(conexion, GENERICA, nombre_interfaz); // tipo y nombre interfaz
+                enviar_generico_entero(conexion, IO_GEN_SLEEP, (uint32_t)unidades_de_trabajo); // tipo operacion y parametros
                 puede_seguir_ejecutando = false;
                 proceso_sigue_en_cpu = false;
 
@@ -410,8 +411,8 @@ void ejecutar_ciclo_de_instruccion(int conexion, t_PCB* pcb){
 
                     log_info(logger, "PID: <%u> - Se va de CPU", pcb->pid);
                     enviar_pcb(conexion, pcb, PETICION_IO); // tipo solicitud
-                    envio_generico_string(conexion, STDIN, nombre_interfaz); // tipo y nombre interfaz
-                    envio_generico_entero(conexion, IO_STDIN_READ, (uint32_t) tamanio); // tipo operacion y parametros
+                    enviar_generico_string(conexion, STDIN, nombre_interfaz); // tipo y nombre interfaz
+                    enviar_generico_entero(conexion, IO_STDIN_READ, (uint32_t) tamanio); // tipo operacion y parametros
                     enviar_lista_peticiones_memoria(conexion, IGNORAR_OP_CODE, direcciones_fisicas); // mas parametros
                     puede_seguir_ejecutando = false;
                     proceso_sigue_en_cpu = false;
@@ -453,8 +454,8 @@ void ejecutar_ciclo_de_instruccion(int conexion, t_PCB* pcb){
 
                     log_info(logger, "PID: <%u> - Se va de CPU", pcb->pid);
                     enviar_pcb(conexion, pcb, PETICION_IO); // tipo solicitud
-                    envio_generico_string(conexion, STDOUT, nombre_interfaz); // tipo y nombre interfaz
-                    envio_generico_entero(conexion, IO_STDOUT_WRITE, (uint32_t) tamanio); // tipo operacion y parametros
+                    enviar_generico_string(conexion, STDOUT, nombre_interfaz); // tipo y nombre interfaz
+                    enviar_generico_entero(conexion, IO_STDOUT_WRITE, (uint32_t) tamanio); // tipo operacion y parametros
                     enviar_lista_peticiones_memoria(conexion, IGNORAR_OP_CODE, direcciones_fisicas); // mas parametros
                     puede_seguir_ejecutando = false;
                     proceso_sigue_en_cpu = false;
@@ -468,6 +469,169 @@ void ejecutar_ciclo_de_instruccion(int conexion, t_PCB* pcb){
                     finalizar_pcb_motivo_salida(pcb, inicio, final, conexion, SALIDA_SEGMENTATION_FAULT, &puede_seguir_ejecutando, &proceso_sigue_en_cpu);
 
                     log_info(logger, "PID: <%u> - Finalizando: <IO_STDOUT_WRITE> ", pcb->pid);
+                }
+
+                liberar_lista_de_peticiones_memoria(direcciones_fisicas);
+
+                break;
+            }
+            case IO_FS_CREATE:
+            {
+                char* nombre_interfaz = (char*) list_get(instruccion->parametros, 0);
+                char* nombre_archivo = (char*) list_get(instruccion->parametros, 1);
+
+                log_info(logger, "PID: <%u> - Ejecutando: <IO_FS_CREATE> - <%s> - <%s>", pcb->pid, nombre_interfaz, nombre_archivo);
+                
+                // porque el pcb se va de cpu, si no lo hacemos tendra el PC desactualizado
+                incrementar_program_counter(pcb, 1);
+
+                establecer_tiempo_restante_de_ejecucion(pcb, inicio, final); 
+
+                log_info(logger, "PID: <%u> - Se va de CPU", pcb->pid);
+                enviar_pcb(conexion, pcb, PETICION_IO); // tipo solicitud
+                enviar_generico_string(conexion, DIALFS, nombre_interfaz); // tipo y nombre interfaz
+                enviar_generico_string(conexion, IO_FS_CREATE, nombre_archivo); // tipo operacion y parametros
+                puede_seguir_ejecutando = false;
+                proceso_sigue_en_cpu = false;
+
+                log_info(logger, "PID: <%u> - Finalizando: <IO_FS_CREATE>", pcb->pid);
+                break;
+            }
+            case IO_FS_DELETE:
+            {
+                char* nombre_interfaz = (char*) list_get(instruccion->parametros, 0);
+                char* nombre_archivo = (char*) list_get(instruccion->parametros, 1);
+
+                log_info(logger, "PID: <%u> - Ejecutando: <IO_FS_DELETE> - <%s> - <%s>", pcb->pid, nombre_interfaz, nombre_archivo);
+                
+                // porque el pcb se va de cpu, si no lo hacemos tendra el PC desactualizado
+                incrementar_program_counter(pcb, 1);
+
+                establecer_tiempo_restante_de_ejecucion(pcb, inicio, final); 
+
+                log_info(logger, "PID: <%u> - Se va de CPU", pcb->pid);
+                enviar_pcb(conexion, pcb, PETICION_IO); // tipo solicitud
+                enviar_generico_string(conexion, DIALFS, nombre_interfaz); // tipo y nombre interfaz
+                enviar_generico_string(conexion, IO_FS_DELETE, nombre_archivo); // tipo operacion y parametros
+                puede_seguir_ejecutando = false;
+                proceso_sigue_en_cpu = false;
+
+                log_info(logger, "PID: <%u> - Finalizando: <IO_FS_DELETE>", pcb->pid);
+                break;
+            }
+            case IO_FS_TRUNCATE:
+            {
+                char* nombre_interfaz = (char*) list_get(instruccion->parametros, 0);
+                char* nombre_archivo = (char*) list_get(instruccion->parametros, 1);
+                char* registro_tamanio = (char*) list_get(instruccion->parametros, 2);
+
+                int tamanio_bytes = (int)get_registro(pcb, obtener_registro_por_nombre(registro_tamanio)); 
+
+                log_info(logger, "PID: <%u> - Ejecutando: <IO_FS_TRUNCATE> - <%s> - <%s> - <(%s = %d)>", pcb->pid, nombre_interfaz, nombre_archivo, registro_tamanio, tamanio_bytes);
+                
+                // porque el pcb se va de cpu, si no lo hacemos tendra el PC desactualizado
+                incrementar_program_counter(pcb, 1);
+
+                establecer_tiempo_restante_de_ejecucion(pcb, inicio, final); 
+
+                log_info(logger, "PID: <%u> - Se va de CPU", pcb->pid);
+                enviar_pcb(conexion, pcb, PETICION_IO); // tipo solicitud
+                enviar_generico_string(conexion, DIALFS, nombre_interfaz); // tipo y nombre interfaz
+                envio_generico_entero_y_string(conexion, IO_FS_TRUNCATE, (uint32_t) tamanio_bytes, nombre_archivo); // tipo operacion y parametros
+                puede_seguir_ejecutando = false;
+                proceso_sigue_en_cpu = false;
+
+                log_info(logger, "PID: <%u> - Finalizando: <IO_FS_TRUNCATE>", pcb->pid);
+                break;
+            }
+            case IO_FS_WRITE:
+            {
+                char* nombre_interfaz = (char*) list_get(instruccion->parametros, 0);
+                char* nombre_archivo = (char*) list_get(instruccion->parametros, 1);
+                char* registro_direccion = (char*) list_get(instruccion->parametros, 2);
+                char* registro_tamanio = (char*) list_get(instruccion->parametros, 3);
+                char* registro_puntero = (char*) list_get(instruccion->parametros, 4);
+
+                int valor_registro_direccion = (int)get_registro(pcb, obtener_registro_por_nombre(registro_direccion));
+                int tamanio_bytes = (int)get_registro(pcb, obtener_registro_por_nombre(registro_tamanio)); 
+                int puntero = (int)get_registro(pcb, obtener_registro_por_nombre(registro_puntero)); 
+
+                log_info(logger, "PID: <%u> - Ejecutando: <IO_FS_WRITE> - <%s> - <%s> - <(%s = %d)> - <(%s = %d)> - <(%s = %d)>",
+                pcb->pid, nombre_interfaz, nombre_archivo, registro_direccion, valor_registro_direccion, registro_tamanio, tamanio_bytes, registro_puntero, puntero);
+                
+                t_list* direcciones_fisicas = list_create();
+                int estado = MMU(valor_registro_direccion, tamanio_pagina_memoria, pcb->pid, (uint32_t)tamanio_bytes, direcciones_fisicas);
+
+                if(estado == MMU_OK){
+                    // porque el pcb se va de cpu, si no lo hacemos tendra el PC desactualizado
+                    incrementar_program_counter(pcb, 1);
+
+                    establecer_tiempo_restante_de_ejecucion(pcb, inicio, final); 
+
+                    log_info(logger, "PID: <%u> - Se va de CPU", pcb->pid);
+                    enviar_pcb(conexion, pcb, PETICION_IO); // tipo solicitud
+                    enviar_generico_string(conexion, DIALFS, nombre_interfaz); // tipo y nombre interfaz
+                    enviar_generico_doble_entero_y_string(conexion, IO_FS_WRITE, (uint32_t)tamanio_bytes, (uint32_t)puntero, nombre_archivo); // tipo operacion y parametros
+                    enviar_lista_peticiones_memoria(conexion, IGNORAR_OP_CODE, direcciones_fisicas); // mas parametros
+                    puede_seguir_ejecutando = false;
+                    proceso_sigue_en_cpu = false;
+
+                    log_info(logger, "PID: <%u> - Finalizando: <IO_FS_WRITE> ", pcb->pid);
+                }
+
+                if(estado == SEGMENTATION_FAULT){
+                    log_info(logger, "PID: <%u> - ERROR ESCRITURA (SEGMENTATION FAULT): <IO_FS_WRITE> ", pcb->pid);
+
+                    finalizar_pcb_motivo_salida(pcb, inicio, final, conexion, SALIDA_SEGMENTATION_FAULT, &puede_seguir_ejecutando, &proceso_sigue_en_cpu);
+
+                    log_info(logger, "PID: <%u> - Finalizando: <IO_FS_WRITE> ", pcb->pid);
+                }
+
+                liberar_lista_de_peticiones_memoria(direcciones_fisicas);
+
+                break;
+            }
+            case IO_FS_READ:
+            {
+                char* nombre_interfaz = (char*) list_get(instruccion->parametros, 0);
+                char* nombre_archivo = (char*) list_get(instruccion->parametros, 1);
+                char* registro_direccion = (char*) list_get(instruccion->parametros, 2);
+                char* registro_tamanio = (char*) list_get(instruccion->parametros, 3);
+                char* registro_puntero = (char*) list_get(instruccion->parametros, 4);
+
+                int valor_registro_direccion = (int)get_registro(pcb, obtener_registro_por_nombre(registro_direccion));
+                int tamanio_bytes = (int)get_registro(pcb, obtener_registro_por_nombre(registro_tamanio)); 
+                int puntero = (int)get_registro(pcb, obtener_registro_por_nombre(registro_puntero)); 
+
+                log_info(logger, "PID: <%u> - Ejecutando: <IO_FS_READ> - <%s> - <%s> - <(%s = %d)> - <(%s = %d)> - <(%s = %d)>",
+                pcb->pid, nombre_interfaz, nombre_archivo, registro_direccion, valor_registro_direccion, registro_tamanio, tamanio_bytes, registro_puntero, puntero);
+                
+                t_list* direcciones_fisicas = list_create();
+                int estado = MMU(valor_registro_direccion, tamanio_pagina_memoria, pcb->pid, (uint32_t)tamanio_bytes, direcciones_fisicas);
+
+                if(estado == MMU_OK){
+                    // porque el pcb se va de cpu, si no lo hacemos tendra el PC desactualizado
+                    incrementar_program_counter(pcb, 1);
+
+                    establecer_tiempo_restante_de_ejecucion(pcb, inicio, final); 
+
+                    log_info(logger, "PID: <%u> - Se va de CPU", pcb->pid);
+                    enviar_pcb(conexion, pcb, PETICION_IO); // tipo solicitud
+                    enviar_generico_string(conexion, DIALFS, nombre_interfaz); // tipo y nombre interfaz
+                    enviar_generico_doble_entero_y_string(conexion, IO_FS_READ, (uint32_t)tamanio_bytes, (uint32_t)puntero, nombre_archivo); // tipo operacion y parametros
+                    enviar_lista_peticiones_memoria(conexion, IGNORAR_OP_CODE, direcciones_fisicas); // mas parametros
+                    puede_seguir_ejecutando = false;
+                    proceso_sigue_en_cpu = false;
+
+                    log_info(logger, "PID: <%u> - Finalizando: <IO_FS_READ> ", pcb->pid);
+                }
+
+                if(estado == SEGMENTATION_FAULT){
+                    log_info(logger, "PID: <%u> - ERROR ESCRITURA (SEGMENTATION FAULT): <IO_FS_READ> ", pcb->pid);
+
+                    finalizar_pcb_motivo_salida(pcb, inicio, final, conexion, SALIDA_SEGMENTATION_FAULT, &puede_seguir_ejecutando, &proceso_sigue_en_cpu);
+
+                    log_info(logger, "PID: <%u> - Finalizando: <IO_FS_READ> ", pcb->pid);
                 }
 
                 liberar_lista_de_peticiones_memoria(direcciones_fisicas);

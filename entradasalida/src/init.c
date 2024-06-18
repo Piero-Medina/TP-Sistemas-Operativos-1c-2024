@@ -12,9 +12,13 @@ char* path_archivos;
 
 t_dictionary* diccionario_de_archivos;
 
+sem_t sem_compactacion;
+
 void init_entrada_salida(void){
     signal(SIGINT, sigint_handler);
     procesar_conexion_en_ejecucion = true;
+
+    init_semaforos();
 }
 
 void liberar_entrada_salida(void){
@@ -22,6 +26,8 @@ void liberar_entrada_salida(void){
     liberar_entradaSalida_config(config);
     liberar_conexion(conexion_kernel);
     liberar_conexion(conexion_memoria);
+
+    liberar_semaforos();
     
     if(tipo_de_interfaz == DIALFS){
         bitmap_liberar(bitmap);
@@ -125,4 +131,12 @@ void init_file_system(void){
 
     diccionario_de_archivos = dictionary_create();
     levantar_diccionario_de_archivos(diccionario_de_archivos);
+}
+
+void init_semaforos(void){
+    sem_init(&sem_compactacion, 0, 1);
+}
+
+void liberar_semaforos(void){
+    sem_destroy(&sem_compactacion);
 }

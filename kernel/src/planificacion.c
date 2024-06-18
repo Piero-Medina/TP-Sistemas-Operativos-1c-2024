@@ -317,7 +317,7 @@ void mandar_a_exit(t_PCB* pcb, char* motivo){
 
     sem_wait(&mutex_conexion_memoria);;
         log_info(logger, "Solicitando a MEMORIA que libere estructuras asocidas al proceso PID: <%u>", pcb->pid);
-        envio_generico_entero(conexion_memoria, PROCESO_FINALIZADO_MEMORIA, pcb->pid);
+        enviar_generico_entero(conexion_memoria, PROCESO_FINALIZADO_MEMORIA, pcb->pid);
         validar_respuesta_op_code(conexion_memoria, MEMORIA_OK, logger);
     sem_post(&mutex_conexion_memoria);
 

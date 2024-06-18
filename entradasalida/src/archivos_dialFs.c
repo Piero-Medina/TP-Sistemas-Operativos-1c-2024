@@ -2,7 +2,7 @@
 
 estado_interfaz crear_archivo(char* nombre){
     FILE* archivo_de_bloques = NULL;
-    t_archivo *archivo = NULL;
+    t_archivo* archivo = NULL;
     int cant_bloques_libres, bloque_minimo, numero_bloque;
 
     bloque_minimo = 1; // segun el enunciado
@@ -332,9 +332,15 @@ void ampliar_archivo(t_archivo* archivo, int nuevo_tamanio_bytes, int tamanio_bl
         return;
     }
 
+
     log_info(logger, "PID: <%d> - Inicio Compactacion", pid);
+    
+    sem_wait(&sem_compactacion);
+    log_info(logger, "Compactacion Deshabilitada por (%d) milisegundos", config->retraso_compactacion);
+    hilo_habilitador(config->retraso_compactacion);
     char* nombre_archivo = archivo->nombre;
     compactar_archivos_usando_mas_memoria(diccionario_de_archivos, nombre_archivo);
+    
     log_info(logger, "PID: <%d> - Fin Compactacion", pid);
 
     // verificando
@@ -741,5 +747,229 @@ estado_interfaz eliminar_archivo(char* nombre){
 
     cerrar_archivo_de_bloques(archivo_de_bloques);
     
+    return TODO_OK;
+}
+
+// asumo que el puntero es en base 0
+estado_interfaz escribir_archivo(char* nombre_archivo, uint32_t bytes, uint32_t puntero, t_list* direcciones, uint32_t pid){
+    t_archivo* archivo = NULL;
+    FILE* archivo_de_bloques = NULL;
+    FILE* archivo_fisico = NULL;
+    int bytes_sobrantes_archivo, posicion;
+
+    archivo = (t_archivo*) dictionary_get(diccionario_de_archivos, nombre_archivo);
+    if(archivo == NULL){
+        return ARCHIVO_NO_EXISTE;
+    }
+
+    // puntero sobrepasa el tamanio del archivo
+    if(!((puntero >= 0) && (puntero < archivo->tamanio_archivo))){
+        return PUNTERO_INVALIDO;
+    }
+
+    bytes_sobrantes_archivo = (archivo->tamanio_archivo - puntero);
+
+    // lo que se quiere escribir supera los bytes sobrantes del archivo a partir del puntero dado
+    if(!(bytes <= bytes_sobrantes_archivo)){
+        return ESCRITURA_INVALIDA;
+    }
+
+    void* data = NULL;
+    gestionar_lectura_multipagina(conexion_memoria, direcciones, pid, data, bytes, logger);
+    char* data_a_escribir = (char*) data;
+
+    char* string_leido = convertir_a_cadena_nueva(data, bytes);
+    log_info(logger, "PID: <%u> - Valor Leido de Memoria (%s)", pid, string_leido);
+    free(string_leido);
+
+    archivo_de_bloques = abrir_archivo_de_bloques();
+    archivo_fisico = abrir_archivo_existente(archivo->path_archivo);
+
+    //
+    posicion = archivo->bloque_inicial + 1;
+    fseek(archivo_de_bloques, (posicion * config->block_size) + puntero, SEEK_SET);
+    fwrite(data_a_escribir, sizeof(char), bytes, archivo_de_bloques);
+
+    posicion = 0;
+    fseek(archivo_fisico, (posicion * config->block_size) + puntero, SEEK_SET);
+    fwrite(data_a_escribir, sizeof(char), bytes, archivo_fisico);
+    //
+
+    if(data != NULL){
+        free(data);
+    }
+
+    cerrar_archivo_de_bloques(archivo_de_bloques);
+    cerrar_archivo(archivo_fisico);
+
+    return TODO_OK;
+}
+
+// asumo puntero en base 0
+estado_interfaz leer_archivo_dial(char* nombre_archivo, uint32_t bytes, uint32_t puntero, t_list* direcciones, uint32_t pid){
+    t_archivo* archivo = NULL;
+    FILE* archivo_de_bloques = NULL;
+    //FILE* archivo_fisico = NULL; -> no hace falta, leemos directo del archivo de bloques.
+    int bytes_sobrantes_archivo, posicion;
+
+    archivo = (t_archivo*) dictionary_get(diccionario_de_archivos, nombre_archivo);
+    if(archivo == NULL){
+        return ARCHIVO_NO_EXISTE;
+    }
+
+    // puntero sobrepasa el tamanio del archivo
+    if(!((puntero >= 0) && (puntero < archivo->tamanio_archivo))){
+        return PUNTERO_INVALIDO;
+    }
+
+    bytes_sobrantes_archivo = (archivo->tamanio_archivo - puntero);
+
+    // lo que se quiere leer supera los bytes sobrantes del archivo a partir del puntero dado
+    if(!(bytes <= bytes_sobrantes_archivo)){
+        return LECTURA_INVALIDA;
+    }
+
+    archivo_de_bloques = abrir_archivo_de_bloques();
+    void* data_leida = malloc(bytes);
+
+    //
+    posicion = archivo->bloque_inicial + 1;
+    fseek(archivo_de_bloques, (posicion * config->block_size) + puntero, SEEK_SET);
+    fread(data_leida, sizeof(char), bytes, archivo_de_bloques);
+
+    char* string_leido = convertir_a_cadena_nueva(data_leida, bytes);
+    log_info(logger, "PID: <%u> - Valor Leido de Archivo (%s)", pid, string_leido);
+    free(string_leido);
+
+    gestionar_escritura_multipagina(conexion_memoria, direcciones, pid, data_leida, bytes, logger);
+    //
+
+    if(data_leida != NULL){
+        free(data_leida);
+    }
+
+    cerrar_archivo_de_bloques(archivo_de_bloques);
+
+    return TODO_OK;
+}
+
+
+void hilo_habilitador(int milisegundos){
+    pthread_t hilo_durmicion;
+    int* milisegundos_ptr = malloc(sizeof(int));
+    *milisegundos_ptr = milisegundos;
+    pthread_create(&hilo_durmicion, NULL, (void*)habilitador_de_compactacion, (void*) milisegundos_ptr);
+    pthread_detach(hilo_durmicion);
+}
+
+void habilitador_de_compactacion(void* args){
+    int* milisegundos = (int*) args;
+    sleep_ms(*milisegundos);
+
+    log_info(logger, "Compactacion Habilitada");
+    sem_post(&sem_compactacion);
+
+    free(milisegundos);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////
+// asumo que el puntero es en base 0
+estado_interfaz escribir_archivo_test(char* nombre_archivo, uint32_t bytes, uint32_t puntero, void* data_a_escribir, uint32_t pid){
+    t_archivo* archivo = NULL;
+    FILE* archivo_de_bloques = NULL;
+    FILE* archivo_fisico = NULL;
+    int bytes_sobrantes_archivo, posicion;
+
+    archivo = (t_archivo*) dictionary_get(diccionario_de_archivos, nombre_archivo);
+    if(archivo == NULL){
+        return ARCHIVO_NO_EXISTE;
+    }
+
+    // puntero sobrepasa el tamanio del archivo
+    if(!((puntero >= 0) && (puntero < archivo->tamanio_archivo))){
+        return PUNTERO_INVALIDO;
+    }
+
+    bytes_sobrantes_archivo = (archivo->tamanio_archivo - puntero);
+
+    // lo que se quiere escribir supera los bytes sobrantes del archivo a partir del puntero dado
+    if(!(bytes <= bytes_sobrantes_archivo)){
+        return ESCRITURA_INVALIDA;
+    }
+
+    //void* data = NULL;
+    //gestionar_lectura_multipagina(conexion_memoria, direcciones, pid, data, bytes, logger);
+    //char* data_a_escribir = (char*) data;
+
+    char* string_leido = convertir_a_cadena_nueva(data_a_escribir, bytes);
+    log_info(logger, "PID: <%u> - Valor Leido de Memoria (%s)", pid, string_leido);
+    free(string_leido);
+
+    archivo_de_bloques = abrir_archivo_de_bloques();
+    archivo_fisico = abrir_archivo_existente(archivo->path_archivo);
+
+    //
+    posicion = archivo->bloque_inicial + 1;
+    fseek(archivo_de_bloques, (posicion * config->block_size) + puntero, SEEK_SET);
+    fwrite(data_a_escribir, sizeof(char), bytes, archivo_de_bloques);
+
+    posicion = 0;
+    fseek(archivo_fisico, (posicion * config->block_size) + puntero, SEEK_SET);
+    fwrite(data_a_escribir, sizeof(char), bytes, archivo_fisico);
+    //
+
+    cerrar_archivo_de_bloques(archivo_de_bloques);
+    cerrar_archivo(archivo_fisico);
+
+    return TODO_OK;
+}
+
+// asumo puntero en base 0 | ademas eliminamos el dato leido
+estado_interfaz leer_archivo_dial_test(char* nombre_archivo, uint32_t bytes, uint32_t puntero, uint32_t pid){
+    t_archivo* archivo = NULL;
+    FILE* archivo_de_bloques = NULL;
+    //FILE* archivo_fisico = NULL; -> no hace falta, leemos directo del archivo de bloques.
+    int bytes_sobrantes_archivo, posicion;
+
+    archivo = (t_archivo*) dictionary_get(diccionario_de_archivos, nombre_archivo);
+    if(archivo == NULL){
+        return ARCHIVO_NO_EXISTE;
+    }
+
+    // puntero sobrepasa el tamanio del archivo
+    if(!((puntero >= 0) && (puntero < archivo->tamanio_archivo))){
+        return PUNTERO_INVALIDO;
+    }
+
+    // puntero = 31 y tamanio archivo = 32 -> me situo en el ultimo byte
+    // porque el puntero es en base 0
+    bytes_sobrantes_archivo = (archivo->tamanio_archivo - puntero);
+
+    // lo que se quiere leer supera los bytes sobrantes del archivo a partir del puntero dado
+    if(!(bytes <= bytes_sobrantes_archivo)){
+        return LECTURA_INVALIDA;
+    }
+
+    archivo_de_bloques = abrir_archivo_de_bloques();
+    void* data_leida = malloc(bytes);
+
+    //
+    posicion = archivo->bloque_inicial + 1;
+    fseek(archivo_de_bloques, (posicion * config->block_size) + puntero, SEEK_SET);
+    fread(data_leida, sizeof(char), bytes, archivo_de_bloques);
+
+    char* string_leido = convertir_a_cadena_nueva(data_leida, bytes);
+    log_info(logger, "PID: <%u> - Valor Leido de Archivo (%s)", pid, string_leido);
+    free(string_leido);
+
+    //gestionar_escritura_multipagina(conexion_memoria, direcciones, pid, data_leida, logger);
+    //
+
+    if(data_leida != NULL){
+        free(data_leida);
+    }
+
+    cerrar_archivo_de_bloques(archivo_de_bloques);
+
     return TODO_OK;
 }
