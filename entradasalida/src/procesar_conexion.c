@@ -2,7 +2,7 @@
 
 
 void procesar_conexion_siendo_io_generica(void *args){
-    log_info(logger, "interfaz en GENERICA \n");
+    log_info(logger, "interfaz en modo GENERICA \n");
     char* nombre_modulo_server = "KERNEL";
 
     while (procesar_conexion_en_ejecucion) {
@@ -33,6 +33,71 @@ void procesar_conexion_siendo_io_generica(void *args){
 
 }
 
+void procesar_conexion_siendo_io_stdin(void *args){
+    log_info(logger, "interfaz en modo STDIN \n");
+    char* nombre_modulo_server = "KERNEL";
+
+    while (procesar_conexion_en_ejecucion) {
+        int cod_op = recibir_operacion(conexion_kernel); // bloqueante
+        log_info(logger, "Se recibió el cod operacion %d de el server %s", cod_op, nombre_modulo_server);
+        switch (cod_op) {
+            case SOLICITUD_IO_STDIN_READ:
+                uint32_t pid, bytes;
+                recibir_generico_doble_entero(conexion_kernel, &pid, &bytes);
+                ignorar_op_code(conexion_kernel);
+                t_list* direcciones = recibir_lista_peticiones_memoria(conexion_kernel);
+                log_info(logger, "PID: <%u> - Operacion: <IO_STDIN_READ> - Iniciada", pid);
+                
+                log_info(logger, "PID: <%u> - Operacion: <IO_STDIN_READ> - Leer de Teclado (%u) bytes \n", pid, bytes);
+                leer_de_teclado(pid, bytes, direcciones);
+                
+                enviar_generico_entero(conexion_kernel, SOLICITUD_IO_STDIN_READ_FINALIZADA, pid);
+                log_info(logger, "PID: <%u> - Operacion: <IO_STDIN_READ> - Finalizada \n", pid);
+                liberar_lista_de_peticiones_memoria(direcciones);
+                break;
+            case -1:
+                log_error(logger, "el server %s cerro la conexion", nombre_modulo_server);
+                return; // finalizando hilo
+            default:
+                log_error(logger, "El codigo de operacion %u es incorrecto - %s", cod_op, nombre_modulo_server);
+                return; // finalizando hilo
+        }
+    }
+
+}
+
+void procesar_conexion_siendo_io_stdout(void *args){
+    log_info(logger, "interfaz en modo STDOUT \n");
+    char* nombre_modulo_server = "KERNEL";
+
+    while (procesar_conexion_en_ejecucion) {
+        int cod_op = recibir_operacion(conexion_kernel); // bloqueante
+        log_info(logger, "Se recibió el cod operacion %d de el server %s", cod_op, nombre_modulo_server);
+        switch (cod_op) {
+            case SOLICITUD_IO_STDOUT_WRITE:
+                uint32_t pid, bytes;
+                recibir_generico_doble_entero(conexion_kernel, &pid, &bytes);
+                ignorar_op_code(conexion_kernel);
+                t_list* direcciones = recibir_lista_peticiones_memoria(conexion_kernel);
+                log_info(logger, "PID: <%u> - Operacion: <IO_STDOUT_WRITE> - Iniciada", pid);
+                
+                log_info(logger, "PID: <%u> - Operacion: <IO_STDOUT_WRITE> - Imprimir por pantalla (%u) bytes \n", pid, bytes);
+                imprimir_por_pantalla(pid, bytes, direcciones);
+                
+                enviar_generico_entero(conexion_kernel, SOLICITUD_IO_STDOUT_WRITE_FINALIZADA, pid);
+                log_info(logger, "PID: <%u> - Operacion: <IO_STDOUT_WRITE> - Finalizada \n", pid);
+                liberar_lista_de_peticiones_memoria(direcciones);
+                break;
+            case -1:
+                log_error(logger, "el server %s cerro la conexion", nombre_modulo_server);
+                return; // finalizando hilo
+            default:
+                log_error(logger, "El codigo de operacion %u es incorrecto - %s", cod_op, nombre_modulo_server);
+                return; // finalizando hilo
+        }
+    }
+
+}
 
 void procesar_conexion_siendo_io_dialFs(void *args){
     log_info(logger, "interfaz en modo DIALFS \n");

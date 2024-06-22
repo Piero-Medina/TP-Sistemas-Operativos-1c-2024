@@ -8,6 +8,7 @@
 
 #include "generales.h"
 #include "archivos_dialFs.h"
+#include "std.h"
 
 #include <enum/enum.h>
 #include <conexiones/conexiones.h>
@@ -18,6 +19,8 @@
 
 
 void procesar_conexion_siendo_io_generica(void *args);
+void procesar_conexion_siendo_io_stdin(void *args);
+void procesar_conexion_siendo_io_stdout(void *args);
 void procesar_conexion_siendo_io_dialFs(void *args);
 
 #endif 

@@ -86,6 +86,20 @@ void configurar_segun_tipo_de_interfaz(void){
         pthread_join(hilo, NULL);
     }
 
+    if(tipo_de_interfaz == STDIN){
+        log_info(logger, "Configurando interfaz en modo STDIN");
+
+        pthread_create(&hilo, NULL, (void*) procesar_conexion_siendo_io_stdin, NULL);
+        pthread_join(hilo, NULL);
+    }
+
+    if(tipo_de_interfaz == STDOUT){
+        log_info(logger, "Configurando interfaz en modo GENERICA");
+
+        pthread_create(&hilo, NULL, (void*) procesar_conexion_siendo_io_stdout, NULL);
+        pthread_join(hilo, NULL);
+    }
+
     if(tipo_de_interfaz == DIALFS){
         log_info(logger, "Configurando interfaz en modo DIALFS");
 
