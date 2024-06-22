@@ -51,6 +51,7 @@ sem_t sem_stop_cpu_dispatch;
 sem_t sem_stop_io;
 
 sem_t mutex_victimas_pendientes_io;
+sem_t mutex_io_pendientes_ejecutando;
 
 t_queue* cola_new;
 t_queue* cola_ready;
@@ -60,9 +61,10 @@ t_queue* cola_blocked;
 t_queue* cola_exit;
 
 t_dictionary* recursos;
-t_dictionary* interfaces;
+t_dictionary* interfaces; // (t_interfaz*)
 
-t_list* victimas_pendientes_io;
+t_list* io_pendientes_ejecutando; // (t_io_pendiente* con ejecutando = true)
+t_list* victimas_pendientes_io; // (t_io_victima*)
 t_list* recursos_asignados;
 
 pthread_t hilo_planificador_LP;
@@ -157,6 +159,7 @@ void init_semaforos(void){
     sem_init(&sem_stop_io, 0, 1);
 
     sem_init(&mutex_victimas_pendientes_io, 0, 1);
+    sem_init(&mutex_io_pendientes_ejecutando, 0, 1);
 }
 
 void liberar_semaforos(void){
@@ -194,6 +197,7 @@ void liberar_semaforos(void){
     sem_destroy(&sem_stop_io);
 
     sem_destroy(&mutex_victimas_pendientes_io);
+    sem_destroy(&mutex_io_pendientes_ejecutando);
 }
 
 void init_colas(void){
@@ -312,11 +316,13 @@ void init_planificadores(void){
 }
 
 void init_listas(void){
+    io_pendientes_ejecutando = list_create();
     victimas_pendientes_io = list_create();
     recursos_asignados = list_create();
 }
 
 void liberar_listas(void){
+    list_destroy_and_destroy_elements(io_pendientes_ejecutando, liberar_elemento_t_io_pendiente);
     list_destroy_and_destroy_elements(victimas_pendientes_io, free);
     list_destroy_and_destroy_elements(recursos_asignados, liberar_elemento_t_registro_recurso);
 }

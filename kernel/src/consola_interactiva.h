@@ -61,4 +61,11 @@ bool finalizar_proceso_BLOCKED(int pid);
 bool finalizar_proceso_BLOCKED_RECURSO(int pid);
 void finalizar_proceso_EXIT(int pid);
 
+// - extension de finalizar_proceso_EXECUTE().
+// - manda a exit si el pcb tenia pedido de finalizacion al llegar del kernel.
+// - similar a la funcion mover_execute_a_exit(), pero si se usara esa habria problemas con semaforos.
+// - las operaciones estan protegidas con un mutex_cola_execute;
+// - retorna true en caso de tener tener el pedido de finalizacion y false en caso contrario.
+bool pendiente_de_finalizacion_fuera_de_kernel(t_PCB* pcb_nueva);
+
 #endif 

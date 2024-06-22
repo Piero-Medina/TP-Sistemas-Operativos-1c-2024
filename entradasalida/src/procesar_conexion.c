@@ -54,7 +54,7 @@ void procesar_conexion_siendo_io_dialFs(void *args){
                 if(estado_fs == TODO_OK) log_info(logger, "PID: <%u> - Crear Archivo: <%s> TODO_OK", pid, nombre_archivo);
                 if(estado_fs == SIN_ESPACIO)log_info(logger, "PID: <%u> - Crear Archivo: <%s> SIN_ESPACIO", pid, nombre_archivo);
                    
-                enviar_generico_doble_entero(conexion_kernel, SOLICITUD_IO_FS_CREATE_FINALIZADA, pid, estado_fs);
+                enviar_generico_doble_entero(conexion_kernel, SOLICITUD_IO_FS_CREATE_FINALIZADA, pid, (uint32_t)estado_fs);
                 log_info(logger, "PID: <%u> - Operacion: <IO_FS_CREATE> - Finalizada \n", pid);
                 free(nombre_archivo);
                 break;

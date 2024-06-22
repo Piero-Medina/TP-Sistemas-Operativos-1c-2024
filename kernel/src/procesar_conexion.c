@@ -50,36 +50,268 @@ void procesar_conexion_io(void *args){
                 
                 log_info(logger, "PID: <%u> - Solicitud de IO_GEN_SLEEP Finalizada", pid);
 
+                // ANTE FINALIZACION CUANDO IO ESTA EJECUTANDO - TERMINAMO EJECUCION Y MANDAMOS A EXIT
+                if(pid_pendiente_finalizacion(pid, victimas_pendientes_io)){
+                    gestor_procesos_io_pendientes_finalizacion(pid, nombre_interfaz);
+                    break;
+                }
+
                 sem_wait(&mutex_cola_blocked);
-                        t_PCB* pcb = buscar_pcb_por_pid_y_obtener((int)pid, cola_blocked->elements);
+                    t_PCB* pcb = buscar_pcb_por_pid_y_obtener((int)pid, cola_blocked->elements);
                 sem_post(&mutex_cola_blocked);
 
-                // ANTE FINALIZACION CUANDO IO ESTA EJECUTANDO - REPLICAR EN TODAS LA IO
-                if(pid_pendiente_finalizacion(pid, victimas_pendientes_io)){
-                    //mandar de bloque
-                    sem_wait(&mutex_cola_blocked);
-                        t_PCB* pcb_a_finalizar = buscar_pcb_por_pid_y_remover((int)pid, cola_blocked->elements);
-                    sem_post(&mutex_cola_blocked);
+                //log_info(logger, "PID: <%u> - Solicitud de IO_GEN_SLEEP Finalizada estado (TODO_OK)", pid);
+                gestor_blocked_a_ready_segun_algoritmo(algoritmo_elegido, pcb);
 
-                    mandar_a_exit(pcb_a_finalizar, "FINALIZADO POR CONSOLA INTERACTIVA");
-                    sem_post(&sem_grado_multiprogramacion);
-                }
-                else{
-                    // movemos el proceso a la lista de ready (segun algoritmo)
-                    if((algoritmo_elegido == VRR) && (pcb->quantum != 0)){
-                        mover_blocked_a_ready_aux((int)pid);
-                    }
-                    else{
-                        mover_blocked_a_ready((int)pid);
-                    } 
-                }
-                //
+                // removemos y liberamos memoria de un (t_io_pendiente*)
+                remover_io_pendiente_en_ejecucion_protegida(pid, io_pendientes_ejecutando);
 
                 // cambiar el estado (sacando del diccionario) (tenemos el key nombre_interfaz)
                 sem_wait(&mutex_diccionario_interfaces);
-                    t_interfaz* interfaz_sleep = dictionary_get(interfaces, nombre_interfaz);
-                    interfaz_sleep->ocupado = false;
-                    // interfaz_sleep->cola | el t_io_pendiente* asociado ya fue liberado y removido antes de realizar la llamada
+                    cambiar_estado_interfaz(interfaces, nombre_interfaz);
+                sem_post(&mutex_diccionario_interfaces);
+
+                // post semaforo avisando que hay una interfaz de io disponible
+                sem_post(&sem_interfaz_io_libre);
+                break;
+            }
+            case SOLICITUD_IO_STDIN_READ_FINALIZADA:
+            {
+                //TODO
+                break;
+            }
+            case SOLICITUD_IO_STDOUT_WRITE_FINALIZADA:
+            {
+                //TODO
+                break;
+            }
+            case SOLICITUD_IO_FS_CREATE_FINALIZADA:
+            {
+                uint32_t pid, estado_fs;
+                recibir_generico_doble_entero(socket, &pid, &estado_fs);
+
+                log_info(logger, "PID: <%u> - Solicitud de IO_FS_CREATE Finalizada", pid);
+
+                // ANTE FINALIZACION CUANDO IO ESTA EJECUTANDO - TERMINAMO EJECUCION Y MANDAMOS A EXIT
+                if(pid_pendiente_finalizacion(pid, victimas_pendientes_io)){
+                    gestor_procesos_io_pendientes_finalizacion(pid, nombre_interfaz);
+                    break;
+                }
+
+                if(estado_fs == TODO_OK){
+                    sem_wait(&mutex_cola_blocked);
+                        t_PCB* pcb = buscar_pcb_por_pid_y_obtener((int)pid, cola_blocked->elements);
+                    sem_post(&mutex_cola_blocked);
+
+                    log_info(logger, "PID: <%u> - Solicitud de IO_FS_CREATE Finalizada estado (TODO_OK)", pid);
+                    gestor_blocked_a_ready_segun_algoritmo(algoritmo_elegido, pcb);
+                }
+
+                if(estado_fs == SIN_ESPACIO){
+                    log_info(logger, "PID: <%u> - Solicitud de IO_FS_CREATE Finalizada estado (SIN_ESPACIO)", pid);
+                    mover_blocked_a_exit((int)pid, "IO_FS_CREATE fallo (SIN_ESPACIO)");
+                    sem_post(&sem_grado_multiprogramacion);
+                }
+
+                // removemos y liberamos memoria de un (t_io_pendiente*)
+                remover_io_pendiente_en_ejecucion_protegida(pid, io_pendientes_ejecutando);
+    
+                // cambiar el estado (sacando del diccionario) (tenemos el key nombre_interfaz)
+                sem_wait(&mutex_diccionario_interfaces);
+                    cambiar_estado_interfaz(interfaces, nombre_interfaz);
+                sem_post(&mutex_diccionario_interfaces);
+
+                // post semaforo avisando que hay una interfaz de io disponible
+                sem_post(&sem_interfaz_io_libre);
+                break;
+            }
+            case SOLICITUD_IO_FS_DELETE_FINALIZADA:
+            {
+                uint32_t pid, estado_fs;
+                recibir_generico_doble_entero(socket, &pid, &estado_fs);
+
+                log_info(logger, "PID: <%u> - Solicitud de IO_FS_DELETE Finalizada", pid);
+
+                // ANTE FINALIZACION CUANDO IO ESTA EJECUTANDO - TERMINAMO EJECUCION Y MANDAMOS A EXIT
+                if(pid_pendiente_finalizacion(pid, victimas_pendientes_io)){
+                    gestor_procesos_io_pendientes_finalizacion(pid, nombre_interfaz);
+                    break;
+                }
+
+                if(estado_fs == TODO_OK){
+                    sem_wait(&mutex_cola_blocked);
+                        t_PCB* pcb = buscar_pcb_por_pid_y_obtener((int)pid, cola_blocked->elements);
+                    sem_post(&mutex_cola_blocked);
+
+                    log_info(logger, "PID: <%u> - Solicitud de IO_FS_DELETE Finalizada estado (TODO_OK)", pid);
+                    gestor_blocked_a_ready_segun_algoritmo(algoritmo_elegido, pcb);
+                }
+
+                if(estado_fs == ARCHIVO_NO_EXISTE){
+                    log_info(logger, "PID: <%u> - Solicitud de IO_FS_DELETE Finalizada estado (ARCHIVO_NO_EXISTE)", pid);
+                    mover_blocked_a_exit((int)pid, "IO_FS_DELETE fallo (ARCHIVO_NO_EXISTE)");
+                    sem_post(&sem_grado_multiprogramacion);
+                }
+
+                // removemos y liberamos memoria de un (t_io_pendiente*)
+                remover_io_pendiente_en_ejecucion_protegida(pid, io_pendientes_ejecutando);
+
+                // cambiar el estado (sacando del diccionario) (tenemos el key nombre_interfaz)
+                sem_wait(&mutex_diccionario_interfaces);
+                    cambiar_estado_interfaz(interfaces, nombre_interfaz);
+                sem_post(&mutex_diccionario_interfaces);
+
+                // post semaforo avisando que hay una interfaz de io disponible
+                sem_post(&sem_interfaz_io_libre);
+                break;
+            }
+            case SOLICITUD_IO_FS_TRUNCATE_FINALIZADA:
+            {
+                uint32_t pid, estado_fs;
+                recibir_generico_doble_entero(socket, &pid, &estado_fs);
+
+                log_info(logger, "PID: <%u> - Solicitud de IO_FS_TRUNCATE Finalizada", pid);
+
+                // ANTE FINALIZACION CUANDO IO ESTA EJECUTANDO - TERMINAMO EJECUCION Y MANDAMOS A EXIT
+                if(pid_pendiente_finalizacion(pid, victimas_pendientes_io)){
+                    gestor_procesos_io_pendientes_finalizacion(pid, nombre_interfaz);
+                    break;
+                }
+
+                if(estado_fs == TODO_OK){
+                    sem_wait(&mutex_cola_blocked);
+                        t_PCB* pcb = buscar_pcb_por_pid_y_obtener((int)pid, cola_blocked->elements);
+                    sem_post(&mutex_cola_blocked);
+
+                    log_info(logger, "PID: <%u> - Solicitud de IO_FS_TRUNCATE Finalizada estado (TODO_OK)", pid);
+                    gestor_blocked_a_ready_segun_algoritmo(algoritmo_elegido, pcb);
+                }
+
+                if(estado_fs == SIN_ESPACIO){
+                    log_info(logger, "PID: <%u> - Solicitud de IO_FS_TRUNCATE Finalizada estado (SIN_ESPACIO)", pid);
+                    mover_blocked_a_exit((int)pid, "IO_FS_TRUNCATE fallo (SIN_ESPACIO)");
+                    sem_post(&sem_grado_multiprogramacion);
+                }
+
+                if(estado_fs == NO_PROCESAR){
+                    sem_wait(&mutex_cola_blocked);
+                        t_PCB* pcb = buscar_pcb_por_pid_y_obtener((int)pid, cola_blocked->elements);
+                    sem_post(&mutex_cola_blocked);
+
+                    log_info(logger, "PID: <%u> - Solicitud de IO_FS_TRUNCATE Finalizada estado (NO_PROCESAR)", pid);
+                    gestor_blocked_a_ready_segun_algoritmo(algoritmo_elegido, pcb);
+                }
+
+                // removemos y liberamos memoria de un (t_io_pendiente*)
+                remover_io_pendiente_en_ejecucion_protegida(pid, io_pendientes_ejecutando);
+    
+                // cambiar el estado (sacando del diccionario) (tenemos el key nombre_interfaz)
+                sem_wait(&mutex_diccionario_interfaces);
+                    cambiar_estado_interfaz(interfaces, nombre_interfaz);
+                sem_post(&mutex_diccionario_interfaces);
+
+                // post semaforo avisando que hay una interfaz de io disponible
+                sem_post(&sem_interfaz_io_libre);
+                break;
+            }
+            case SOLICITUD_IO_FS_WRITE_FINALIZADA:
+            {
+                uint32_t pid, estado_fs;
+                recibir_generico_doble_entero(socket, &pid, &estado_fs);
+
+                log_info(logger, "PID: <%u> - Solicitud de IO_FS_WRITE Finalizada", pid);
+
+                // ANTE FINALIZACION CUANDO IO ESTA EJECUTANDO - TERMINAMO EJECUCION Y MANDAMOS A EXIT
+                if(pid_pendiente_finalizacion(pid, victimas_pendientes_io)){
+                    gestor_procesos_io_pendientes_finalizacion(pid, nombre_interfaz);
+                    break;
+                }
+
+                if(estado_fs == TODO_OK){
+                    sem_wait(&mutex_cola_blocked);
+                        t_PCB* pcb = buscar_pcb_por_pid_y_obtener((int)pid, cola_blocked->elements);
+                    sem_post(&mutex_cola_blocked);
+
+                    log_info(logger, "PID: <%u> - Solicitud de IO_FS_WRITE Finalizada estado (TODO_OK)", pid);
+                    gestor_blocked_a_ready_segun_algoritmo(algoritmo_elegido, pcb);
+                }
+
+                if(estado_fs == PUNTERO_INVALIDO){
+                    log_info(logger, "PID: <%u> - Solicitud de IO_FS_WRITE Finalizada estado (PUNTERO_INVALIDO)", pid);
+                    mover_blocked_a_exit((int)pid, "IO_FS_WRITE fallo (PUNTERO_INVALIDO)");
+                    sem_post(&sem_grado_multiprogramacion);
+                }
+
+                if(estado_fs == ARCHIVO_NO_EXISTE){
+                    log_info(logger, "PID: <%u> - Solicitud de IO_FS_WRITE Finalizada estado (ARCHIVO_NO_EXISTE)", pid);
+                    mover_blocked_a_exit((int)pid, "IO_FS_WRITE fallo (ARCHIVO_NO_EXISTE)");
+                    sem_post(&sem_grado_multiprogramacion);
+                }
+
+                if(estado_fs == ESCRITURA_INVALIDA){
+                    log_info(logger, "PID: <%u> - Solicitud de IO_FS_WRITE Finalizada estado (ESCRITURA_INVALIDA)", pid);
+                    mover_blocked_a_exit((int)pid, "IO_FS_WRITE fallo (ESCRITURA_INVALIDA)");
+                    sem_post(&sem_grado_multiprogramacion);
+                }
+
+                // removemos y liberamos memoria de un (t_io_pendiente*)
+                remover_io_pendiente_en_ejecucion_protegida(pid, io_pendientes_ejecutando);
+    
+                // cambiar el estado (sacando del diccionario) (tenemos el key nombre_interfaz)
+                sem_wait(&mutex_diccionario_interfaces);
+                    cambiar_estado_interfaz(interfaces, nombre_interfaz);
+                sem_post(&mutex_diccionario_interfaces);
+
+                // post semaforo avisando que hay una interfaz de io disponible
+                sem_post(&sem_interfaz_io_libre);
+                break;
+            }
+            case SOLICITUD_IO_FS_READ_FINALIZADA:
+            {
+                uint32_t pid, estado_fs;
+                recibir_generico_doble_entero(socket, &pid, &estado_fs);
+
+                log_info(logger, "PID: <%u> - Solicitud de IO_FS_READ Finalizada", pid);
+
+                // ANTE FINALIZACION CUANDO IO ESTA EJECUTANDO - TERMINAMO EJECUCION Y MANDAMOS A EXIT
+                if(pid_pendiente_finalizacion(pid, victimas_pendientes_io)){
+                    gestor_procesos_io_pendientes_finalizacion(pid, nombre_interfaz);
+                    break;
+                }
+
+                if(estado_fs == TODO_OK){
+                    sem_wait(&mutex_cola_blocked);
+                        t_PCB* pcb = buscar_pcb_por_pid_y_obtener((int)pid, cola_blocked->elements);
+                    sem_post(&mutex_cola_blocked);
+
+                    log_info(logger, "PID: <%u> - Solicitud de IO_FS_READ Finalizada estado (TODO_OK)", pid);
+                    gestor_blocked_a_ready_segun_algoritmo(algoritmo_elegido, pcb);
+                }
+
+                if(estado_fs == PUNTERO_INVALIDO){
+                    log_info(logger, "PID: <%u> - Solicitud de IO_FS_READ Finalizada estado (PUNTERO_INVALIDO)", pid);
+                    mover_blocked_a_exit((int)pid, "IO_FS_READ fallo (PUNTERO_INVALIDO)");
+                    sem_post(&sem_grado_multiprogramacion);
+                }
+
+                if(estado_fs == ARCHIVO_NO_EXISTE){
+                    log_info(logger, "PID: <%u> - Solicitud de IO_FS_READ Finalizada estado (ARCHIVO_NO_EXISTE)", pid);
+                    mover_blocked_a_exit((int)pid, "IO_FS_READ fallo (ARCHIVO_NO_EXISTE)");
+                    sem_post(&sem_grado_multiprogramacion);
+                }
+
+                if(estado_fs == LECTURA_INVALIDA){
+                    log_info(logger, "PID: <%u> - Solicitud de IO_FS_READ Finalizada estado (LECTURA_INVALIDA)", pid);
+                    mover_blocked_a_exit((int)pid, "IO_FS_READ fallo (LECTURA_INVALIDA)");
+                    sem_post(&sem_grado_multiprogramacion);
+                }
+                
+                // removemos y liberamos memoria de un (t_io_pendiente*)
+                remover_io_pendiente_en_ejecucion_protegida(pid, io_pendientes_ejecutando);
+
+                // cambiar el estado (sacando del diccionario) (tenemos el key nombre_interfaz)
+                sem_wait(&mutex_diccionario_interfaces);
+                    cambiar_estado_interfaz(interfaces, nombre_interfaz);
                 sem_post(&mutex_diccionario_interfaces);
 
                 // post semaforo avisando que hay una interfaz de io disponible
@@ -87,10 +319,11 @@ void procesar_conexion_io(void *args){
                 break;
             }
             case -1:
-                log_error(logger_k, "Cliente (%s) desconectado de %s \n", nombre_interfaz, nombre_servidor);
+                log_error(logger_k, "Interfaz (%s) desconectado de %s \n", nombre_interfaz, nombre_servidor);
 
                 sem_wait(&mutex_diccionario_interfaces);
                     quitar_interfaz(interfaces, nombre_interfaz);
+                    sem_wait(&sem_interfaz_io_libre); // menos una interfaz
                 sem_post(&mutex_diccionario_interfaces);
                 
                 free(nombre_interfaz);
@@ -134,22 +367,11 @@ void procesar_conexion_cpu_dispatch(void *args){
 
                 // si entra, se mando a finalizar al proceso antes de que llegue de CPU
                 ////////////////////////////////////////////////////////////////////// 
-                sem_wait(&mutex_cola_execute);
-                if(finalizacion_execute_afuera_kernel){
-                    finalizacion_execute_afuera_kernel = false;
-
-                    t_PCB* tmp = buscar_pcb_por_pid_y_remover((int)pcb->pid, cola_execute->elements);
-                    // liberamos el pcb viejo
-                    liberar_PCB(tmp);
-                    // mandamos el pcb recien llegado a exit (estara actualizado)
-                    mandar_a_exit(pcb, "FINALIZADO POR CONSOLA INTERACTIVA");
+                if(pendiente_de_finalizacion_fuera_de_kernel(pcb)){
                     sem_post(&sem_grado_multiprogramacion); 
                     sem_post(&sem_cpu_disponible);
-
-                    sem_post(&mutex_cola_execute);
-                    break; // salimos del case.
+                    break;
                 }
-                sem_post(&mutex_cola_execute);
                 ////////////////////////////////////////////////////////////////////// 
                 
                 // IIIIII -> luego revisar si puede haber otros motivos de desalojo
@@ -182,22 +404,12 @@ void procesar_conexion_cpu_dispatch(void *args){
 
                 // si entra, se mando a finalizar al proceso antes de que llegue de CPU
                 ////////////////////////////////////////////////////////////////////// 
-                sem_wait(&mutex_cola_execute);
-                if(finalizacion_execute_afuera_kernel){
-                    finalizacion_execute_afuera_kernel = false;
-
-                    t_PCB* tmp = buscar_pcb_por_pid_y_remover((int)pcb->pid, cola_execute->elements);
-                    // liberamos el pcb viejo
-                    liberar_PCB(tmp);
-                    // mandamos el pcb recien llegado a exit (estara actualizado)
-                    mandar_a_exit(pcb, "FINALIZADO POR CONSOLA INTERACTIVA");
+                if(pendiente_de_finalizacion_fuera_de_kernel(pcb)){
                     sem_post(&sem_grado_multiprogramacion); 
                     sem_post(&sem_cpu_disponible);
-
-                    sem_post(&mutex_cola_execute);
-                    break; // salimos del case.
+                    free(nombre_recurso);
+                    break;
                 }
-                sem_post(&mutex_cola_execute);
                 ////////////////////////////////////////////////////////////////////// 
 
                 log_info(logger, "PID: <%u> - WAIT_KERNEL", pcb->pid);
@@ -252,7 +464,7 @@ void procesar_conexion_cpu_dispatch(void *args){
 
                 free(nombre_recurso);
 
-                sem_post(&mutex_conexion_cpu_dispatch);
+                //sem_post(&mutex_conexion_cpu_dispatch);
                 break;
             }
             case SIGNAL_KERNEL:
@@ -268,22 +480,12 @@ void procesar_conexion_cpu_dispatch(void *args){
                 
                 // si entra, se mando a finalizar al proceso antes de que llegue de CPU
                 ////////////////////////////////////////////////////////////////////// 
-                sem_wait(&mutex_cola_execute);
-                if(finalizacion_execute_afuera_kernel){
-                    finalizacion_execute_afuera_kernel = false;
-
-                    t_PCB* tmp = buscar_pcb_por_pid_y_remover((int)pcb->pid, cola_execute->elements);
-                    // liberamos el pcb viejo
-                    liberar_PCB(tmp);
-                    // mandamos el pcb recien llegado a exit (estara actualizado)
-                    mandar_a_exit(pcb, "FINALIZADO POR CONSOLA INTERACTIVA");
+                if(pendiente_de_finalizacion_fuera_de_kernel(pcb)){
                     sem_post(&sem_grado_multiprogramacion); 
                     sem_post(&sem_cpu_disponible);
-
-                    sem_post(&mutex_cola_execute);
-                    break; // salimos del case.
+                    free(nombre_recurso);
+                    break;
                 }
-                sem_post(&mutex_cola_execute);
                 ////////////////////////////////////////////////////////////////////// 
                 
                 log_info(logger, "PID: <%u> - SIGNAL_KERNEL", pcb->pid);
@@ -331,7 +533,6 @@ void procesar_conexion_cpu_dispatch(void *args){
             }
             case PETICION_IO: // mandamos a blocked, o sino a exit
             {
-                // TODO
                 sem_wait(&mutex_proceso_en_ejecucion);
                     proceso_en_ejecucion = false;
                 sem_post(&mutex_proceso_en_ejecucion);
@@ -355,27 +556,16 @@ void procesar_conexion_cpu_dispatch(void *args){
                 sem_post(&mutex_proceso_en_ejecucion);
                 
                 t_PCB* pcb = recibir_pcb(conexion_cpu_dispatch);
-                int motivo_salida = recibo_generico_op_code(conexion_memoria);
+                int motivo_salida = recibo_generico_op_code(conexion_cpu_dispatch);
                 sem_post(&mutex_conexion_cpu_dispatch);
 
                 // si entra, se mando a finalizar al proceso antes de que llegue de CPU
-                ////////////////////////////////////////////////////////////////////// 
-                sem_wait(&mutex_cola_execute);
-                if(finalizacion_execute_afuera_kernel){
-                    finalizacion_execute_afuera_kernel = false;
-
-                    t_PCB* tmp = buscar_pcb_por_pid_y_remover((int)pcb->pid, cola_execute->elements);
-                    // liberamos el pcb viejo
-                    liberar_PCB(tmp);
-                    // mandamos el pcb recien llegado a exit (estara actualizado)
-                    mandar_a_exit(pcb, "FINALIZADO POR CONSOLA INTERACTIVA");
+                //////////////////////////////////////////////////////////////////////
+                if(pendiente_de_finalizacion_fuera_de_kernel(pcb)){
                     sem_post(&sem_grado_multiprogramacion); 
                     sem_post(&sem_cpu_disponible);
-
-                    sem_post(&mutex_cola_execute);
-                    break; // salimos del case.
+                    break;
                 }
-                sem_post(&mutex_cola_execute);
                 ////////////////////////////////////////////////////////////////////// 
 
                 // posibles: success|out_of_memory|segmentation_fault

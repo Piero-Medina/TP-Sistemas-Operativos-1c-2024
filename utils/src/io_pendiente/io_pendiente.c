@@ -1,12 +1,13 @@
 #include <io_pendiente/io_pendiente.h>
 
 
-t_io_pendiente* inicializar_io_pendiente(uint32_t pid, int operacion, bool interfaz_ocupada, char* param_string, t_list* peticiones, uint32_t param_int_1, uint32_t param_int_2, uint32_t param_int_3, uint32_t param_int_4){
+t_io_pendiente* inicializar_io_pendiente(uint32_t pid, char* nombre_interfaz, int operacion, bool ejecutando, char* param_string, t_list* peticiones, uint32_t param_int_1, uint32_t param_int_2, uint32_t param_int_3, uint32_t param_int_4){
     t_io_pendiente *nueva_io_pendiente = malloc(sizeof(t_io_pendiente));
     
     nueva_io_pendiente->pid = pid;
+    nueva_io_pendiente->nombre_interfaz = strdup(nombre_interfaz);
     nueva_io_pendiente->operacion = operacion;
-    nueva_io_pendiente->interfaz_ocupada = interfaz_ocupada;
+    nueva_io_pendiente->ejecutando = ejecutando;
     
     if (param_string == NULL) {
         nueva_io_pendiente->parametro_string = NULL;
@@ -35,8 +36,9 @@ void imprimir_io_pendiente(t_io_pendiente* io){
     }
 
     printf("PID: %u\n", io->pid);
+    printf("Nombre Interfaz: %s\n", io->nombre_interfaz);
     printf("Operacion: %d\n", io->operacion);
-    printf("Interfaz Ocupada: %s\n", io->interfaz_ocupada ? "true" : "false");
+    printf("Ejecutando: %s\n", io->ejecutando ? "true" : "false");
     printf("Parametro String: %s\n", io->parametro_string ? io->parametro_string : "NULL");
     printf("Parametro Int 1: %u\n", io->parametro_int_1);
     printf("Parametro Int 2: %u\n", io->parametro_int_2);
@@ -86,6 +88,8 @@ int posicion_de_io_pendiente_por_pid(uint32_t pid, t_list* lista){
 
 void liberar_elemento_t_io_pendiente(void* elemento){
     t_io_pendiente* tmp = (t_io_pendiente*) elemento;
+
+    free(tmp->nombre_interfaz);
 
     if(tmp->parametro_string != NULL){
         free(tmp->parametro_string);

@@ -58,14 +58,26 @@ void mover_blocked_a_ready_aux(int pid);
     loggear el estado anterior en el que estaba el proceso y de hacer
     todo lo requerido SOLO PARA MANDAR A EXIT A UN PROCESO.
 
+    - logear si esque hay un motivo (Finaliza el proceso PID: <%u> - Motivo: <%s>)
+    - logea y solicita (Solicitando a MEMORIA que libere estructuras asocidas al proceso PID: <%u>)
+    - logea y libera todos los recursos retenidos por el proceso PID, solo si hay recursos disponibles en
+      el sistema (Liberando recursos retenidos por el proceso PID: <%u>)
+    - logea el estado anterior antes de ser mandado a exit (PID: <%u> - Estado Anterior: <%s> - Estado Actual: <EXIT>)
+    - finalmente ingresa el proceso a la cola exit
+
     sacarlo de la cola anterior en la que estaba es tarea que se
-    realizara manualmente, almenos que se quiera hacer una funcion
-    para cada transicion.  
+    realizara manualmente, ademas de actualizar el contexto, 
+    almenos que se quiera hacer una funcion para cada transicion.  
 */
 void mandar_a_exit(t_PCB* pcb, char* motivo);
 
-// movimientos a exit
+// - movimientos a exit
 bool mover_execute_a_exit(t_PCB* pcb, char* motivo);
+
+// - moviemientos a exit
+// - Como antes de meter a blocked el proceso el pcb es actualizado (execute a blocked), no hace 
+//   falta actualizar el pcb, por lo que solo con el pid puedo sacar el pcb de blocked. 
+void mover_blocked_a_exit(int pid, char* motivo);
 
 // - Devuelve un proceso a execute
 // - Se encarga de cumplir el algoritmo actual que maneja el Kernel (mediante un hilo)

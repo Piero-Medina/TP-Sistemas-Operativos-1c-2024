@@ -576,12 +576,12 @@ bool finalizar_proceso_BLOCKED(int pid){
 
         if (io_pendiente == NULL){
             // si entramos aca es porque termino el ciclo pero nunca encontro un io.
-            // agregamos el pid la lista glbal de victimas de io.
-            // pasamos la responsbilidad al procesar_io;
-            int* pid_victima = malloc(sizeof(int));
-            *pid_victima = pid;
+            // por lo que seguro esta en t_list* io_pendientes_ejecutando;
+            // agregamos el pid la lista global de victimas de io.
+            // pasamos la responsbilidad al hilo procesar_io;
+            t_io_victima* victima = crear_t_io_victima((uint32_t)pid, USUARIO_CONSOLA, NULL);
             sem_wait(&mutex_victimas_pendientes_io);
-                list_add(victimas_pendientes_io, (void*) pid_victima);
+                list_add(victimas_pendientes_io, (void*) victima);
             sem_post(&mutex_victimas_pendientes_io);    
             log_info(logger, "Finalizacion PID: <%d> pendiente por estar ejecutando IO", pid);
         }
@@ -604,4 +604,28 @@ void finalizar_proceso_EXIT(int pid){
     como para tener un registro de los pid que finalizaron sin necesidad de tener memoria 
     acumulada.
     */
+}
+
+bool pendiente_de_finalizacion_fuera_de_kernel(t_PCB* pcb_nueva){
+    sem_wait(&mutex_cola_execute);
+    if(finalizacion_execute_afuera_kernel){
+        finalizacion_execute_afuera_kernel = false;
+
+        t_PCB* tmp = (t_PCB*) queue_pop(cola_execute);
+        
+        // liberamos el pcb viejo | actualizar contexto
+        liberar_PCB(tmp);
+        
+        // mandamos el pcb recien llegado, a exit (estara actualizado)
+        char* motivo = obtener_motivo_salida(SALIDA_INTERRUPTED_BY_USER, NULL);
+        mandar_a_exit(pcb_nueva, motivo);
+        free(motivo);
+
+        sem_post(&mutex_cola_execute);
+        return true;
+    }
+    else{
+        sem_post(&mutex_cola_execute);
+        return false;
+    }
 }

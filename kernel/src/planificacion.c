@@ -351,7 +351,7 @@ bool mover_execute_a_exit(t_PCB* pcb_nueva, char* motivo){
 
             sem_post(&mutex_cola_execute);
             return false;
-        }
+        }       
         t_PCB* pcb_vieja = (t_PCB*) queue_pop(cola_execute);
     sem_post(&mutex_cola_execute);
 
@@ -360,6 +360,16 @@ bool mover_execute_a_exit(t_PCB* pcb_nueva, char* motivo){
     mandar_a_exit(pcb_actualizada, motivo);
     
     return true;
+}
+
+void mover_blocked_a_exit(int pid, char* motivo){
+    sem_wait(&mutex_cola_blocked);
+        t_PCB* pcb_a_finalizar = buscar_pcb_por_pid_y_remover((int)pid, cola_blocked->elements);
+    sem_post(&mutex_cola_blocked);
+
+    //t_PCB* pcb_actualizada = actualizar_contexto(pcb_nueva, pcb_vieja); 
+
+    mandar_a_exit(pcb_a_finalizar, motivo);
 }
 
 void devolver_a_execute(t_PCB* pcb){

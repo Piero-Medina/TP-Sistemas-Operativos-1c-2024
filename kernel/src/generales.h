@@ -113,7 +113,8 @@ extern sem_t sem_stop_corto_plazo;
 extern sem_t sem_stop_cpu_dispatch;
 extern sem_t sem_stop_io;
 
-extern sem_t mutex_victimas_pendientes_io;
+extern sem_t mutex_victimas_pendientes_io; // controlar t_list* victimas_pendientes_io;
+extern sem_t mutex_io_pendientes_ejecutando;
 
 // colas
 extern t_queue* cola_new;
@@ -125,10 +126,11 @@ extern t_queue* cola_exit;
 
 // diccionario
 extern t_dictionary* recursos;
-extern t_dictionary* interfaces;
+extern t_dictionary* interfaces; // (t_interfaz*)
 
 // listas
-extern t_list* victimas_pendientes_io; // (t_io_pendiente*)
+extern t_list* io_pendientes_ejecutando; // (t_io_pendiente* con ejecutando = true)
+extern t_list* victimas_pendientes_io; // (t_io_victima*)
 extern t_list* recursos_asignados; // (t_registro_recurso*)
 
 // hilo

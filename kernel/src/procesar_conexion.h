@@ -21,6 +21,7 @@
 #include "planificacion.h"
 #include "init.h"
 #include "manejo_interfaz.h"
+#include "consola_interactiva.h"
 
 
 // procesamos las conexiones que nos lleguen de una interfaz io
