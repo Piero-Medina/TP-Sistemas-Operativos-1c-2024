@@ -50,34 +50,20 @@ void ejecutar_ciclo_de_instruccion(int conexion, t_PCB* pcb){
                 int estado = MMU(direccion_logica, tamanio_pagina_memoria, pcb->pid, (uint32_t)bytes, direcciones_fisicas);
 
                 if(estado == MMU_OK){
-                    void* buffer_data = malloc(bytes);
-                    int offset = 0;
-
-                    t_peticion_memoria* tmp = NULL;
-                    for(int i = 0; i < list_size(direcciones_fisicas); i++){
-                        tmp = (t_peticion_memoria*) list_get(direcciones_fisicas, i);
-                        
-                        // Solicitudes a memoria
-                        enviar_generico_doble_entero(conexion_memoria, SOLICITUD_LECTURA_MEMORIA, tmp->direccion_fisica, tmp->bytes);
-                        ignorar_op_code(conexion_memoria);
-                        void* data = recibir_data(conexion_memoria, NULL);
-
-                        char* data_leida = convertir_a_cadena_nueva(data, tmp->bytes);
-                        log_info(logger, "PID: <%u> - Acción: <LEER> - Dirección Física: <%u> - Valor: <%s>", pcb->pid, tmp->direccion_fisica, data_leida);
-                        free(data_leida);
-
-                        // va almacenando la data en el buffer
-                        memcpy(buffer_data + offset, data, tmp->bytes);
-                        offset += tmp->bytes;
-
-                        free(data);
-                    }
+                    void* data_leida = NULL;
+                    gestionar_lectura_multipagina(conexion_memoria, direcciones_fisicas, pcb->pid, &data_leida, bytes, logger);
 
                     // almaceno en registro de datos lo traido de memoria
-                    uint32_t valor_entero = cadena_a_valor_entero(buffer_data, bytes);
+                    if(data_leida == NULL){
+                        log_warning(logger,"data_leida es NULL");
+                    }
+                    uint32_t valor_entero = cadena_a_valor_entero(data_leida, bytes);
+                    log_info(logger, "PID: <%u> - valor Entero Final (%u) de (%u) bytes", pcb->pid, valor_entero, (uint32_t)bytes);
                     set_registro(pcb, valor_entero, obtener_registro_por_nombre(registro_datos));
 
                     log_info(logger, "PID: <%u> - Finalizando: <MOV_IN> - (%s = %u)", pcb->pid, registro_datos, valor_entero);
+
+                    free(data_leida);
                 }
 
                 if(estado == SEGMENTATION_FAULT){
@@ -105,31 +91,14 @@ void ejecutar_ciclo_de_instruccion(int conexion, t_PCB* pcb){
                 int estado = MMU(direccion_logica, tamanio_pagina_memoria, pcb->pid, (uint32_t)bytes, direcciones_fisicas);
 
                 if(estado == MMU_OK){
-                    char* valor_leido = valor_entero_a_cadena_nueva(get_registro(pcb, obtener_registro_por_nombre(registro_datos)), bytes); 
-                    int offset = 0;
+                    uint32_t valor_entero = get_registro(pcb, obtener_registro_por_nombre(registro_datos));
+                    log_info(logger, "PID: <%u> - valor Entero a Escribir (%u) de (%u) bytes", pcb->pid, valor_entero, (uint32_t)bytes);
 
-                    t_peticion_memoria* tmp = NULL;
-                    for(int i = 0; i < list_size(direcciones_fisicas); i++){
-                        tmp = (t_peticion_memoria*) list_get(direcciones_fisicas, i);
-                        
-                        // copia a partir del tamanio antes enviado,
-                        void* data_leida = malloc(tmp->bytes);
-                        memcpy(data_leida, valor_leido + offset, tmp->bytes);
-                        offset += tmp->bytes;
+                    char* valor_a_escribir = valor_entero_a_cadena_nueva(valor_entero, bytes); 
+                    
+                    gestionar_escritura_multipagina(conexion_memoria, direcciones_fisicas, pcb->pid, (void*) valor_a_escribir , bytes, logger);
 
-                        // Solicitudes a memoria
-                        enviar_generico_doble_entero(conexion_memoria, SOLICITUD_ESCRITURA_MEMORIA, tmp->direccion_fisica, tmp->bytes);
-                        enviar_data(conexion_memoria, IGNORAR_OP_CODE, data_leida, tmp->bytes);
-                        ignorar_op_code(conexion_memoria);
-
-                        char* string_leido = convertir_a_cadena_nueva(data_leida, tmp->bytes);
-                        log_info(logger, "PID: <%u> - Acción: <ESCRIBIR> - Dirección Física: <%u> - Valor: <%s>", pcb->pid, tmp->direccion_fisica, string_leido);
-                        free(string_leido);
-
-                        free(data_leida);
-                    }
-
-                    free(valor_leido);
+                    free(valor_a_escribir);
 
                     log_info(logger, "PID: <%u> - Finalizando: <MOV_OUT> - <%s> - <%s>", pcb->pid, registro_direccion, registro_datos);
                 }
@@ -197,7 +166,7 @@ void ejecutar_ciclo_de_instruccion(int conexion, t_PCB* pcb){
 
                 log_info(logger, "PID: <%u> - Ejecutando: <RESIZE> - <%d>", pcb->pid, tamanio);
 
-                enviar_generico_entero(conexion_memoria, SOLICITUD_RESIZE_MEMORIA, (uint32_t)tamanio);
+                enviar_generico_doble_entero(conexion_memoria, SOLICITUD_RESIZE_MEMORIA, pcb->pid,(uint32_t)tamanio);
 
                 int respuesta = recibo_generico_op_code(conexion_memoria);
 
@@ -233,35 +202,11 @@ void ejecutar_ciclo_de_instruccion(int conexion, t_PCB* pcb){
                 void* string_final = NULL; 
 
                 if(estado_r == MMU_OK){
-                    void* buffer_data = malloc((size_t)tamanio);
-                    int offset = 0;
-
-                    t_peticion_memoria* tmp = NULL;
-                    for(int i = 0; i < list_size(direcciones_fisicas_read); i++){
-                        tmp = (t_peticion_memoria*) list_get(direcciones_fisicas_read, i);
-                        
-                        // Solicitudes a memoria
-                        enviar_generico_doble_entero(conexion_memoria, SOLICITUD_LECTURA_MEMORIA, tmp->direccion_fisica, tmp->bytes);
-                        ignorar_op_code(conexion_memoria);
-                        void* data = recibir_data(conexion_memoria, NULL);
-
-                        char* data_leida = convertir_a_cadena_nueva(data, tmp->bytes);
-                        log_info(logger, "PID: <%u> - Acción: <LEER> - Dirección Física: <%u> - Valor: <%s>", pcb->pid, tmp->direccion_fisica, data_leida);
-                        free(data_leida);
-
-                        // va almacenando la data en el buffer
-                        memcpy(buffer_data + offset, data, tmp->bytes);
-                        offset += tmp->bytes;
-
-                        free(data);
-                    }
-
-                    char* string_leido = convertir_a_cadena_nueva(buffer_data, (size_t)tamanio);
+                    gestionar_lectura_multipagina(conexion_memoria, direcciones_fisicas_read, pcb->pid, &string_final, (uint32_t)tamanio, logger);
+                    
+                    char* string_leido = convertir_a_cadena_nueva(string_final, (size_t)tamanio);
                     log_info(logger, "PID: <%u> - Ejecutando: <COPY_STRING> - String Leido (%s)", pcb->pid, string_leido);
                     free(string_leido);
-
-                    // guardamos para pasar a la siguiente iteracion
-                    string_final = buffer_data;
 
                     liberar_lista_de_peticiones_memoria(direcciones_fisicas_read);
                 }
@@ -282,33 +227,7 @@ void ejecutar_ciclo_de_instruccion(int conexion, t_PCB* pcb){
                 int estado_w = MMU(direccion_logica_DI, tamanio_pagina_memoria, pcb->pid, (uint32_t)tamanio, direcciones_fisicas_write);
 
                 if(estado_w == MMU_OK){
-                    // string_final 
-                    int offset = 0;
-
-                    t_peticion_memoria* tmp = NULL;
-                    for(int i = 0; i < list_size(direcciones_fisicas_write); i++){
-                        tmp = (t_peticion_memoria*) list_get(direcciones_fisicas_write, i);
-                        
-                        // copia a partir del tamanio antes enviado,
-                        void* data_leida = malloc(tmp->bytes);
-                        memcpy(data_leida, string_final + offset, tmp->bytes);
-                        offset += tmp->bytes;
-
-                        // Solicitudes a memoria
-                        enviar_generico_doble_entero(conexion_memoria, SOLICITUD_ESCRITURA_MEMORIA, tmp->direccion_fisica, tmp->bytes);
-                        enviar_data(conexion_memoria, IGNORAR_OP_CODE, data_leida, tmp->bytes);
-                        ignorar_op_code(conexion_memoria);
-
-                        char* string_leido = convertir_a_cadena_nueva(data_leida, tmp->bytes); // hasta el momento
-                        log_info(logger, "PID: <%u> - Acción: <ESCRIBIR> - Dirección Física: <%u> - Valor: <%s>", pcb->pid, tmp->direccion_fisica, string_leido);
-                        free(string_leido);
-
-                        free(data_leida);
-                    }
-
-                    char* string_escrito = convertir_a_cadena_nueva(string_final, (size_t)tamanio);
-                    log_info(logger, "PID: <%u> - Ejecutando: <COPY_STRING> - String escrito (%s)", pcb->pid, string_escrito);
-                    free(string_escrito);
+                    gestionar_escritura_multipagina(conexion_memoria, direcciones_fisicas_write, pcb->pid, string_final, (uint32_t)tamanio, logger);
 
                     log_info(logger, "PID: <%u> - Finalizando: <COPY_STRING> ", pcb->pid);
                 }
@@ -325,7 +244,6 @@ void ejecutar_ciclo_de_instruccion(int conexion, t_PCB* pcb){
                 liberar_lista_de_peticiones_memoria(direcciones_fisicas_write);
 
                 break;
-
             }
             case WAIT:
             {

@@ -1,5 +1,5 @@
-#ifndef BIT_MAP_DIALFS_H_
-#define BIT_MAP_DIALFS_H_
+#ifndef BIT_MAP_H
+#define BIT_MAP_H
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -21,10 +21,10 @@ typedef struct{
 // false = 0 -> libre
 // true = 1 -> ocupado
 
-// -abre un bitmap y lo mapea a memoria (si no existe lo crea), devuelve NULL ante no poder crear un bitmap
-t_bitmap* bitmap_crear(char* path_bitmap, int cantidad_de_bloques);
+// - abre un bitmap y lo mapea a memoria (si no existe lo crea), devuelve NULL ante no poder crear un bitmap
+t_bitmap* bitmap_crear(int cantidad_de_bloques);
 
-// -devuelve el primer numero de bloque libre encontrado del bitmap
+// - devuelve el primer numero de bloque libre encontrado del bitmap
 int bitmap_bloque_libre(t_bitmap* bitmap);
 
 void bitmap_marcar_bloque_como_libre(t_bitmap* bitmap, int numero_bloque);

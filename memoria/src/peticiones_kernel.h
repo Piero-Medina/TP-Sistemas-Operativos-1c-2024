@@ -7,6 +7,8 @@
 #include <stdint.h>
 
 #include "generales.h"
+#include "pagina.h"
+#include "init.h"
 
 #include <commons/collections/list.h>
 #include <commons/string.h>
@@ -15,7 +17,7 @@
 #include <utils/utils.h>
 #include <comunicacion/comunicacion.h>
 
-#define MAX_READ 50
+#define MAX_READ 100
 
 // crea un proceso y la agrega a la lista_de_procesos
 void kernel_creacion_nuevo_proceso(int conexion);
@@ -38,6 +40,8 @@ void imprimir_array_strings(char** array);
 void imprimir_lista_procesos(t_list* lista_procesos);
 // Función para imprimir todos los elementos de un proceso (t_proceso*)
 void imprimir_proceso(void* proceso_ptr);
+
+void liberar_proceso(uint32_t pid);
 
 t_proceso* buscar_proceso_por_pid_y_remover(int pid, t_list* lista);
 int posicion_de_proceso_por_pid(int pid, t_list* lista);

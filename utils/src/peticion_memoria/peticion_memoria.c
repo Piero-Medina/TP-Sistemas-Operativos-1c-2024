@@ -131,7 +131,7 @@ bool gestionar_escritura_multipagina(int conexion_memoria, t_list* peticiones, u
         free(data_leida);
     }
 
-    // verificamos lo enviado (buffer_test)
+    // verificamos lo enviado (buffer_test) (si la data es un entero, es normal que muestre datos ramdom si es un string)
     char* final_escrito = convertir_a_cadena_nueva(buffer_test, bytes);
     log_info(logger, "PID: <%u> - Valor Final Escrito (%s)", pid, final_escrito);
     free(final_escrito);
@@ -143,7 +143,7 @@ bool gestionar_escritura_multipagina(int conexion_memoria, t_list* peticiones, u
     return (offset == bytes);
 }
 
-bool gestionar_lectura_multipagina(int conexion_memoria, t_list* peticiones, uint32_t pid, void* data_leida, uint32_t bytes, t_log* logger){
+bool gestionar_lectura_multipagina(int conexion_memoria, t_list* peticiones, uint32_t pid, void** data_leida, uint32_t bytes, t_log* logger){
     void* buffer_data = malloc(bytes);
     int offset = 0;
 
@@ -168,13 +168,19 @@ bool gestionar_lectura_multipagina(int conexion_memoria, t_list* peticiones, uin
         free(data);
     }
 
-    data_leida = buffer_data;
+    if(buffer_data == NULL){
+        log_warning(logger,"buffer_data es NULL");
+    }
 
-    // verificamos lo leido (buffer_test)
-    char* final_leido = convertir_a_cadena_nueva(data_leida, bytes);
+    // esto no funciona como se espera, luego ver de si retornar data leida o mandar un puntero doble.
+    *data_leida = buffer_data;
+
+    // verificamos lo leido (buffer_test) (si la data es un entero, es normal que muestre datos ramdom si es un string)
+    char* final_leido = convertir_a_cadena_nueva(*data_leida, bytes);
     log_info(logger, "PID: <%u> - Valor Final Leido (%s)", pid, final_leido);
     free(final_leido);
 
     // verificando que la cantidad de bytes leidos coincide con lo esperado
     return (offset == bytes);
 }
+

@@ -1,6 +1,8 @@
-#include "bit_map_dialFs.h"
+#include "bit_map.h"
 
-t_bitmap* bitmap_crear(char* path_bitmap, int cantidad_de_bloques){
+t_bitmap* bitmap_crear(int cantidad_de_frames){
+    char* path_bitmap = "bitmap.dat";
+    
     t_bitmap* bitmap = malloc(sizeof(t_bitmap));
 
     // abrir archivo en modo W y R, si no existe lo crea
@@ -10,7 +12,7 @@ t_bitmap* bitmap_crear(char* path_bitmap, int cantidad_de_bloques){
         return NULL;
     }
 
-    bitmap->tamanio_en_bytes = cantidad_de_bloques / 8;
+    bitmap->tamanio_en_bytes = cantidad_de_frames / 8;
 
     // truncamos el archivo
     if(ftruncate(file_descriptor, bitmap->tamanio_en_bytes) == -1){
@@ -171,7 +173,10 @@ void bitmap_mostrar_detalles(t_bitmap* bitmap){
 }
 
 void bitmap_liberar(t_bitmap* bitmap){
+    char* path_bitmap = "bitmap.dat";
+
     munmap(bitmap->direccion, bitmap->tamanio_en_bytes); 
     bitarray_destroy(bitmap->bitarray);
+    remove(path_bitmap); 
     free(bitmap);
 }

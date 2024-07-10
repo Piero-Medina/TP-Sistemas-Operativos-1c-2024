@@ -306,7 +306,23 @@ uint32_t cadena_a_valor_entero(void* cadena, size_t bytes){
     }
     */
 
-    // Copiar los bytes de la cadena al valor uint32_t
+    // si no almacenamos en un uint8_t, no podra respresentar el valor entero.
+    // una vez representado, hacemos el cateo.
+    if(bytes == 1){
+        uint8_t valor_1_byte = 0;
+        memcpy(&valor_1_byte, cadena, bytes);
+
+        return (uint32_t) valor_1_byte;
+    }
+
+    if(bytes == 4){
+        uint32_t valor_4_byte = 0;
+        memcpy(&valor_4_byte, cadena, bytes);
+
+        return (uint32_t) valor_4_byte;
+    }
+
+    // Copiar los bytes de la cadena al valor uint32_t 
     memcpy(&valor, cadena, bytes);
 
     return valor;

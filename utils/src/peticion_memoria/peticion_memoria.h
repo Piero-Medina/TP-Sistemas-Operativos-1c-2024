@@ -44,6 +44,6 @@ bool gestionar_escritura_multipagina(int conexion_memoria, t_list* peticiones, u
 
 // - lee data de memoria segun unas direcciones
 // - (la data que devuelve debe ser liberada una vez que se deja de usar)
-bool gestionar_lectura_multipagina(int conexion_memoria, t_list* peticiones, uint32_t pid, void* data_leida, uint32_t bytes, t_log* logger);
+bool gestionar_lectura_multipagina(int conexion_memoria, t_list* peticiones, uint32_t pid, void** data_leida, uint32_t bytes, t_log* logger);
 
 #endif 

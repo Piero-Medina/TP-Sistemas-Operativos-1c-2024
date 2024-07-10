@@ -13,6 +13,8 @@ void kernel_creacion_nuevo_proceso(int conexion){
     list_add(lista_de_procesos, proceso);
 
     free(path_intrucciones);
+
+    log_info(logger, "PID: <%d> - Tamaño: <0> \n", pid);
 }
 
 t_proceso* crear_proceso_mediante_path(int pid, char* path_intrucciones){
@@ -52,6 +54,8 @@ t_proceso* crear_proceso_mediante_path(int pid, char* path_intrucciones){
     t_proceso* proceso = malloc(sizeof(t_proceso));
     proceso->pid = pid;
     proceso->instrucciones = lista_intrucciones;
+    proceso->tabla_paginas = NULL; // NEW
+    proceso->tamanio = 0; // NEW
 
     return proceso;
 }
@@ -109,6 +113,24 @@ void imprimir_proceso(void* proceso_ptr) {
     printf("pid: %d\n", proceso->pid);
     printf("intrucciones:\n");
     list_iterate(proceso->instrucciones, imprimir_instruccion);
+}
+
+void liberar_proceso(uint32_t pid){
+    sem_wait(&mutex_lista_de_procesos);
+        t_proceso* proceso = buscar_proceso_por_pid_y_remover((int)pid, lista_de_procesos);
+    sem_post(&mutex_lista_de_procesos);
+
+    int cantidad_paginas = proceso->tabla_paginas->elements_count - 1;
+
+    for (int i = 0; i < proceso->tabla_paginas->elements_count; i++){
+        t_pagina* pagina = (t_pagina*) list_get(proceso->tabla_paginas, i);
+
+        bitmap_marcar_bloque_como_libre(bitmap, (int) pagina->numero_frame);
+    }
+
+    liberar_elemento_proceso((void*) proceso);
+
+    log_info(logger, "PID: <%d> - Liberando (%d) paginas \n", pid, cantidad_paginas);
 }
 
 /////////////////////////////////////////////////////////////////////////////

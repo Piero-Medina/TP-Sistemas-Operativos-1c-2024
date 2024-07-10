@@ -1,7 +1,9 @@
 #include "mmu.h"
 
 int MMU(int direccion_logica, int tamanio_pagina, uint32_t pid, uint32_t bytes, t_list* peticiones){
-    uint32_t numero_pagina = (uint32_t)floor(direccion_logica / tamanio_pagina);
+    log_info(logger, "direccion logica (%d)", direccion_logica);
+    uint32_t numero_pagina = (uint32_t)floor(direccion_logica / tamanio_pagina_memoria);
+    log_info(logger, "numero de pagina (%u)", numero_pagina);
     int desplazamiento = direccion_logica - numero_pagina * tamanio_pagina;
 
     int leer_hasta = (desplazamiento + bytes) - 1; // Asumiendo 0 desde la pagina en la que se situa.
@@ -123,11 +125,11 @@ int obtener_direccion_fisica(uint32_t numero_pagina, uint32_t pid, int desplazam
 
     if(marco == -1){
         if(tlb_habilitada){
-            log_warning(logger, "No se encontró entrada [Pid (%u)|Pagina (%u)] en la TLB", pid, numero_pagina);
+            log_info(logger, "No se encontró entrada [Pid (%u)|Pagina (%u)] en la TLB", pid, numero_pagina);
         }
 
         log_info(logger, "Solicitando numero de marco a Memoria");
-        enviar_generico_entero(conexion_memoria, SOLICITUD_MARCO_MEMORIA, numero_pagina);
+        enviar_generico_doble_entero(conexion_memoria, SOLICITUD_MARCO_MEMORIA, pid, numero_pagina);
 
         int estado = recibo_generico_op_code(conexion_memoria);
         marco = recibir_generico_int32(conexion_memoria);

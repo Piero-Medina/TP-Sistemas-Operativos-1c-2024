@@ -199,7 +199,7 @@ estado_interfaz truncar_archivo(char* nombre, int tamanio_nuevo, int pid){
         return NO_PROCESAR;
     }
 
-    diferencia = tamanio_nuevo - archivo->tamanio_archivo;
+    diferencia = tamanio_nuevo - archivo->tamanio_archivo;      
     cant_bloques_libres = bitmap_cantidad_de_bloques_libres(bitmap);
 
     // no hay bloques libres suficientes para truncar
@@ -775,7 +775,7 @@ estado_interfaz escribir_archivo(char* nombre_archivo, uint32_t bytes, uint32_t 
     }
 
     void* data = NULL;
-    gestionar_lectura_multipagina(conexion_memoria, direcciones, pid, data, bytes, logger);
+    gestionar_lectura_multipagina(conexion_memoria, direcciones, pid, &data, bytes, logger);
     char* data_a_escribir = (char*) data;
 
     char* string_leido = convertir_a_cadena_nueva(data, bytes);
