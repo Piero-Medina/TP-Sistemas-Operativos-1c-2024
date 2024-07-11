@@ -26,8 +26,8 @@ int recibo_generico_op_code(int conexion){
 
 void validar_respuesta_op_code(int conexion, uint8_t op_code_esperado, t_log* logger){
     int respuesta = recibo_generico_op_code(conexion);
-    if(respuesta == op_code_esperado) log_info(logger, "Respuesta OK");
-    if(respuesta != op_code_esperado) log_info(logger, "Respuesta Fallida \n");
+    if(respuesta == op_code_esperado) log_debug(logger, "Respuesta OK");
+    if(respuesta != op_code_esperado) log_debug(logger, "Respuesta Fallida \n");
 }
 
 void ignorar_op_code(int conexion){
@@ -325,7 +325,6 @@ void enviar_lista_peticiones_memoria(int conexion, uint8_t codigo_operacion, t_l
     
     paquete_detroy(paquete);
     free(a_enviar);
-
 }
 
 t_list* recibir_lista_peticiones_memoria(int conexion){

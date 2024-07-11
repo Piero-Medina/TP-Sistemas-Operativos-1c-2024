@@ -39,7 +39,7 @@ void mover_new_a_ready(void){
     sem_wait(&mutex_cola_ready);
         queue_push(cola_ready, (void*) pcb);
         char* lista_ready = string_aplanar_PID(cola_ready->elements);
-        log_info(logger,"Ingreso a Cola Ready <Comun>: %s", lista_ready);
+        log_info(logger,"Ingreso a Cola Ready <COMUN>: %s", lista_ready);
         free(lista_ready);
     sem_post(&mutex_cola_ready);
 
@@ -72,12 +72,12 @@ void func_corto_plazo(void* arg){
             sem_wait(&sem_cpu_disponible);
             mover_ready_a_execute(&pid);
     
-            log_info(logger, "PID: <%u> - Ejecutando con Quantum de (%d) milisegundos", pid, config->quantum);
+            log_debug(logger, "PID: <%u> - Ejecutando con Quantum de (%d) milisegundos", pid, config->quantum);
             sleep_ms(config->quantum);
 
             sem_wait(&mutex_proceso_en_ejecucion);
             if(proceso_en_ejecucion){
-                log_info(logger, "avisando a la CPU que desaloje al proceso actual");
+                log_debug(logger, "avisando a la CPU que desaloje al proceso actual");
                 sem_wait(&mutex_conexion_cpu_interrupt);
                     envio_generico_op_code(conexion_cpu_interrupt, DESALOJO);
                 sem_post(&mutex_conexion_cpu_interrupt);
@@ -100,12 +100,12 @@ void func_corto_plazo(void* arg){
                 quantum = (uint32_t)config->quantum; 
             }
 
-            log_info(logger, "PID: <%u> - Ejecutando con Quantum de (%d) milisegundos", pid, (int)quantum);
+            log_debug(logger, "PID: <%u> - Ejecutando con Quantum de (%d) milisegundos", pid, (int)quantum);
             sleep_ms((int)quantum);
 
             sem_wait(&mutex_proceso_en_ejecucion);
             if(proceso_en_ejecucion){
-                log_info(logger, "avisando a la CPU que desaloje al proceso actual");
+                log_debug(logger, "avisando a la CPU que desaloje al proceso actual");
                 sem_wait(&mutex_conexion_cpu_interrupt);
                     envio_generico_op_code(conexion_cpu_interrupt, DESALOJO);
                 sem_post(&mutex_conexion_cpu_interrupt);
@@ -145,8 +145,11 @@ bool mover_execute_a_blocked(t_PCB* pcb_nueva){
             t_PCB* tmp = (t_PCB*) queue_pop(cola_execute);
             liberar_PCB(tmp);
 
-            log_info(logger, "PID: <%u> - Finalizado antes de pasar a <BLOCKED>", pcb_nueva->pid);
-            mandar_a_exit(pcb_nueva, "FINALIZADO POR CONSOLA INTERACTIVA");
+            log_debug(logger, "PID: <%u> - Finalizado antes de pasar a <BLOCKED>", pcb_nueva->pid);
+
+            char* motivo = obtener_motivo_salida(SALIDA_INTERRUPTED_BY_USER, NULL);
+            mandar_a_exit(pcb_nueva, motivo);
+            free(motivo);
 
             sem_post(&mutex_cola_execute);
             return false;
@@ -187,7 +190,7 @@ void mover_blocked_a_ready(int pid){
     sem_wait(&mutex_cola_ready);
         queue_push(cola_ready, (void*) pcb);
         char* lista_ready = string_aplanar_PID(cola_ready->elements);
-        log_info(logger,"Ingreso a Cola Ready <Comun>: %s", lista_ready);
+        log_info(logger,"Ingreso a Cola Ready <COMUN>: %s", lista_ready);
         free(lista_ready);
     sem_post(&mutex_cola_ready);
 
@@ -201,8 +204,11 @@ bool mover_execute_a_ready(t_PCB* pcb_nueva){
             t_PCB* tmp = (t_PCB*) queue_pop(cola_execute);
             liberar_PCB(tmp);
 
-            log_info(logger, "PID: <%u> - Finalizado antes de pasar a <READY>", pcb_nueva->pid);
-            mandar_a_exit(pcb_nueva, "FINALIZADO POR CONSOLA INTERACTIVA");
+            log_debug(logger, "PID: <%u> - Finalizado antes de pasar a <READY>", pcb_nueva->pid);
+
+            char* motivo = obtener_motivo_salida(SALIDA_INTERRUPTED_BY_USER, NULL);
+            mandar_a_exit(pcb_nueva, motivo);
+            free(motivo);
 
             sem_post(&mutex_cola_execute);
             return false;
@@ -219,7 +225,7 @@ bool mover_execute_a_ready(t_PCB* pcb_nueva){
     sem_wait(&mutex_cola_ready);
         queue_push(cola_ready, (void*) pcb_actualizada);
         char* lista_ready = string_aplanar_PID(cola_ready->elements);
-        log_info(logger,"Ingreso a Cola Ready <Comun>: %s", lista_ready);
+        log_info(logger,"Ingreso a Cola Ready <COMUN>: %s", lista_ready);
         free(lista_ready);
     sem_post(&mutex_cola_ready);
 
@@ -235,8 +241,11 @@ bool mover_execute_a_ready_aux(t_PCB* pcb_nueva){
             t_PCB* tmp = (t_PCB*) queue_pop(cola_execute);
             liberar_PCB(tmp);
 
-            log_info(logger, "PID: <%u> - Finalizado antes de pasar a <READY_AUX>", pcb_nueva->pid);
-            mandar_a_exit(pcb_nueva, "FINALIZADO POR CONSOLA INTERACTIVA");
+            log_debug(logger, "PID: <%u> - Finalizado antes de pasar a <READY_AUX>", pcb_nueva->pid);
+
+            char* motivo = obtener_motivo_salida(SALIDA_INTERRUPTED_BY_USER, NULL);
+            mandar_a_exit(pcb_nueva, motivo);
+            free(motivo);
 
             sem_post(&mutex_cola_execute);
             return false;
@@ -253,7 +262,7 @@ bool mover_execute_a_ready_aux(t_PCB* pcb_nueva){
     sem_wait(&mutex_cola_ready_aux);
         queue_push(cola_ready_aux, (void*) pcb_actualizada);
         char* lista_ready_aux = string_aplanar_PID(cola_ready_aux->elements);
-        log_info(logger,"Ingreso a Cola Ready <Aux>: %s", lista_ready_aux);
+        log_info(logger,"Ingreso a Cola Ready <AUX>: %s", lista_ready_aux);
         free(lista_ready_aux);
     sem_post(&mutex_cola_ready_aux);
 
@@ -316,14 +325,14 @@ void mandar_a_exit(t_PCB* pcb, char* motivo){
     }
 
     sem_wait(&mutex_conexion_memoria);;
-        log_info(logger, "Solicitando a MEMORIA que libere estructuras asocidas al proceso PID: <%u>", pcb->pid);
+        log_debug(logger, "Solicitando a MEMORIA que libere estructuras asocidas al proceso PID: <%u>", pcb->pid);
         enviar_generico_entero(conexion_memoria, PROCESO_FINALIZADO_MEMORIA, pcb->pid);
         validar_respuesta_op_code(conexion_memoria, MEMORIA_OK, logger);
     sem_post(&mutex_conexion_memoria);
 
     if(existe_recursos){
         sem_wait(&mutex_diccionario_recursos);
-            log_info(logger, "Liberando recursos retenidos por el proceso PID: <%u>", pcb->pid);
+            log_debug(logger, "Liberando recursos retenidos por el proceso PID: <%u>", pcb->pid);
             devolver_recursos(pcb->pid);
         sem_post(&mutex_diccionario_recursos);
     }
@@ -334,6 +343,7 @@ void mandar_a_exit(t_PCB* pcb, char* motivo){
         deberiamos liberar el pcb, pero por el momento lo guardamos, para luego poder mostrarlo 
         por la consola, o tambien liberar el pcb y almenos quedarnos con el PID
     */
+
     sem_wait(&mutex_cola_exit);
         queue_push(cola_exit, (void*) pcb);
     sem_post(&mutex_cola_exit);
@@ -346,8 +356,11 @@ bool mover_execute_a_exit(t_PCB* pcb_nueva, char* motivo){
             t_PCB* tmp = (t_PCB*) queue_pop(cola_execute);
             liberar_PCB(tmp);
 
-            log_info(logger, "PID: <%u> - Finalizado antes de pasar a <EXIT>", pcb_nueva->pid);
-            mandar_a_exit(pcb_nueva, "FINALIZADO POR CONSOLA INTERACTIVA");
+            log_debug(logger, "PID: <%u> - Finalizado antes de pasar a <EXIT>", pcb_nueva->pid);
+
+            char* motivo = obtener_motivo_salida(SALIDA_INTERRUPTED_BY_USER, NULL);
+            mandar_a_exit(pcb_nueva, motivo);
+            free(motivo);
 
             sem_post(&mutex_cola_execute);
             return false;
@@ -401,12 +414,12 @@ void mini_planificador_corto_plazo(void* arg){
         mover_execute_a_execute(&pid, &quantum);
 
         // como volvio de execute y regresa a execute nose si tiene que empezar con el Quamtum base o seguir con el Restante.
-        log_info(logger, "PID: <%u> - Ejecutando con Quantum de (%d) milisegundos", pid, config->quantum);
+        log_debug(logger, "PID: <%u> - Ejecutando con Quantum de (%d) milisegundos", pid, config->quantum);
         sleep_ms(config->quantum);
 
         sem_wait(&mutex_proceso_en_ejecucion);
         if(proceso_en_ejecucion){
-            log_info(logger, "avisando a la CPU que desaloje al proceso actual");
+            log_debug(logger, "avisando a la CPU que desaloje al proceso actual");
             sem_wait(&mutex_conexion_cpu_interrupt);
                 envio_generico_op_code(conexion_cpu_interrupt, DESALOJO);
             sem_post(&mutex_conexion_cpu_interrupt);
@@ -417,12 +430,12 @@ void mini_planificador_corto_plazo(void* arg){
     if(algoritmo_elegido == VRR){
         mover_execute_a_execute(&pid, &quantum);
 
-        log_info(logger, "PID: <%u> - Ejecutando con Quantum de (%d) milisegundos", pid, (int)quantum);
+        log_debug(logger, "PID: <%u> - Ejecutando con Quantum de (%d) milisegundos", pid, (int)quantum);
         sleep_ms((int)quantum);
 
         sem_wait(&mutex_proceso_en_ejecucion);
         if(proceso_en_ejecucion){
-            log_info(logger, "avisando a la CPU que desaloje al proceso actual");
+            log_debug(logger, "avisando a la CPU que desaloje al proceso actual");
             sem_wait(&mutex_conexion_cpu_interrupt);
                 envio_generico_op_code(conexion_cpu_interrupt, DESALOJO);
             sem_post(&mutex_conexion_cpu_interrupt);
@@ -495,7 +508,7 @@ void agregar_registro_recurso(uint32_t pid, char* recurso){
     tmp->recurso = strdup(recurso);
     tmp->devuelto = false;
 
-    log_info(logger,"PID <%u> consumiendo recurso (%s)", tmp->pid, tmp->recurso);
+    log_info(logger,"PID: <%u> - consumiendo recurso (%s)", tmp->pid, tmp->recurso);
     list_add(recursos_asignados, (void*) tmp);
 }
 
@@ -511,7 +524,7 @@ void eliminar_registro_recurso(uint32_t pid, char* recurso){
         registro_recurso = (t_registro_recurso*) list_get(recursos_asignados, i);
         if((registro_recurso->pid == pid) && (strcmp(registro_recurso->recurso, recurso) == 0)){
             registro_recurso = (t_registro_recurso*) list_remove(recursos_asignados, i);
-            log_info(logger,"PID: <%u> Devolviendo recurso (%s)", registro_recurso->pid, registro_recurso->recurso);
+            log_info(logger,"PID: <%u> - Devolviendo recurso (%s)", registro_recurso->pid, registro_recurso->recurso);
             liberar_elemento_t_registro_recurso((void*) registro_recurso);
             return;
         }

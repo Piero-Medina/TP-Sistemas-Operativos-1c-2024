@@ -7,7 +7,7 @@ estado_interfaz crear_archivo(char* nombre){
 
     bloque_minimo = 1; // segun el enunciado
     cant_bloques_libres = bitmap_cantidad_de_bloques_libres(bitmap);
-    printf("Cantidad de bloques libres (%d) \n", cant_bloques_libres);
+    log_debug(logger, "Cantidad de bloques libres (%d)", cant_bloques_libres);
 
     // si no hay espacio para crear un archivo
     if(cant_bloques_libres < bloque_minimo){
@@ -16,14 +16,14 @@ estado_interfaz crear_archivo(char* nombre){
 
     // si hubo almenos un bloque libre entonces almenos hay 1 numero de bloque disponible.
     numero_bloque = bitmap_posicion_bloque_contiguo_de_n_bloques(bitmap, bloque_minimo);
-    printf("numero_de_bloque_libre (%d) \n", numero_bloque);
+    log_debug(logger, "Numero_de_bloque_libre (%d)", numero_bloque);
 
     archivo_de_bloques = abrir_archivo_de_bloques();
     mover_puntero_de_archivo_por_bloques(archivo_de_bloques, numero_bloque);
 
     // crear_Archivo
     archivo = t_archivo_crear(nombre, numero_bloque);
-    imprimir_t_archivo(archivo);
+    //imprimir_t_archivo(archivo);
 
     crear_metadata(archivo);
     bitmap_marcar_bloque_como_ocupado(bitmap, numero_bloque);
@@ -153,7 +153,7 @@ void levantar_diccionario_de_archivos(t_dictionary* archivos){
         if (strcmp(ent->d_name, ".") != 0 && strcmp(ent->d_name, "..") != 0) {
             tmp = levantar_t_archivo(ent->d_name);
             dictionary_put(archivos, tmp->nombre, (void*) tmp);
-            log_warning(logger, "Archivo (%s) Recuperado", tmp->nombre);
+            log_info(logger, "Archivo (%s) Recuperado", tmp->nombre);
         }
     }
     
@@ -187,7 +187,7 @@ t_archivo* levantar_t_archivo(char* nombre_extension_metadato){
 }
 
 estado_interfaz truncar_archivo(char* nombre, int tamanio_nuevo, int pid){
-    log_info(logger, "F - truncar_archivo \n");
+    log_debug(logger, "F - truncar_archivo \n");
     int cant_bloques_libres, diferencia;
     int tamanio_en_bloques_original, tamanio_en_bloques_nuevo;
     t_archivo* archivo = NULL;
@@ -203,25 +203,25 @@ estado_interfaz truncar_archivo(char* nombre, int tamanio_nuevo, int pid){
     cant_bloques_libres = bitmap_cantidad_de_bloques_libres(bitmap);
 
     // no hay bloques libres suficientes para truncar
-    if(diferencia > cant_bloques_libres){
+    if(diferencia > (cant_bloques_libres * config->block_size)){
         return SIN_ESPACIO;
     }
 
     tamanio_en_bloques_original = cantidad_de_bloques_ocupados(archivo->tamanio_archivo, config->block_size);
-    log_info(logger, "tamanio_en_bloques_original (%d) \n", tamanio_en_bloques_original);
+    log_debug(logger, "tamanio_en_bloques_original (%d) \n", tamanio_en_bloques_original);
     tamanio_en_bloques_nuevo = cantidad_de_bloques_ocupados(tamanio_nuevo, config->block_size);
-    log_info(logger, "tamanio_en_bloques_nuevo (%d) \n", tamanio_en_bloques_nuevo);
+    log_debug(logger, "tamanio_en_bloques_nuevo (%d) \n", tamanio_en_bloques_nuevo);
 
     if(tamanio_en_bloques_original < tamanio_en_bloques_nuevo){
-        log_info(logger, "Toca ampliar \n");
+        log_debug(logger, "Toca ampliar \n");
         ampliar_archivo(archivo, tamanio_nuevo, config->block_size, pid);
     } 
     if(tamanio_en_bloques_original > tamanio_en_bloques_nuevo){
-        log_info(logger, "Toca reducir \n");
+        log_debug(logger, "Toca reducir \n");
         reducir_archivo(archivo, tamanio_nuevo, config->block_size); 
     }
     if(tamanio_en_bloques_original == tamanio_en_bloques_nuevo){
-        log_info(logger, "Toca magia \n");
+        log_debug(logger, "Toca magia \n");
         diferenciar_de_magia_archivo(archivo, tamanio_nuevo, config->block_size);
     }
 
@@ -230,7 +230,7 @@ estado_interfaz truncar_archivo(char* nombre, int tamanio_nuevo, int pid){
 
 //
 void reducir_archivo(t_archivo* archivo, int nuevo_tamanio_bytes, int tamanio_bloque){
-    log_info(logger, "F - reducir_archivo \n");
+    log_debug(logger, "F - reducir_archivo \n");
     int tamanio_en_bloques_original, tamanio_en_bloques_nuevo, diferencia_de_bloques;
     int bloque_archivo_fisico_final_absoluto_nuevo, bloque_archivo_final_absoluto_nuevo; 
     //int bloque_archivo_final_absoluto_actual;
@@ -240,7 +240,7 @@ void reducir_archivo(t_archivo* archivo, int nuevo_tamanio_bytes, int tamanio_bl
     char vacio_fisico = '0';
 
     if(nuevo_tamanio_bytes == 0){
-        log_info(logger, "Toca vaciar archivo \n");
+        log_debug(logger, "Toca vaciar archivo \n");
         vaciar_archivo(archivo);
         return;
     }
@@ -276,7 +276,7 @@ void reducir_archivo(t_archivo* archivo, int nuevo_tamanio_bytes, int tamanio_bl
 }
 
 void vaciar_archivo(t_archivo* archivo){
-    log_info(logger, "F - vaciar_archivo \n");
+    log_debug(logger, "F - vaciar_archivo \n");
     FILE* archivo_de_bloques = NULL, *archivo_fisico = NULL;
     t_config* metadata = NULL;
     int bloque_inicial_relativo, tamanio_en_bloques_original;
@@ -289,19 +289,19 @@ void vaciar_archivo(t_archivo* archivo){
 
     // no cuentan el bloque Inicial del archivo (bloque que ocupa por el hecho de ser creado);
     bloque_inicial_relativo = archivo->bloque_inicial + 1;
-    log_info(logger, "bloque_inicial_relativo (%d) \n", bloque_inicial_relativo);
+    log_debug(logger, "bloque_inicial_relativo (%d) \n", bloque_inicial_relativo);
     tamanio_en_bloques_original = cantidad_de_bloques_ocupados(archivo->tamanio_archivo, config->block_size);
-    log_info(logger, "tamanio_en_bloques_original (%d) \n", tamanio_en_bloques_original);
+    log_debug(logger, "tamanio_en_bloques_original (%d) \n", tamanio_en_bloques_original);
 
-    log_info(logger, "puntero_posicion_a_escribir_archivo (%d) \n", (bloque_inicial_relativo * config->block_size));
+    log_debug(logger, "puntero_posicion_a_escribir_archivo (%d) \n", (bloque_inicial_relativo * config->block_size));
     mover_puntero_de_archivo_por_bloques(archivo_de_bloques, bloque_inicial_relativo);
     mover_puntero_de_archivo_por_bloques(archivo_fisico, 0);
 
-    log_info(logger, "bloque_inicial_relativo (%d) | tamanio_en_bloques_original (%d) \n", bloque_inicial_relativo, tamanio_en_bloques_original);
+    log_debug(logger, "bloque_inicial_relativo (%d) | tamanio_en_bloques_original (%d) \n", bloque_inicial_relativo, tamanio_en_bloques_original);
     bitmap_marcar_bloques_libres_desde_posicion(bitmap, bloque_inicial_relativo, tamanio_en_bloques_original);
 
     int cantidad_de_caracteres_vacios_a_escribir = (config->block_size * tamanio_en_bloques_original);
-    log_info(logger, "cantidad_de_caracteres_vacios_a_escribir (%d) \n", cantidad_de_caracteres_vacios_a_escribir);
+    log_debug(logger, "cantidad_de_caracteres_vacios_a_escribir (%d) \n", cantidad_de_caracteres_vacios_a_escribir);
     escribir_n_cantidad_de_caracter(archivo_de_bloques, vacio, (config->block_size * tamanio_en_bloques_original) );
     escribir_n_cantidad_de_caracter(archivo_fisico, vacio_fisico, (config->block_size * tamanio_en_bloques_original));
 
@@ -322,10 +322,10 @@ void ampliar_archivo(t_archivo* archivo, int nuevo_tamanio_bytes, int tamanio_bl
     diferencia_de_bloques = tamanio_en_bloques_nuevo - tamanio_en_bloques_original;
 
     bloque_archivo_final_absoluto_original = archivo->bloque_inicial + tamanio_en_bloques_original;
-    log_info(logger, "bloque_archivo_final_absoluto_original (%d) \n", bloque_archivo_final_absoluto_original);
+    log_debug(logger, "bloque_archivo_final_absoluto_original (%d) \n", bloque_archivo_final_absoluto_original);
 
     cant_bloques_contiguos = bitmap_cant_bloques_libres_contiguos_desde_posicion(bitmap, diferencia_de_bloques, (bloque_archivo_final_absoluto_original + 1));
-    log_info(logger, "cant_bloques_contiguos (%d) \n", cant_bloques_contiguos);
+    log_debug(logger, "cant_bloques_contiguos (%d) \n", cant_bloques_contiguos);
 
     if(cant_bloques_contiguos == diferencia_de_bloques){
         sub_ampliar_archivo(archivo, nuevo_tamanio_bytes);
@@ -337,6 +337,7 @@ void ampliar_archivo(t_archivo* archivo, int nuevo_tamanio_bytes, int tamanio_bl
     
     sem_wait(&sem_compactacion);
     log_info(logger, "Compactacion Deshabilitada por (%d) milisegundos", config->retraso_compactacion);
+    
     hilo_habilitador(config->retraso_compactacion);
     char* nombre_archivo = archivo->nombre;
     compactar_archivos_usando_mas_memoria(diccionario_de_archivos, nombre_archivo);
@@ -357,7 +358,7 @@ void ampliar_archivo(t_archivo* archivo, int nuevo_tamanio_bytes, int tamanio_bl
 }
 
 void sub_ampliar_archivo(t_archivo * archivo, int nuevo_tamanio_bytes){
-    log_info(logger, "F - sub_ampliar_archivo \n");
+    log_debug(logger, "F - sub_ampliar_archivo \n");
     int tamanio_en_bloques_original, tamanio_en_bloques_nuevo, diferencia_de_bloques;
     int bloque_archivo_final_absoluto_original;
     FILE* archivo_de_bloques = NULL;
@@ -372,13 +373,13 @@ void sub_ampliar_archivo(t_archivo * archivo, int nuevo_tamanio_bytes){
     diferencia_de_bloques = tamanio_en_bloques_nuevo - tamanio_en_bloques_original;
 
     bloque_archivo_final_absoluto_original = archivo->bloque_inicial + tamanio_en_bloques_original;
-    log_info(logger, "bloque_archivo_final_absoluto_original (%d) \n", bloque_archivo_final_absoluto_original);
+    log_debug(logger, "bloque_archivo_final_absoluto_original (%d) \n", bloque_archivo_final_absoluto_original);
 
 
     int puntero_posicion_a_escribir = (bloque_archivo_final_absoluto_original + 1) * config->block_size;
-    log_info(logger, "puntero_posicion_a_escribir (%d) \n", puntero_posicion_a_escribir);
+    log_debug(logger, "puntero_posicion_a_escribir (%d) \n", puntero_posicion_a_escribir);
     int cantidad_de_caracteres_vacios_a_escribir = (config->block_size * diferencia_de_bloques);
-    log_info(logger, "cantidad_de_caracteres_vacios_a_escribir (%d) \n", cantidad_de_caracteres_vacios_a_escribir);
+    log_debug(logger, "cantidad_de_caracteres_vacios_a_escribir (%d) \n", cantidad_de_caracteres_vacios_a_escribir);
 
     fseek(archivo_de_bloques, (bloque_archivo_final_absoluto_original + 1) * config->block_size, SEEK_SET);
     escribir_n_cantidad_de_caracter(archivo_de_bloques, permitido, (config->block_size * diferencia_de_bloques) );
@@ -387,7 +388,7 @@ void sub_ampliar_archivo(t_archivo * archivo, int nuevo_tamanio_bytes){
     set_key_metadata(metadato, "TAMANIO_ARCHIVO", archivo->tamanio_archivo);
 
     int bloque_inicio_a_marcar_como_ocupado = (bloque_archivo_final_absoluto_original + 1);
-    log_info(logger, "bloque_inicio_a_marcar_como_ocupado (%d) | cuantos bloques (%d) \n", bloque_inicio_a_marcar_como_ocupado, diferencia_de_bloques);
+    log_debug(logger, "bloque_inicio_a_marcar_como_ocupado (%d) | cuantos bloques (%d) \n", bloque_inicio_a_marcar_como_ocupado, diferencia_de_bloques);
     bitmap_marcar_bloques_ocupados_desde_posicion(bitmap, (bloque_archivo_final_absoluto_original + 1), diferencia_de_bloques);
 
     config_destroy(metadato);
@@ -648,21 +649,21 @@ void compactar_archivos_usando_mas_memoria(t_dictionary* archivos, char* nombre_
 
         fseek(copia, (tmp->bloque_inicial * config->block_size), SEEK_SET);
         test = leer_n_cantidad_de_caracter(copia, tamanio_en_bytes_total);
-        printf(" Se Leyo - bytes (%d) buffer (%s) \n",tamanio_en_bytes_total, test);
+        log_debug(logger, "Se Leyo - bytes (%d) buffer (%s) ",tamanio_en_bytes_total, test);
         free(test);
         test = NULL;
 
-        printf(" Desde donde escribimos en el archivo de bloques - bytes (%d)  \n",(puntero_archivo_posicion * config->block_size));
+        log_debug(logger, " Desde donde escribimos en el archivo de bloques - bytes (%d)",(puntero_archivo_posicion * config->block_size));
         fseek(archivo_de_bloques, (puntero_archivo_posicion * config->block_size), SEEK_SET);
         fwrite(buffer, sizeof(char), tamanio_en_bytes_total, archivo_de_bloques);
 
-        printf("Bitmap marcar bloques libres - desde (%d) - cuanto (%d) \n", tmp->bloque_inicial, tamanio_en_bloques_total);
+        log_debug(logger, "Bitmap marcar bloques libres - desde (%d) - cuanto (%d)", tmp->bloque_inicial, tamanio_en_bloques_total);
         bitmap_marcar_bloques_libres_desde_posicion(bitmap, tmp->bloque_inicial, tamanio_en_bloques_total);
 
         tmp->bloque_inicial = puntero_archivo_posicion;
         set_key_metadata(metadato, "BLOQUE_INICIAL", tmp->bloque_inicial);
 
-        printf("Bitmap marcar bloques ocupados - desde (%d) - cuanto (%d) \n", tmp->bloque_inicial, tamanio_en_bloques_total);
+        log_debug(logger, "Bitmap marcar bloques ocupados - desde (%d) - cuanto (%d)", tmp->bloque_inicial, tamanio_en_bloques_total);
         bitmap_marcar_bloques_ocupados_desde_posicion(bitmap, tmp->bloque_inicial, tamanio_en_bloques_total);
 
         puntero_archivo_posicion += tamanio_en_bloques_total;
@@ -686,18 +687,18 @@ void compactar_archivos_usando_mas_memoria(t_dictionary* archivos, char* nombre_
 
     fseek(copia, (tmp->bloque_inicial * config->block_size), SEEK_SET);
     test = leer_n_cantidad_de_caracter(copia, tamanio_en_bytes_total);
-    printf(" Se Leyo - bytes (%d) buffer (%s) \n",tamanio_en_bytes_total, test);
+    log_debug(logger, " Se Leyo - bytes (%d) buffer (%s)",tamanio_en_bytes_total, test);
     free(test);
     test = NULL;
 
-    printf(" Desde donde escribimos en el archivo de bloques (%d) \n",(puntero_archivo_posicion * config->block_size));
+    log_debug(logger, " Desde donde escribimos en el archivo de bloques (%d)",(puntero_archivo_posicion * config->block_size));
     fseek(archivo_de_bloques, (puntero_archivo_posicion * config->block_size), SEEK_SET);
     fwrite(buffer, sizeof(char), tamanio_en_bytes_total, archivo_de_bloques);
 
     tmp->bloque_inicial = puntero_archivo_posicion;
     set_key_metadata(metadato, "BLOQUE_INICIAL", tmp->bloque_inicial);
 
-    printf("Bitmap marcar bloques ocupados - desde (%d) - cuanto (%d) \n", tmp->bloque_inicial, tamanio_en_bloques_total);
+    log_debug(logger, "Bitmap marcar bloques ocupados - desde (%d) - cuanto (%d)", tmp->bloque_inicial, tamanio_en_bloques_total);
     bitmap_marcar_bloques_ocupados_desde_posicion(bitmap, tmp->bloque_inicial, tamanio_en_bloques_total);
 
     // liberacion
@@ -779,7 +780,7 @@ estado_interfaz escribir_archivo(char* nombre_archivo, uint32_t bytes, uint32_t 
     char* data_a_escribir = (char*) data;
 
     char* string_leido = convertir_a_cadena_nueva(data, bytes);
-    log_info(logger, "PID: <%u> - Valor Leido de Memoria (%s)", pid, string_leido);
+    log_info(logger, "PID: <%u> - Valor Final Leido de Memoria (%s)", pid, string_leido);
     free(string_leido);
 
     archivo_de_bloques = abrir_archivo_de_bloques();
@@ -902,7 +903,7 @@ estado_interfaz escribir_archivo_test(char* nombre_archivo, uint32_t bytes, uint
     //char* data_a_escribir = (char*) data;
 
     char* string_leido = convertir_a_cadena_nueva(data_a_escribir, bytes);
-    log_info(logger, "PID: <%u> - Valor Leido de Memoria (%s)", pid, string_leido);
+    log_debug(logger, "PID: <%u> - Valor Leido de Memoria (%s)", pid, string_leido);
     free(string_leido);
 
     archivo_de_bloques = abrir_archivo_de_bloques();
@@ -959,7 +960,7 @@ estado_interfaz leer_archivo_dial_test(char* nombre_archivo, uint32_t bytes, uin
     fread(data_leida, sizeof(char), bytes, archivo_de_bloques);
 
     char* string_leido = convertir_a_cadena_nueva(data_leida, bytes);
-    log_info(logger, "PID: <%u> - Valor Leido de Archivo (%s)", pid, string_leido);
+    log_debug(logger, "PID: <%u> - Valor Leido de Archivo (%s)", pid, string_leido);
     free(string_leido);
 
     //gestionar_escritura_multipagina(conexion_memoria, direcciones, pid, data_leida, logger);

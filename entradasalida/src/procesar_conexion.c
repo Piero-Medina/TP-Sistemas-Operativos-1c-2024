@@ -7,7 +7,7 @@ void procesar_conexion_siendo_io_generica(void *args){
 
     while (procesar_conexion_en_ejecucion) {
         int cod_op = recibir_operacion(conexion_kernel); // bloqueante
-        log_info(logger, "Se recibió el cod operacion %d de el server %s", cod_op, nombre_modulo_server);
+        log_debug(logger, "Se recibió el cod operacion %d de el server %s", cod_op, nombre_modulo_server);
         switch (cod_op) {
             case SOLICITUD_IO_GEN_SLEEP:
                 uint32_t pid, unidades_de_trabajo, unidades_totales;
@@ -39,7 +39,7 @@ void procesar_conexion_siendo_io_stdin(void *args){
 
     while (procesar_conexion_en_ejecucion) {
         int cod_op = recibir_operacion(conexion_kernel); // bloqueante
-        log_info(logger, "Se recibió el cod operacion %d de el server %s", cod_op, nombre_modulo_server);
+        log_debug(logger, "Se recibió el cod operacion %d de el server %s", cod_op, nombre_modulo_server);
         switch (cod_op) {
             case SOLICITUD_IO_STDIN_READ:
                 uint32_t pid, bytes;
@@ -72,7 +72,7 @@ void procesar_conexion_siendo_io_stdout(void *args){
 
     while (procesar_conexion_en_ejecucion) {
         int cod_op = recibir_operacion(conexion_kernel); // bloqueante
-        log_info(logger, "Se recibió el cod operacion %d de el server %s", cod_op, nombre_modulo_server);
+        log_debug(logger, "Se recibió el cod operacion %d de el server %s", cod_op, nombre_modulo_server);
         switch (cod_op) {
             case SOLICITUD_IO_STDOUT_WRITE:
                 uint32_t pid, bytes;
@@ -105,7 +105,7 @@ void procesar_conexion_siendo_io_dialFs(void *args){
 
     while (procesar_conexion_en_ejecucion) {
         int cod_op = recibir_operacion(conexion_kernel); // bloqueante
-        log_info(logger, "Se recibió el cod operacion %d de el server %s", cod_op, nombre_modulo_server);
+        log_debug(logger, "Se recibió el cod operacion %d de el server %s", cod_op, nombre_modulo_server);
         switch (cod_op) {
             case SOLICITUD_IO_FS_CREATE:
             {

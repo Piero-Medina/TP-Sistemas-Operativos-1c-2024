@@ -26,5 +26,6 @@ int resize_proceso(uint32_t pid, uint32_t tamanio);
 void crear_tabla_de_paginas(uint32_t pid ,uint32_t tamanio);
 void ampliar_proceso(uint32_t  pid, uint32_t tamanio);
 void reducir_proceso(uint32_t  pid, uint32_t tamanio);
+void vaciar_proceso(uint32_t pid);
 
 #endif 

@@ -9,7 +9,7 @@ void procesar_conexion_general(void *args){
 
     while (procesar_conexion_en_ejecucion) {
         int cod_op = recibir_operacion(socket);
-        log_info(logger_m, "Se recibió el cod operacion %d en %s", cod_op, nombre_servidor);
+        log_debug(logger_m, "Se recibió el cod operacion %d en %s", cod_op, nombre_servidor);
         switch (cod_op) {
             case HANDSHAKE:
                 char* modulo = recibir_handshake(socket);
@@ -27,7 +27,7 @@ void procesar_conexion_general(void *args){
             case NUEVO_PROCESO_MEMORIA: // KERNEL
             {
                 // se crea un proceso en memoria a partir de path (en memoria) enviado por el kernel
-                log_info(logger_m, "solicitud de Nuevo Proceso del KERNEL");
+                log_info(logger_m, "Solicitud de Nuevo Proceso");
                 kernel_creacion_nuevo_proceso(socket);
                 envio_generico_op_code(socket, MEMORIA_OK);
                 break;
@@ -35,7 +35,7 @@ void procesar_conexion_general(void *args){
             case SOLICITAR_INTRUCCION_MEMORIA: // CPU
             {
                 // busca la intruccion pedida y la devuelve a la cpu
-                log_info(logger_m, "solicitud de instruccion de CPU");
+                log_info(logger_m, "Solicitud de Instruccion");
                 uint32_t pid, program_counter;
                 recibir_generico_doble_entero(socket,&pid, &program_counter);
                 
@@ -43,7 +43,7 @@ void procesar_conexion_general(void *args){
                 t_instruccion* intruccion = buscar_intruccion((int)pid, (int)program_counter);
                 sem_post(&mutex_lista_de_procesos);
                 
-                log_info(logger_m, "PID: <%d> tiempo de retardo para envio de intruccion (%d) milisegundos", pid, config->retardo_respuesta);
+                log_debug(logger_m, "PID: <%d> tiempo de retardo para envio de intruccion (%d) milisegundos", pid, config->retardo_respuesta);
                 sleep_ms(config->retardo_respuesta);
                 log_info(logger_m, "PID: <%d> enviando instruccion a CPU \n", pid);
 
@@ -52,7 +52,7 @@ void procesar_conexion_general(void *args){
             }
             case SOLICITUD_MARCO_MEMORIA: // CPU
             {
-                log_info(logger_m, "solicitud de Marco");
+                log_info(logger_m, "Solicitud de Marco");
                 uint32_t pid, numero_pagina;
                 recibir_generico_doble_entero(socket, &pid, &numero_pagina);
 
@@ -62,7 +62,7 @@ void procesar_conexion_general(void *args){
                 
                 log_info(logger_m, "PID: <%d> - Pagina: <%d> - Marco: <%"PRId32">", pid, numero_pagina, marco);
 
-                log_info(logger_m, "PID: <%d> tiempo de retardo para envio de peticion (%d) milisegundos", pid, config->retardo_respuesta);
+                log_debug(logger_m, "PID: <%d> tiempo de retardo para envio de peticion (%d) milisegundos", pid, config->retardo_respuesta);
                 sleep_ms(config->retardo_respuesta);
 
                 if(marco == -1){
@@ -77,7 +77,7 @@ void procesar_conexion_general(void *args){
             }
             case SOLICITUD_RESIZE_MEMORIA: // CPU
             {   
-                log_info(logger_m, "solicitud Resize");
+                log_info(logger_m, "Solicitud Resize");
                 uint32_t pid, tamanio;
                 recibir_generico_doble_entero(socket, &pid, &tamanio);
 
@@ -89,7 +89,7 @@ void procesar_conexion_general(void *args){
 
                 int estado = resize_proceso(pid, tamanio);
 
-                log_info(logger_m, "PID: <%d> tiempo de retardo para envio de peticion (%d) milisegundos", pid, config->retardo_respuesta);
+                log_debug(logger_m, "PID: <%d> tiempo de retardo para envio de peticion (%d) milisegundos", pid, config->retardo_respuesta);
                 sleep_ms(config->retardo_respuesta);
 
                 if(estado == OUT_OF_MEMORY){
@@ -104,14 +104,14 @@ void procesar_conexion_general(void *args){
             }
             case SOLICITUD_LECTURA_MEMORIA: // GENERAL
             {
-                log_info(logger_m, "solicitud Lectura Memoria");
+                log_info(logger_m, "Solicitud Lectura Memoria");
 
                 uint32_t direccion_fisica, bytes, pid;
                 recibir_generico_triple_entero(socket, &direccion_fisica, &bytes, &pid);
 
                 log_info(logger_m, "PID: <%u> - Accion: <LEER> - Direccion fisica: <%u> - Tamaño <%u>", pid, direccion_fisica, bytes);
 
-                log_info(logger_m, "PID: <%d> tiempo de retardo para envio de peticion (%d) milisegundos", pid, config->retardo_respuesta);
+                log_debug(logger_m, "PID: <%d> tiempo de retardo para envio de peticion (%d) milisegundos", pid, config->retardo_respuesta);
                 sleep_ms(config->retardo_respuesta);
 
                 sem_wait(&mutex_memoria_real);
@@ -119,7 +119,7 @@ void procesar_conexion_general(void *args){
                 sem_post(&mutex_memoria_real);
 
                 char* string_leido = convertir_a_cadena_nueva(data, bytes);
-                log_info(logger, "PID: <%u> - Acción: <LEER> - Valor: <%s> \n", pid, string_leido);
+                log_info(logger, "PID: <%u> - Acción: <LEER> - Valor Leido: <%s> \n", pid, string_leido);
                 free(string_leido);
 
                 enviar_data(socket, IGNORAR_OP_CODE, data, bytes);
@@ -129,7 +129,7 @@ void procesar_conexion_general(void *args){
             }
             case SOLICITUD_ESCRITURA_MEMORIA: // GENERAL
             {
-                log_info(logger_m, "solicitud Escritura Memoria");
+                log_info(logger_m, "Solicitud Escritura Memoria");
 
                 uint32_t direccion_fisica, pid, bytes;
                 recibir_generico_doble_entero(socket, &direccion_fisica, &pid);
@@ -138,7 +138,7 @@ void procesar_conexion_general(void *args){
 
                 log_info(logger_m, "PID: <%u> - Accion: <ESCRIBIR> - Direccion fisica: <%u> - Tamaño <%u>", pid, direccion_fisica, bytes);
 
-                log_info(logger_m, "PID: <%d> tiempo de retardo para envio de peticion (%d) milisegundos", pid, config->retardo_respuesta);
+                log_debug(logger_m, "PID: <%d> tiempo de retardo para envio de peticion (%d) milisegundos", pid, config->retardo_respuesta);
                 sleep_ms(config->retardo_respuesta);
 
                 sem_wait(&mutex_memoria_real);
@@ -146,7 +146,7 @@ void procesar_conexion_general(void *args){
                 sem_post(&mutex_memoria_real);
 
                 char* string_escrito = convertir_a_cadena_nueva(data, bytes);
-                log_info(logger, "PID: <%u> - Acción: <ESCRIBIR> - Valor: <%s>", pid, string_escrito);
+                log_info(logger, "PID: <%u> - Acción: <ESCRIBIR> - Valor Escrito: <%s> \n", pid, string_escrito);
                 free(string_escrito);
 
                 envio_generico_op_code(socket, MEMORIA_OK);
@@ -157,10 +157,10 @@ void procesar_conexion_general(void *args){
             case PROCESO_FINALIZADO_MEMORIA: // KERNEL
             {
                 // busca la intruccion pedida y la devuelve a la cpu
-                log_info(logger_m, "solicitud de Finalizacion de proceso de KERNEL");
+                log_info(logger_m, "Solicitud de Finalizacion de Proceso");
                 uint32_t pid = recibir_generico_entero(socket);
 
-                log_info(logger_m, "PID: <%d> tiempo de retardo para envio de peticion (%d) milisegundos", pid, config->retardo_respuesta);
+                log_debug(logger_m, "PID: <%d> tiempo de retardo para envio de peticion (%d) milisegundos", pid, config->retardo_respuesta);
                 sleep_ms(config->retardo_respuesta);
 
                 log_info(logger_m, "liberando estructuras administrativas del proceso PID: <%d>", pid);                

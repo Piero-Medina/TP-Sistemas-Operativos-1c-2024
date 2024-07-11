@@ -12,5 +12,5 @@ CRELEASE=-O3 -Wall -DNDEBUG -fcommon
 ARGS=
 
 # Valgrind flags
-MEMCHECK_FLAGS=--track-origins=yes --main-stacksize=8388608
+MEMCHECK_FLAGS=--track-origins=yes 
 HELGRIND_FLAGS=

@@ -51,7 +51,7 @@ void buffer_add_list_t_peticion_memoria(t_buffer* buffer, t_list* lista, uint32_
     buffer_add_uint32(buffer, size_lista);
 
     for (int i = 0; i < size_lista; i++){
-        tmp = list_get(lista, i);
+        tmp = (t_peticion_memoria*) list_get(lista, i);
         buffer_add_uint32(buffer, tmp->base);
         buffer_add_uint32(buffer, tmp->direccion_fisica);
         buffer_add_uint32(buffer, tmp->bytes);     
@@ -83,7 +83,7 @@ t_list* buffer_read_list_t_peticion_memoria(t_buffer* buffer){
 
 t_buffer* serializar_lista_de_t_peticion_memoria(t_list* lista){
     uint32_t largo_lista = (uint32_t) list_size(lista);
-    int size_lista_serializable = largo_lista * (3 * sizeof(t_peticion_memoria));
+    int size_lista_serializable = largo_lista * (3 * sizeof(uint32_t));
 
     uint32_t size = sizeof(uint32_t) +                // largo de la lista 
                     size_lista_serializable;          // largo total de elementos de la lista
@@ -133,7 +133,7 @@ bool gestionar_escritura_multipagina(int conexion_memoria, t_list* peticiones, u
 
     // verificamos lo enviado (buffer_test) (si la data es un entero, es normal que muestre datos ramdom si es un string)
     char* final_escrito = convertir_a_cadena_nueva(buffer_test, bytes);
-    log_info(logger, "PID: <%u> - Valor Final Escrito (%s)", pid, final_escrito);
+    log_debug(logger, "PID: <%u> - Valor Final Escrito De Gestion Escritura Multipagina (%s) de (%u) bytes", pid, final_escrito, bytes);
     free(final_escrito);
 
     // liberamos lo almacenado (buffer_test)
@@ -177,7 +177,7 @@ bool gestionar_lectura_multipagina(int conexion_memoria, t_list* peticiones, uin
 
     // verificamos lo leido (buffer_test) (si la data es un entero, es normal que muestre datos ramdom si es un string)
     char* final_leido = convertir_a_cadena_nueva(*data_leida, bytes);
-    log_info(logger, "PID: <%u> - Valor Final Leido (%s)", pid, final_leido);
+    log_debug(logger, "PID: <%u> - Valor Final Leido De Gestion Lectura Multipagina (%s) de (%u) bytes", pid, final_leido, bytes);
     free(final_leido);
 
     // verificando que la cantidad de bytes leidos coincide con lo esperado

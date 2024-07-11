@@ -101,6 +101,11 @@ void reducir_proceso(uint32_t pid, uint32_t tamanio){
     int cantidad_paginas_original, cantidad_paginas_nuevo;
     int diferencia_paginas, cantidad_paginas;
 
+    if(tamanio == 0){
+        vaciar_proceso(pid);
+        return;
+    }
+
     sem_wait(&mutex_lista_de_procesos);
         t_proceso* proceso = buscar_proceso((int) pid);
     sem_post(&mutex_lista_de_procesos);
@@ -144,4 +149,29 @@ void crear_tabla_de_paginas(uint32_t pid ,uint32_t tamanio){
     }
 
     proceso->tamanio = (int)tamanio;
+}
+
+void vaciar_proceso(uint32_t pid){
+    int cantidad_paginas;
+
+    sem_wait(&mutex_lista_de_procesos);
+        t_proceso* proceso = buscar_proceso((int) pid);
+    sem_post(&mutex_lista_de_procesos);
+
+    // da el tamanio en base 1
+    cantidad_paginas = proceso->tabla_paginas->elements_count;
+
+    for (int i = 0; i < cantidad_paginas; i++){
+        t_pagina* pagina = (t_pagina*) list_remove(proceso->tabla_paginas, (cantidad_paginas - 1) - i);
+
+        bitmap_marcar_bloque_como_libre(bitmap, (int) pagina->numero_frame);
+        liberar_elemento_pagina((void*) pagina);
+    }
+
+    list_destroy(proceso->tabla_paginas);
+
+    proceso->tamanio = 0;
+    proceso->tabla_paginas = NULL;
+
+    log_info(logger, "PID: <%d> - Sin Paginas ", pid);
 }

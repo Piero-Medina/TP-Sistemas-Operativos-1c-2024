@@ -96,7 +96,7 @@ void init_kernel(void){
 }
 
 void sigint_handler(int signum){
-    printf("\n Finalizando el servidor por señal... \n");
+    //printf("\n Finalizando el servidor por señal... \n");
     
     // finalizamos la ejecucion de cualquier hilo (que usa procesar_conexion_kernel) para que libere recursos correctamente
     procesar_conexion_en_ejecucion = false;
@@ -221,7 +221,7 @@ void liberar_colas(void){
 }
 
 void liberar_elemento_pcb(void* elemento){
-    printf("ELIMINADO ELEMENTO PCB\n");
+    //printf("ELIMINADO ELEMENTO PCB\n");
     t_PCB* tmp = (t_PCB*) elemento;
     liberar_PCB(tmp);
 }
@@ -235,12 +235,12 @@ void algorimo_elegido(void){
 
     if(strcmp(config->algoritmo_planificacion,"RR") == 0) {
         algoritmo_elegido = RR;
-        log_info(logger, "Se eligio el algoritmo de planificacion RR (Round Robin)");
+        log_info(logger, "Se eligio el algoritmo de planificacion RR");
     }
 
     if(strcmp(config->algoritmo_planificacion,"VRR") == 0) {
         algoritmo_elegido = VRR;
-        log_info(logger, "Se eligio el algoritmo de planificacion VRR (Virtual Round Robin)");
+        log_info(logger, "Se eligio el algoritmo de planificacion VRR");
     }
 }
 

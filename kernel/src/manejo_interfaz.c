@@ -119,7 +119,7 @@ void verificar_operacion_generica(int conexion, char* nombre_interfaz, t_PCB* pc
 
         // aca dentro se actualiza el contexto de ejecucion
         if(mover_execute_a_blocked(pcb) == false){
-           log_info(logger, "PID: <%u> - interceptado antes de bloquearse", pcb->pid);
+           log_debug(logger, "PID: <%u> - interceptado antes de bloquearse", pcb->pid);
            return; // salimos de la funcion
         }
 
@@ -175,7 +175,7 @@ void verificar_operacion_stdin(int conexion, char* nombre_interfaz, t_PCB* pcb){
 
         // aca dentro se actualiza el contexto de ejecucion
         if(mover_execute_a_blocked(pcb) == false){
-           log_info(logger, "PID: <%u> - interceptado antes de bloquearse", pcb->pid);
+           log_debug(logger, "PID: <%u> - interceptado antes de bloquearse", pcb->pid);
            liberar_lista_de_peticiones_memoria(direcciones); 
            return; // salimos de la funcion
         }
@@ -202,6 +202,10 @@ void verificar_operacion_stdout(int conexion, char* nombre_interfaz, t_PCB* pcb)
         ignorar_op_code(conexion);
         t_list* direcciones = recibir_lista_peticiones_memoria(conexion); //
         sem_post(&mutex_conexion_cpu_dispatch); // terminamos de recibir todos los datos
+
+        //log_warning(logger, "Imprimimos peticiones Recien llegadas");
+        //printf("Imprimimos peticiones Recien llegadas \n");
+        //imprimir_lista_peticion_memoria(direcciones);
 
         // si entra, se mando a finalizar al proceso antes de que llegue de CPU
         ////////////////////////////////////////////////////////////////////// 
@@ -233,7 +237,7 @@ void verificar_operacion_stdout(int conexion, char* nombre_interfaz, t_PCB* pcb)
 
         // aca dentro se actualiza el contexto de ejecucion
         if(mover_execute_a_blocked(pcb) == false){
-           log_info(logger, "PID: <%u> - interceptado antes de bloquearse", pcb->pid);
+           log_debug(logger, "PID: <%u> - interceptado antes de bloquearse", pcb->pid);
            liberar_lista_de_peticiones_memoria(direcciones); 
            return; // salimos de la funcion
         }
@@ -291,7 +295,7 @@ void verificar_operacion_dialFs(int conexion, char* nombre_interfaz, t_PCB* pcb)
 
             // aca dentro se actualiza el contexto de ejecucion
             if(mover_execute_a_blocked(pcb) == false){
-                log_info(logger, "PID: <%u> - interceptado antes de bloquearse", pcb->pid);
+                log_debug(logger, "PID: <%u> - interceptado antes de bloquearse", pcb->pid);
                 free(nombre_archivo);
                 break; // salimos de la funcion
             }
@@ -342,7 +346,7 @@ void verificar_operacion_dialFs(int conexion, char* nombre_interfaz, t_PCB* pcb)
 
             // aca dentro se actualiza el contexto de ejecucion
             if(mover_execute_a_blocked(pcb) == false){
-                log_info(logger, "PID: <%u> - interceptado antes de bloquearse", pcb->pid);
+                log_debug(logger, "PID: <%u> - interceptado antes de bloquearse", pcb->pid);
                 free(nombre_archivo);
                 break; // salimos de la funcion
             }
@@ -395,7 +399,7 @@ void verificar_operacion_dialFs(int conexion, char* nombre_interfaz, t_PCB* pcb)
 
             // aca dentro se actualiza el contexto de ejecucion
             if(mover_execute_a_blocked(pcb) == false){
-                log_info(logger, "PID: <%u> - interceptado antes de bloquearse", pcb->pid);
+                log_debug(logger, "PID: <%u> - interceptado antes de bloquearse", pcb->pid);
                 free(nombre_archivo);
                 break; // salimos de la funcion
             }
@@ -453,7 +457,7 @@ void verificar_operacion_dialFs(int conexion, char* nombre_interfaz, t_PCB* pcb)
 
             // aca dentro se actualiza el contexto de ejecucion
             if(mover_execute_a_blocked(pcb) == false){
-                log_info(logger, "PID: <%u> - interceptado antes de bloquearse", pcb->pid);
+                log_debug(logger, "PID: <%u> - interceptado antes de bloquearse", pcb->pid);
                 free(nombre_archivo);
                 liberar_lista_de_peticiones_memoria(direcciones); 
                 break; // salimos de la funcion
@@ -512,7 +516,7 @@ void verificar_operacion_dialFs(int conexion, char* nombre_interfaz, t_PCB* pcb)
 
             // aca dentro se actualiza el contexto de ejecucion
             if(mover_execute_a_blocked(pcb) == false){
-                log_info(logger, "PID: <%u> - interceptado antes de bloquearse", pcb->pid);
+                log_debug(logger, "PID: <%u> - interceptado antes de bloquearse", pcb->pid);
                 free(nombre_archivo);
                 liberar_lista_de_peticiones_memoria(direcciones); 
                 break; // salimos de la funcion
@@ -554,7 +558,7 @@ bool validar_existencia_nombre_interfaz(t_dictionary* diccionario, int operacion
         // ejemplo (IO_GEN_SLEEP)
         char* nombre_operacion = convertir_a_string(operacion);
 
-        log_info(logger, "PID: <%u> - PETICION_IO - operacion <%s> (Denegada porque no existe la interfaz (%s) en el Kernel)", pcb->pid, nombre_operacion, nombre_interfaz);
+        log_debug(logger, "PID: <%u> - PETICION_IO - operacion <%s> (Denegada porque no existe la interfaz (%s) en el Kernel)", pcb->pid, nombre_operacion, nombre_interfaz);
             
         char* motivo = obtener_motivo_salida(SALIDA_INVALID_INTERFACE, nombre_interfaz);
         mover_execute_a_exit(pcb, motivo); // aca dentro se actualiza el contexto de ejecucion
@@ -571,9 +575,10 @@ bool validar_que_interfaz_admita_operacion(t_interfaz* interfaz, int operacion, 
         // ejemplo (IO_GEN_SLEEP)
         char* nombre_operacion = convertir_a_string(operacion);
 
-        log_info(logger, "PID: <%u> - PETICION_IO - operacion <%s> (Denegada porque la interfaz (%s) no admite la operacion (%s))", pcb->pid, nombre_operacion, nombre_interfaz, nombre_operacion);
-            
-        char* motivo = obtener_motivo_salida(SALIDA_INVALID_INTERFACE_OPERATION, "IO_GEN_SLEEP");
+        log_debug(logger, "PID: <%u> - PETICION_IO - operacion <%s> (Denegada porque la interfaz (%s) no admite la operacion (%s))", pcb->pid, nombre_operacion, nombre_interfaz, nombre_operacion);
+
+        char* operacion_string = convertir_a_string(operacion);    
+        char* motivo = obtener_motivo_salida(SALIDA_INVALID_INTERFACE_OPERATION, operacion_string);
         mover_execute_a_exit(pcb, motivo);
         free(motivo);
 
@@ -658,6 +663,9 @@ void solicitar_IO_STDOUT_WRITE(int conexion_interfaz, t_io_pendiente* pendiente)
     // se enviar el pid del proceso | tamanio en bytes 
     enviar_generico_doble_entero(conexion_interfaz, SOLICITUD_IO_STDOUT_WRITE, pendiente->pid, pendiente->parametro_int_1);
     // se envia direcciones
+    //log_warning(logger, "Imprimimos peticiones para ver si un = basta");
+    //printf("Imprimimos peticiones a Enviar para ver si un = basta \n");
+    //imprimir_lista_peticion_memoria(pendiente->peticiones_memoria);
     enviar_lista_peticiones_memoria(conexion_interfaz, IGNORAR_OP_CODE, pendiente->peticiones_memoria);
 }
 
@@ -724,7 +732,7 @@ int posicion_de_pcb_por_pid(int pid, t_list* lista){
 		indirect = &(*indirect)->next;
         contador++;
 	}
-    log_error(logger, "funcion (posicion_de_pcb_por_pid) arrojo un -1 \n");
+    log_debug(logger, "funcion (posicion_de_pcb_por_pid) arrojo un -1 \n");
     contador = -1;
 
     return contador;

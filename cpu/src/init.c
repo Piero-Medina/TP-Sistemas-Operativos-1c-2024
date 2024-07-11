@@ -33,7 +33,7 @@ void escuchar_interrupt(void *arg){
 }
 
 void sigint_handler(int signum){
-    printf("\n Finalizando el servidor por señal... \n");
+    //printf("\n Finalizando el servidor por señal... \n");
     
     // finalizamos la ejecucion de cualquier hilo (que usa procesar_conexion_io) para que libere recursos correctamente
     procesar_conexion_en_ejecucion = false;
@@ -81,12 +81,12 @@ void algorimo_usado(void){
     if(tlb_habilitada){
         if(strcmp(config->algoritmo_tlb, "FIFO") == 0) {
             algoritmo_elegido = FIFO;
-            log_info(logger, "Se eligio el algoritmo de reemplazo FIFO");
+            log_info(logger, "Se eligio el algoritmo de reemplazo FIFO \n");
         }
 
         if(strcmp(config->algoritmo_tlb,"LRU") == 0) {
             algoritmo_elegido = LRU;
-            log_info(logger, "Se eligio el algoritmo de reemplazo LRU");
+            log_info(logger, "Se eligio el algoritmo de reemplazo LRU \n");
         }
     }
 }

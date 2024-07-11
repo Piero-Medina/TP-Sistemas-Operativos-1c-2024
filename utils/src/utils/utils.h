@@ -20,7 +20,7 @@
 
 #include <pcb/pcb.h>
 
-#define MAX_SIZE 80
+#define MAX_SIZE 500
 
 // abre un archivo en modo lectura
 FILE* leer_archivo(char *path);

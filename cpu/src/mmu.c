@@ -1,10 +1,11 @@
 #include "mmu.h"
 
 int MMU(int direccion_logica, int tamanio_pagina, uint32_t pid, uint32_t bytes, t_list* peticiones){
-    log_info(logger, "direccion logica (%d)", direccion_logica);
+    log_debug(logger, "direccion logica (%d)", direccion_logica);
     uint32_t numero_pagina = (uint32_t)floor(direccion_logica / tamanio_pagina_memoria);
-    log_info(logger, "numero de pagina (%u)", numero_pagina);
+    log_debug(logger, "numero de pagina (%u)", numero_pagina);
     int desplazamiento = direccion_logica - numero_pagina * tamanio_pagina;
+    log_debug(logger, "desplazamiento (%u)", desplazamiento);
 
     int leer_hasta = (desplazamiento + bytes) - 1; // Asumiendo 0 desde la pagina en la que se situa.
     //int leer_hasta_absoluto = (numero_pagina * tamanio_pagina) + ((desplazamiento + bytes) - 1);
@@ -22,7 +23,7 @@ int MMU(int direccion_logica, int tamanio_pagina, uint32_t pid, uint32_t bytes, 
     printf("pedazito_inicial: %d\n", pedazito_inicial);
     */
    
-    log_info(logger, "Paginas necesarias: %d", paginas);
+    log_debug(logger, "Paginas necesarias: %d", paginas);
 
     t_peticion_memoria* peticion = NULL;
     uint32_t direccion_fisica;
@@ -35,20 +36,20 @@ int MMU(int direccion_logica, int tamanio_pagina, uint32_t pid, uint32_t bytes, 
             return estado;
         }
 
-        peticion = crear_peticion_memoria(0, direccion_fisica, bytes);
+        peticion = crear_peticion_memoria(1, direccion_fisica, bytes);
         list_add(peticiones, (void*)peticion);
         peticion = NULL;
     }
     
     if(restante > 0){
-        printf("bytes iniciales: %d\n", bytes);
+        log_debug(logger, "bytes iniciales: %u", bytes);
         int tmp = tamanio_pagina;
 
         if(restante < tamanio_pagina){
             tmp = tamanio_pagina - restante;
         }
 
-        // el dsplazamiento nunca supera al tamanio de pagina
+        // el desplazamiento nunca supera al tamanio de pagina
         if(pedazito_inicial != 0){
             tmp = pedazito_inicial;
         }
@@ -59,14 +60,15 @@ int MMU(int direccion_logica, int tamanio_pagina, uint32_t pid, uint32_t bytes, 
             return estado;
         }
 
-        peticion = crear_peticion_memoria(0, direccion_fisica, tmp);
+        peticion = crear_peticion_memoria(1, direccion_fisica, tmp);
         list_add(peticiones, (void*)peticion);
         peticion = NULL;
         
         paginas -= 1;
         for(int i = 0; i < paginas; i++){
             if(restante > 0){
-                printf("restante for: %d\n", restante);
+                log_debug(logger, "restante en el for: %d ", restante);
+
                 numero_pagina += 1;
 
                 if(restante <= tamanio_pagina){
@@ -82,7 +84,7 @@ int MMU(int direccion_logica, int tamanio_pagina, uint32_t pid, uint32_t bytes, 
                     return estado;
                 }
 
-                peticion = crear_peticion_memoria(0, direccion_fisica, tmp);
+                peticion = crear_peticion_memoria(1, direccion_fisica, tmp);
                 list_add(peticiones, (void*)peticion);
                 peticion = NULL;
                 restante -= tamanio_pagina;
@@ -125,10 +127,10 @@ int obtener_direccion_fisica(uint32_t numero_pagina, uint32_t pid, int desplazam
 
     if(marco == -1){
         if(tlb_habilitada){
-            log_info(logger, "No se encontró entrada [Pid (%u)|Pagina (%u)] en la TLB", pid, numero_pagina);
+            //log_info(logger, "No se encontró entrada [Pid (%u)|Pagina (%u)] en la TLB", pid, numero_pagina);
         }
 
-        log_info(logger, "Solicitando numero de marco a Memoria");
+        log_debug(logger, "Solicitando numero de marco a Memoria");
         enviar_generico_doble_entero(conexion_memoria, SOLICITUD_MARCO_MEMORIA, pid, numero_pagina);
 
         int estado = recibo_generico_op_code(conexion_memoria);
@@ -143,7 +145,7 @@ int obtener_direccion_fisica(uint32_t numero_pagina, uint32_t pid, int desplazam
         }
 
         if(tlb_habilitada){
-            log_warning(logger, "Agregando entrada [Pid (%u)|Pagina (%u)|Marco (%"PRId32")] en la TLB", pid, numero_pagina, marco);
+            log_info(logger, "Agregando entrada [Pid %u|Pagina %u|Marco %"PRId32"] en la TLB", pid, numero_pagina, marco);
             agregar_entrada_tlb(tlb, algoritmo_elegido, (int32_t)pid, (int32_t)numero_pagina, (int32_t)marco);
         }
 
@@ -152,7 +154,7 @@ int obtener_direccion_fisica(uint32_t numero_pagina, uint32_t pid, int desplazam
 
     }
     else{
-        log_warning(logger, "Se encontró entrada [Pid (%u)|Pagina (%u)|Marco (%"PRId32")] en la TLB", pid, numero_pagina, marco);
+        log_warning(logger, "Se encontró entrada [Pid %u|Pagina %u|Marco %"PRId32"] en la TLB", pid, numero_pagina, marco);
         *direccion_fisica = (marco * tamanio_pagina) + desplazamiento;
         return MMU_OK;
     }

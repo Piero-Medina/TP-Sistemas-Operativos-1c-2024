@@ -75,7 +75,7 @@ int32_t buscar_entrada_tlb(t_list* tlb, algoritmo algoritmo_elegido, int32_t pid
 		t_entrada_tlb* entrada = (t_entrada_tlb*) list_get(tlb, i);
 
 		if ((entrada->pid == pid) && (entrada->pagina == numero_pagina)){
-			log_warning(logger, "PID: <%d> - TLB HIT - Pagina: <%d>", (int)pid, (int)entrada->pagina);
+			log_info(logger, "PID: <%d> - TLB HIT - Pagina: <%d>", (int)pid, (int)entrada->pagina);
 
 			if(algoritmo_elegido == LRU){
 				gettimeofday(&entrada->instante_ultima_referencia, NULL);
@@ -85,7 +85,7 @@ int32_t buscar_entrada_tlb(t_list* tlb, algoritmo algoritmo_elegido, int32_t pid
 		}
 	}
 
-    log_warning(logger, "PID: <%d> - TLB MISS - Pagina: <%d>", (int)pid, (int)numero_pagina);
+    log_info(logger, "PID: <%d> - TLB MISS - Pagina: <%d>", (int)pid, (int)numero_pagina);
 	return -1;
 }
 

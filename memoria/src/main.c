@@ -17,7 +17,7 @@ int server_fd;
 
 int main(int argc, char* argv[]) {
     
-    logger = iniciar_logger("memoria.log", "MEMORIA");
+    logger = iniciar_logger("memoria.log", "MEMORIA", LOG_LEVEL_INFO);
     log_info(logger, "Iniciando Modulo MEMORIA \n");
 
     config = init_memoria_config("memoria.config");

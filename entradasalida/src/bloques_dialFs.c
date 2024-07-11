@@ -11,7 +11,7 @@ void crear_archivo_de_bloques(char* path_bloques){
         log_error(logger,"Error al truncar el Archivo de Bloques");
     }
 
-    log_info(logger, "Archivo de bloques (%s) levantado", path_bloques);
+    log_debug(logger, "Archivo de bloques (%s) levantado", path_bloques);
 
     close(file_descriptor);
 }
@@ -93,7 +93,7 @@ char* crear_copia_archivo_de_bloque(void){
 
     while ((bytes = fread(buffer, sizeof(char), MAX_READ, original)) > 0) {
         if (fwrite(buffer, sizeof(char), bytes, copia) != bytes) {
-            perror("Error escribiendo en el archivo de destino");
+            log_error(logger, "Error escribiendo en el archivo de destino");
             cerrar_archivo_de_bloques(original);
             cerrar_archivo(copia);
             free(buffer);
@@ -113,7 +113,7 @@ void eliminar_copia_archivo_de_bloque(void){
     path_bloques_copia = concatenar_ruta(config->path_base_dialfs, "bloques_copia.dat");
 
     if(remove(path_bloques_copia) != 0){
-        perror("no se puedo eliminar el archivo copia \n");
+        log_error(logger,"no se pudo eliminar el archivo copia");
     }
 
     free(path_bloques_copia);

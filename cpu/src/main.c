@@ -26,7 +26,7 @@ int tamanio_pagina_memoria;
 
 int main(int argc, char* argv[]) {
     
-    logger = iniciar_logger("cpu.log", "CPU");
+    logger = iniciar_logger("cpu.log", "CPU", LOG_LEVEL_INFO);
     log_info(logger, "Iniciando Modulo CPU \n");
     
     config = init_cpu_config("cpu.config");

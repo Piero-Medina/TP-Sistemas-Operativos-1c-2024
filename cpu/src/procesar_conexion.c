@@ -9,7 +9,7 @@ void procesar_conexion_kernel(void *args){
 
     while (procesar_conexion_en_ejecucion) {
         int cod_op = recibir_operacion(socket);
-        log_info(logger_c, "Se recibió el cod operacion %d en %s", cod_op, nombre_servidor);
+        log_debug(logger_c, "Se recibió el cod operacion %d en %s", cod_op, nombre_servidor);
         switch (cod_op) {
             case HANDSHAKE:
                 char* modulo = recibir_handshake(socket);
@@ -19,7 +19,7 @@ void procesar_conexion_kernel(void *args){
                 free(modulo);
                 break;
             case EJECUTAR_PROCESO:
-                log_info(logger_c, "Solicitud de EJECUTAR_PROCESO");
+                log_debug(logger_c, "Solicitud de EJECUTAR_PROCESO");
                 t_PCB* pcb_a_ejecutar = recibir_pcb(socket);
                 log_info(logger_c, "Iniciando ciclo de instruccion para PID <%u>", pcb_a_ejecutar->pid);
                 ejecutar_ciclo_de_instruccion(socket, pcb_a_ejecutar);
@@ -27,7 +27,7 @@ void procesar_conexion_kernel(void *args){
                 liberar_PCB(pcb_a_ejecutar);
                 break;
             case DESALOJO:
-                log_info(logger_c, "Solicitud de DESALOJO");
+                log_warning(logger_c, "Solicitud de DESALOJO");
                 sem_wait(&mutex_desalojo);
                     desalojo = true;
                 sem_post(&mutex_desalojo);

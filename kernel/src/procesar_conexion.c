@@ -11,7 +11,7 @@ void procesar_conexion_io(void *args){
 
     while (procesar_conexion_en_ejecucion) {
         int cod_op = recibir_operacion(socket);
-        log_info(logger_k, "Se recibió el cod operacion (%d) en %s", cod_op, nombre_servidor);
+        log_debug(logger_k, "Se recibió el cod operacion (%d) en %s", cod_op, nombre_servidor);
 
         if(sistema_detenido){
             stop_io = true;
@@ -32,7 +32,7 @@ void procesar_conexion_io(void *args){
             {
                 uint32_t tipo_interfaz;
                 recibir_generico_entero_string(socket, &tipo_interfaz, &nombre_interfaz);
-                log_info(logger_k, "Recibiendo nombre y tipo de Interfaz: (%s) \n", nombre_interfaz);
+                log_debug(logger_k, "Recibiendo nombre y tipo de Interfaz: (%s) \n", nombre_interfaz);
             
                 sem_wait(&mutex_diccionario_interfaces);
                     agregar_interfaz(interfaces, nombre_interfaz, socket, (int)tipo_interfaz);
@@ -60,7 +60,7 @@ void procesar_conexion_io(void *args){
                     t_PCB* pcb = buscar_pcb_por_pid_y_obtener((int)pid, cola_blocked->elements);
                 sem_post(&mutex_cola_blocked);
 
-                //log_info(logger, "PID: <%u> - Solicitud de IO_GEN_SLEEP Finalizada estado (TODO_OK)", pid);
+                //log_debug(logger, "PID: <%u> - Solicitud de IO_GEN_SLEEP Finalizada estado (TODO_OK)", pid);
                 gestor_blocked_a_ready_segun_algoritmo(algoritmo_elegido, pcb);
 
                 // removemos y liberamos memoria de un (t_io_pendiente*)
@@ -91,7 +91,7 @@ void procesar_conexion_io(void *args){
                     t_PCB* pcb = buscar_pcb_por_pid_y_obtener((int)pid, cola_blocked->elements);
                 sem_post(&mutex_cola_blocked);
 
-                //log_info(logger, "PID: <%u> - Solicitud de IO_STDIN_READ Finalizada estado (TODO_OK)", pid);
+                //log_debug(logger, "PID: <%u> - Solicitud de IO_STDIN_READ Finalizada estado (TODO_OK)", pid);
                 gestor_blocked_a_ready_segun_algoritmo(algoritmo_elegido, pcb);
 
                 // removemos y liberamos memoria de un (t_io_pendiente*)
@@ -122,7 +122,7 @@ void procesar_conexion_io(void *args){
                     t_PCB* pcb = buscar_pcb_por_pid_y_obtener((int)pid, cola_blocked->elements);
                 sem_post(&mutex_cola_blocked);
 
-                //log_info(logger, "PID: <%u> - Solicitud de IO_STDOUT_WRITE Finalizada estado (TODO_OK)", pid);
+                //log_debug(logger, "PID: <%u> - Solicitud de IO_STDOUT_WRITE Finalizada estado (TODO_OK)", pid);
                 gestor_blocked_a_ready_segun_algoritmo(algoritmo_elegido, pcb);
 
                 // removemos y liberamos memoria de un (t_io_pendiente*)
@@ -396,7 +396,7 @@ void procesar_conexion_cpu_dispatch(void *args){
 
     while (procesar_conexion_en_ejecucion) {
         int cod_op = recibir_operacion(conexion_cpu_dispatch); // bloqueante
-        log_info(logger, "Se recibió el cod operacion (%d) de el server %s", cod_op, nombre_modulo_server);
+        log_debug(logger, "Se recibió el cod operacion (%d) de el server %s", cod_op, nombre_modulo_server);
         
         if(sistema_detenido){
             stop_cpu_dispatch = true;
@@ -431,12 +431,12 @@ void procesar_conexion_cpu_dispatch(void *args){
 
                 if((algoritmo_elegido == VRR) && (pcb->quantum != 0)){
                     if(mover_execute_a_ready_aux(pcb) == false){
-                        log_info(logger, "PID: <%u> - interceptado antes de pasar a READY AUX", pcb->pid);
+                        log_debug(logger, "PID: <%u> - interceptado antes de pasar a READY AUX", pcb->pid);
                     }
                 }
                 else{
                     if(mover_execute_a_ready(pcb) == false){
-                        log_info(logger, "PID: <%u> - interceptado antes de pasar a READY", pcb->pid); 
+                        log_debug(logger, "PID: <%u> - interceptado antes de pasar a READY", pcb->pid); 
                     }
                 }
 
@@ -482,6 +482,7 @@ void procesar_conexion_cpu_dispatch(void *args){
 
 						// metemos la pcb actualizada, de modo que no haga falta actualizarla cuando se desbloquee
                         log_info(logger, "PID: <%u> - WAIT: (%s) - Instancias: (%d) - Se Bloquea", pcb->pid, nombre_recurso, recurso->instancias);
+                        
                         log_info(logger, "PID: <%u> - Bloqueado por: <RECURSO (%s)>", pcb->pid, nombre_recurso);
                         
                         queue_push(recurso->cola_recurso, (void*) pcb);
@@ -504,7 +505,7 @@ void procesar_conexion_cpu_dispatch(void *args){
                     //snprintf(motivo, 50, "INVALID_RESOURCE (%s)", nombre_recurso); // agregar al final '\0'
                     
                     if(mover_execute_a_exit(pcb, motivo) == false){
-                        log_info(logger, "PID: <%u> - interceptado antes de pasar a exit con el motivo <%s>", pcb->pid, motivo);
+                        log_debug(logger, "PID: <%u> - interceptado antes de pasar a exit con el motivo <%s>", pcb->pid, motivo);
                     }
 
                     free(motivo);
@@ -568,7 +569,7 @@ void procesar_conexion_cpu_dispatch(void *args){
                     //snprintf(motivo, 50, "INVALID_RESOURCE (%s)", nombre_recurso); // agregar al final '\0'
 
                     if(mover_execute_a_exit(pcb, motivo) == false){
-                        log_info(logger, "PID: <%u> - interceptado antes de pasar a exit con el motivo <%s>", pcb->pid, motivo);
+                        log_debug(logger, "PID: <%u> - interceptado antes de pasar a exit con el motivo <%s>", pcb->pid, motivo);
                     }
 
                     free(motivo);
@@ -611,6 +612,8 @@ void procesar_conexion_cpu_dispatch(void *args){
                 int motivo_salida = recibo_generico_op_code(conexion_cpu_dispatch);
                 sem_post(&mutex_conexion_cpu_dispatch);
 
+                log_info(logger, "PID: <%u> - PROCESO_FINALIZADO", pcb->pid);
+
                 // si entra, se mando a finalizar al proceso antes de que llegue de CPU
                 //////////////////////////////////////////////////////////////////////
                 if(pendiente_de_finalizacion_fuera_de_kernel(pcb)){
@@ -623,7 +626,7 @@ void procesar_conexion_cpu_dispatch(void *args){
                 // posibles: success|out_of_memory|segmentation_fault
                 char* motivo = obtener_motivo_salida(motivo_salida, NULL);
                 if(mover_execute_a_exit(pcb, motivo) == false){
-                    log_info(logger, "PID: <%u> - interceptado antes de pasar a exit con el motivo <%s>", pcb->pid, motivo);
+                    log_debug(logger, "PID: <%u> - interceptado antes de pasar a exit con el motivo <%s>", pcb->pid, motivo);
                 }
                 free(motivo);
 

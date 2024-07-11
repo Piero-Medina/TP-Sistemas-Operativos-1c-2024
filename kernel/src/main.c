@@ -33,7 +33,7 @@ pthread_t hilo_cpu_dispatch;
 
 int main(int argc, char* argv[]) {
 
-    logger = iniciar_logger_oculto("kernel.log", "KERNEL");
+    logger = iniciar_logger_oculto("kernel.log", "KERNEL", LOG_LEVEL_INFO);
     log_info(logger, "Iniciando Modulo Kernel \n");
    
     config = init_kernel_config("kernel.config");

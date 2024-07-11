@@ -169,7 +169,7 @@ void func_iniciar_proceso(char* leido){
 
     char* modificado = remover_primer_char_si_machea(split[1], '/'); ////
 
-    log_info(logger, "Avisando a Memoria sobre la entrada de Nuevo Preceso PID: <%u> ", pcb->pid);
+    log_debug(logger, "Avisando a Memoria sobre la entrada de Nuevo Preceso PID: <%u> ", pcb->pid);
     sem_wait(&mutex_conexion_memoria);
         envio_generico_entero_y_string(conexion_memoria, NUEVO_PROCESO_MEMORIA, pcb->pid, modificado);
         validar_respuesta_op_code(conexion_memoria, MEMORIA_OK, logger);
@@ -320,7 +320,7 @@ void func_proceso_estado(void){
     printf("Procesos en READY: %s \n", lista_ready);
 
     if(algoritmo_elegido == VRR){ 
-        printf("Proceso en READY AUX: %s \n", lista_ready_aux);
+        printf("Procesos en READY AUX: %s \n", lista_ready_aux);
     }
 
     printf("Procesos en EXECUTE: %s \n", lista_execute);
@@ -374,8 +374,11 @@ bool finalizar_proceso_NEW(int pid){
     }
 
     if(pcb != NULL){
-        log_info(logger, "Finalizando PID: <%u> que estaba en estado <NEW>", pcb->pid);
-        mandar_a_exit(pcb, "FINALIZADO POR CONSOLA INTERACTIVA");
+        log_debug(logger, "Finalizando PID: <%u> que estaba en estado <NEW>", pcb->pid);
+
+        char* motivo = obtener_motivo_salida(SALIDA_INTERRUPTED_BY_USER, NULL);
+        mandar_a_exit(pcb, motivo);
+        free(motivo);
         sem_wait(&sem_procesos_esperando_en_new);
 
         sem_post(&sem_grado_multiprogramacion);
@@ -395,8 +398,11 @@ bool finalizar_proceso_READY(int pid){
     }
 
     if(pcb != NULL){
-        log_info(logger, "Finalizando PID: <%u> que estaba en estado <READY>", pcb->pid);
-        mandar_a_exit(pcb, "FINALIZADO POR CONSOLA INTERACTIVA");
+        log_debug(logger, "Finalizando PID: <%u> que estaba en estado <READY>", pcb->pid);
+
+        char* motivo = obtener_motivo_salida(SALIDA_INTERRUPTED_BY_USER, NULL);
+        mandar_a_exit(pcb, motivo);
+        free(motivo);
         sem_wait(&sem_procesos_esperando_en_ready);
 
         sem_post(&sem_grado_multiprogramacion);
@@ -416,8 +422,11 @@ bool finalizar_proceso_READY_AUX(int pid){
     }
 
     if(pcb != NULL){
-        log_info(logger, "Finalizando PID: <%u> que estaba en estado <READY_AUX>", pcb->pid);
-        mandar_a_exit(pcb, "FINALIZADO POR CONSOLA INTERACTIVA");
+        log_debug(logger, "Finalizando PID: <%u> que estaba en estado <READY_AUX>", pcb->pid);
+
+        char* motivo = obtener_motivo_salida(SALIDA_INTERRUPTED_BY_USER, NULL);
+        mandar_a_exit(pcb, motivo);
+        free(motivo);
         sem_wait(&sem_procesos_esperando_en_ready);
 
         sem_post(&sem_grado_multiprogramacion);
@@ -453,8 +462,11 @@ bool finalizar_proceso_BLOCKED_RECURSO(int pid){
     }
 
     if(pcb != NULL){
-        log_info(logger, "Finalizando PID: <%u> que estaba en estado <BLOCKED_RECURSO>", pcb->pid);
-        mandar_a_exit(pcb, "FINALIZADO POR CONSOLA INTERACTIVA");
+        log_debug(logger, "Finalizando PID: <%u> que estaba en estado <BLOCKED_RECURSO>", pcb->pid);
+        
+        char* motivo = obtener_motivo_salida(SALIDA_INTERRUPTED_BY_USER, NULL);
+        mandar_a_exit(pcb, motivo);
+        free(motivo);
 
         sem_post(&sem_grado_multiprogramacion);
     }
@@ -495,7 +507,7 @@ bool finalizar_proceso_EXECUTE(int pid){
         sem_wait(&mutex_proceso_en_ejecucion);
         if(proceso_en_ejecucion){
             // luego que llegue el proceso nos encargamos de dejar la cpu libre y mandar a exit en el case.
-            log_info(logger, "PID <%u> pendiente de Finalizacion cuando vuelva de CPU", pcb->pid);
+            log_debug(logger, "PID <%u> pendiente de Finalizacion cuando vuelva de CPU", pcb->pid);
             
             // con esto treamos el proceso de CPU en caso que no este
             sem_wait(&mutex_conexion_cpu_interrupt);
@@ -506,7 +518,7 @@ bool finalizar_proceso_EXECUTE(int pid){
         }
         else{
             // antes de cada transicion hacer un if y mandarlo a exit | capas usamos una varibale global
-            log_info(logger, "PID <%u> pendiente de Finalizacion ante una transicion", pcb->pid);
+            log_debug(logger, "PID <%u> pendiente de Finalizacion ante una transicion", pcb->pid);
             finalizacion_execute_dentro_kernel = true;
         }
         sem_post(&mutex_proceso_en_ejecucion);
@@ -559,8 +571,11 @@ bool finalizar_proceso_BLOCKED(int pid){
                 // si entramos aca es porque aun no realizo su io
                 pcb = buscar_pcb_por_pid_y_remover(pid, cola_blocked->elements);
                 
-                log_info(logger, "Finalizando PID: <%u> que estaba en estado <BLOCKED>", pcb->pid);
-                mandar_a_exit(pcb, "FINALIZADO POR CONSOLA INTERACTIVA");
+                log_debug(logger, "Finalizando PID: <%u> que estaba en estado <BLOCKED>", pcb->pid);
+
+                char* motivo = obtener_motivo_salida(SALIDA_INTERRUPTED_BY_USER, NULL);
+                mandar_a_exit(pcb, motivo);
+                free(motivo);
                 sem_wait(&sem_peticiones_io_por_procesar);
 
                 sem_post(&sem_grado_multiprogramacion);
@@ -583,7 +598,7 @@ bool finalizar_proceso_BLOCKED(int pid){
             sem_wait(&mutex_victimas_pendientes_io);
                 list_add(victimas_pendientes_io, (void*) victima);
             sem_post(&mutex_victimas_pendientes_io);    
-            log_info(logger, "Finalizacion PID: <%d> pendiente por estar ejecutando IO", pid);
+            log_debug(logger, "Finalizacion PID: <%d> pendiente por estar ejecutando IO", pid);
         }
 
         list_destroy(lista_interfaces);

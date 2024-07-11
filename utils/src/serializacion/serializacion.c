@@ -28,13 +28,21 @@ t_paquete* paquete_create_with_buffer_null(uint8_t codigo_operacion){
 }
 
 t_buffer* buffer_create(uint32_t size){
-    t_buffer* buffer = malloc(sizeof(t_buffer));
+   t_buffer* buffer = malloc(sizeof(t_buffer));
 
-    buffer->offset = 0;
-    buffer->size = size;
-    buffer->stream = malloc(buffer->size);
+   if(buffer == NULL){
+      printf("ERROR al inicializar memoria en buffer_create() \n");
+   }
 
-    return buffer;
+   buffer->offset = 0;
+   buffer->size = size;
+   buffer->stream = malloc(buffer->size);
+
+   if(buffer->stream == NULL){
+      printf("ERROR al inicializar memoria en buffer_create() \n");
+   }
+
+   return buffer;
 }
 
 void buffer_add(t_buffer* buffer, void* data, uint32_t size){

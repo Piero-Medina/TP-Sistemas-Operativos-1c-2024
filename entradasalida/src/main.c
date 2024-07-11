@@ -36,7 +36,7 @@ int main(int argc, char* argv[]) {
     char *nombre_interfaz = argv[1];
     char *archivo_configuracion = argv[2];
 
-    logger = iniciar_logger("entradaSalida.log", nombre_interfaz);
+    logger = iniciar_logger("entradaSalida.log", nombre_interfaz, LOG_LEVEL_INFO);
     log_info(logger, "Iniciando Modulo ENTRADA_SALIDA de nombre (%s) \n", nombre_interfaz);
 
     tipo_de_interfaz_elegido(archivo_configuracion);

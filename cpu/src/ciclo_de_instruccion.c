@@ -14,13 +14,12 @@ void ejecutar_ciclo_de_instruccion(int conexion, t_PCB* pcb){
     bool proceso_sigue_en_cpu = true;
     
     do {
-        log_info(logger, "PID: <%u> - FETCH - Program Counter: <%d>", pcb->pid, pcb->program_counter);
+        log_warning(logger, "PID: <%u> - FETCH - Program Counter: <%d>", pcb->pid, pcb->program_counter);
         
         solicitar_intruccion_a_memoria(conexion_memoria, SOLICITAR_INTRUCCION_MEMORIA, pcb->pid, pcb->program_counter);
         ignorar_op_code(conexion_memoria);
         instruccion = recibir_instruccion(conexion_memoria);
 
-        // MOV_IN, MOV_OUT, RESIZE, COPY_STRING, IO_STDIN_READ,IO_STDOUT_WRITE
         switch (instruccion->identificador){
             case SET:
             {
@@ -40,12 +39,13 @@ void ejecutar_ciclo_de_instruccion(int conexion, t_PCB* pcb){
                 char* registro_datos = (char*) list_get(instruccion->parametros, 0);
                 char* registro_direccion = (char*) list_get(instruccion->parametros, 1);
 
-                log_info(logger, "PID: <%u> - Ejecutando: <MOV_IN> - <%s> - <%s>", pcb->pid, registro_datos, registro_direccion);
+                int entero_registro_datos = (int)get_registro(pcb, obtener_registro_por_nombre(registro_datos));
+                int direccion_logica = (int)get_registro(pcb, obtener_registro_por_nombre(registro_direccion));
+
+                log_info(logger, "PID: <%u> - Ejecutando: <MOV_IN> - <(%s = %d)> - <(%s = %d)>", pcb->pid, registro_datos, entero_registro_datos, registro_direccion, direccion_logica);
 
                 t_list* direcciones_fisicas = list_create();
                 size_t bytes = obtener_tamano_registro(pcb, registro_datos);
-                
-                int direccion_logica = (int)get_registro(pcb, obtener_registro_por_nombre(registro_direccion));
 
                 int estado = MMU(direccion_logica, tamanio_pagina_memoria, pcb->pid, (uint32_t)bytes, direcciones_fisicas);
 
@@ -57,8 +57,11 @@ void ejecutar_ciclo_de_instruccion(int conexion, t_PCB* pcb){
                     if(data_leida == NULL){
                         log_warning(logger,"data_leida es NULL");
                     }
+
+                    // representamos lo leido como entero
                     uint32_t valor_entero = cadena_a_valor_entero(data_leida, bytes);
-                    log_info(logger, "PID: <%u> - valor Entero Final (%u) de (%u) bytes", pcb->pid, valor_entero, (uint32_t)bytes);
+                    log_info(logger, "PID: <%u> - valor Leido Final Entero (%u) de (%u) bytes", pcb->pid, valor_entero, (uint32_t)bytes);
+                    
                     set_registro(pcb, valor_entero, obtener_registro_por_nombre(registro_datos));
 
                     log_info(logger, "PID: <%u> - Finalizando: <MOV_IN> - (%s = %u)", pcb->pid, registro_datos, valor_entero);
@@ -82,11 +85,13 @@ void ejecutar_ciclo_de_instruccion(int conexion, t_PCB* pcb){
                 char* registro_direccion = (char*) list_get(instruccion->parametros, 0);
                 char* registro_datos = (char*) list_get(instruccion->parametros, 1);
 
-                log_info(logger, "PID: <%u> - Ejecutando: <MOV_OUT> - <%s> - <%s>", pcb->pid, registro_direccion, registro_datos);
+                int direccion_logica = (int)get_registro(pcb, obtener_registro_por_nombre(registro_direccion));
+                int entero_registro_datos = (int)get_registro(pcb, obtener_registro_por_nombre(registro_datos));
+
+                log_info(logger, "PID: <%u> - Ejecutando: <MOV_OUT> - <(%s = %d)> - <(%s = %d)>", pcb->pid, registro_direccion, direccion_logica, registro_datos, entero_registro_datos);
                 
                 t_list* direcciones_fisicas = list_create();
                 size_t bytes = obtener_tamano_registro(pcb, registro_datos);
-                int direccion_logica = (int)get_registro(pcb, obtener_registro_por_nombre(registro_direccion));
                 
                 int estado = MMU(direccion_logica, tamanio_pagina_memoria, pcb->pid, (uint32_t)bytes, direcciones_fisicas);
 
@@ -120,7 +125,10 @@ void ejecutar_ciclo_de_instruccion(int conexion, t_PCB* pcb){
                 char* registro_dest = (char*) list_get(instruccion->parametros, 0);
                 char* registro_orig = (char*) list_get(instruccion->parametros, 1);
 
-                log_info(logger, "PID: <%u> - Ejecutando: <SUM> - <%s> - <%s>", pcb->pid, registro_dest, registro_orig);
+                int entero_registro_dest = (int) get_registro(pcb, obtener_registro_por_nombre(registro_dest));
+                int entero_registro_orig = (int) get_registro(pcb, obtener_registro_por_nombre(registro_orig));
+
+                log_info(logger, "PID: <%u> - Ejecutando: <SUM> - <(%s = %d)> - <(%s = %d)>", pcb->pid, registro_dest, entero_registro_dest, registro_orig, entero_registro_orig);
 
                 uint32_t suma = get_registro(pcb, obtener_registro_por_nombre(registro_dest)) +
                                 get_registro(pcb, obtener_registro_por_nombre(registro_orig));
@@ -135,7 +143,10 @@ void ejecutar_ciclo_de_instruccion(int conexion, t_PCB* pcb){
                 char* registro_dest = (char*) list_get(instruccion->parametros, 0);
                 char* registro_orig = (char*) list_get(instruccion->parametros, 1);
 
-                log_info(logger, "PID: <%u> - Ejecutando: <SUB> - <%s> - <%s>", pcb->pid, registro_dest, registro_orig);
+                int entero_registro_dest = (int) get_registro(pcb, obtener_registro_por_nombre(registro_dest));
+                int entero_registro_orig = (int) get_registro(pcb, obtener_registro_por_nombre(registro_orig));
+
+                log_info(logger, "PID: <%u> - Ejecutando: <SUB> - <(%s = %d)> - <(%s = %d)>", pcb->pid, registro_dest, entero_registro_dest, registro_orig, entero_registro_orig);
                 
                 uint32_t resta = get_registro(pcb, obtener_registro_por_nombre(registro_dest)) -
                                  get_registro(pcb, obtener_registro_por_nombre(registro_orig));
@@ -149,8 +160,10 @@ void ejecutar_ciclo_de_instruccion(int conexion, t_PCB* pcb){
             {
                 char* registro = (char*) list_get(instruccion->parametros, 0);
                 int nro_instruccion = atoi((char*) list_get(instruccion->parametros, 1));
+
+                int entero_registro= (int) get_registro(pcb, obtener_registro_por_nombre(registro));
                 
-                log_info(logger, "PID: <%u> - Ejecutando: <JNZ> - <%s> - <%d>", pcb->pid, registro, nro_instruccion);
+                log_info(logger, "PID: <%u> - Ejecutando: <JNZ> - <(%s = %d)> - <%d>", pcb->pid, registro, entero_registro, nro_instruccion);
 
                 if(get_registro(pcb, obtener_registro_por_nombre(registro)) != 0){
                     pcb->program_counter = (uint32_t)nro_instruccion;
@@ -188,12 +201,11 @@ void ejecutar_ciclo_de_instruccion(int conexion, t_PCB* pcb){
             {
                 int tamanio = atoi((char*) list_get(instruccion->parametros, 0));
 
-                log_info(logger, "PID: <%u> - Ejecutando: <COPY_STRING> - <(tamanio = %d)>", pcb->pid, tamanio);
+                log_info(logger, "PID: <%u> - Ejecutando: <COPY_STRING> - <(Tamanio = %d)>", pcb->pid, tamanio);
 
                 int direccion_logica_SI = (int)get_registro(pcb, obtener_registro_por_nombre("SI"));
-                log_info(logger, "PID: <%u> - Ejecutando: <COPY_STRING> - <(SI = %d)>", pcb->pid, direccion_logica_SI);
                 int direccion_logica_DI = (int)get_registro(pcb, obtener_registro_por_nombre("DI"));
-                log_info(logger, "PID: <%u> - Ejecutando: <COPY_STRING> - <(DI = %d)>", pcb->pid, direccion_logica_DI);
+                log_info(logger, "PID: <%u> - Ejecutando: <COPY_STRING> - <(SI = %d)> - <(DI = %d)>", pcb->pid, direccion_logica_SI, direccion_logica_DI);
 
                 t_list* direcciones_fisicas_read = list_create();
                 int estado_r = MMU(direccion_logica_SI, tamanio_pagina_memoria, pcb->pid, (uint32_t)tamanio, direcciones_fisicas_read);
@@ -205,7 +217,7 @@ void ejecutar_ciclo_de_instruccion(int conexion, t_PCB* pcb){
                     gestionar_lectura_multipagina(conexion_memoria, direcciones_fisicas_read, pcb->pid, &string_final, (uint32_t)tamanio, logger);
                     
                     char* string_leido = convertir_a_cadena_nueva(string_final, (size_t)tamanio);
-                    log_info(logger, "PID: <%u> - Ejecutando: <COPY_STRING> - String Leido (%s)", pcb->pid, string_leido);
+                    log_info(logger, "PID: <%u> - Ejecutando: <COPY_STRING> - String Leido Apuntado por SI (%s)", pcb->pid, string_leido);
                     free(string_leido);
 
                     liberar_lista_de_peticiones_memoria(direcciones_fisicas_read);
