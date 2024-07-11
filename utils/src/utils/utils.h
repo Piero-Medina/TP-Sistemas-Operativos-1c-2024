@@ -26,7 +26,11 @@
 FILE* leer_archivo(char *path);
 void cerrar_archivo(FILE* archivo);
 
+// - La lista contiene (t_PCB*)
 char* string_aplanar_PID(t_list* lista);
+
+// - La lista contiene (int*)
+char* string_aplanar_PID_int(t_list* lista); 
 
 // funciones usadas para simular IO por el momento
 void hilo_dormir_milisegundos(int milisegundos);

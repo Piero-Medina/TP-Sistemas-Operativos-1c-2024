@@ -313,7 +313,7 @@ void func_proceso_estado(void){
 
     char* lista_execute = string_aplanar_PID(cola_execute->elements);
     char* lista_blocked = string_aplanar_PID(cola_blocked->elements);
-    char* lista_exit = string_aplanar_PID(cola_exit->elements);
+    char* lista_exit = string_aplanar_PID_int(cola_exit->elements);
 
 
     printf("Procesos en NEW: %s \n", lista_new);

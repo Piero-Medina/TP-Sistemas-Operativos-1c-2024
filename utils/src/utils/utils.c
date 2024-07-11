@@ -47,6 +47,40 @@ char* string_aplanar_PID(t_list* lista) {
     return tmp;
 }
 
+char* string_aplanar_PID_int(t_list* lista) {
+    char* tmp = malloc(sizeof(char) * MAX_SIZE);
+    
+    if (lista->elements_count == 0) {
+        strcpy(tmp, "[vacio]");
+        return tmp;
+    }
+
+	t_link_element **indirect = &lista->head;
+
+    char convertido[10];
+    int* pid = NULL;
+
+    tmp[0] = '\0';
+    strcat(tmp, "[");
+
+	while ((*indirect) != NULL) {
+		pid = (int*) (*indirect)->data;
+        
+        sprintf(convertido, "%d", *pid);
+        strcat(tmp, convertido);
+        strcat(tmp, ",");
+
+		indirect = &(*indirect)->next;
+	}
+    
+    size_t longitud = strlen(tmp);
+    tmp[longitud - 1] = '\0';
+
+    strcat(tmp, "]");
+
+    return tmp;
+}
+
 
 void hilo_dormir_milisegundos(int milisegundos){
     pthread_t hilo_durmicion;

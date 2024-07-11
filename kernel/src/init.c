@@ -217,7 +217,7 @@ void liberar_colas(void){
     queue_destroy_and_destroy_elements(cola_ready_aux, (void*)liberar_elemento_pcb);
     queue_destroy_and_destroy_elements(cola_execute, (void*)liberar_elemento_pcb);
     queue_destroy_and_destroy_elements(cola_blocked, (void*)liberar_elemento_pcb);
-    queue_destroy_and_destroy_elements(cola_exit, (void*)liberar_elemento_pcb);      
+    queue_destroy_and_destroy_elements(cola_exit, (void*)free); // solo contendra punteros a pid     
 }
 
 void liberar_elemento_pcb(void* elemento){

@@ -344,8 +344,13 @@ void mandar_a_exit(t_PCB* pcb, char* motivo){
         por la consola, o tambien liberar el pcb y almenos quedarnos con el PID
     */
 
+    int* pid_finalizado = (int *)malloc(sizeof(int));
+    *pid_finalizado = (int) pcb->pid;
+
+    liberar_PCB(pcb);
+
     sem_wait(&mutex_cola_exit);
-        queue_push(cola_exit, (void*) pcb);
+        queue_push(cola_exit, (void*) pid_finalizado);
     sem_post(&mutex_cola_exit);
 }
 
