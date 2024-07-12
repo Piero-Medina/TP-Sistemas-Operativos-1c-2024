@@ -16,11 +16,19 @@ t_memoria_config* config;
 int server_fd;
 
 int main(int argc, char* argv[]) {
+
+    if(argc != 2){
+        printf("Error: Se esperan un parámetro\n");
+        printf("%s <path_archivo_configuracion>\n", argv[0]);
+        exit(EXIT_FAILURE);
+    }
+
+    char *path_archivo_configuracion = argv[1];
     
     logger = iniciar_logger("memoria.log", "MEMORIA", LOG_LEVEL_INFO);
     log_info(logger, "Iniciando Modulo MEMORIA \n");
 
-    config = init_memoria_config("memoria.config");
+    config = init_memoria_config(path_archivo_configuracion);
 
     init_memoria();
     

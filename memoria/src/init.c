@@ -25,12 +25,12 @@ void init_memoria(void){
 }
 
 void sigint_handler(int signum){
-    printf("\n Finalizando el servidor por señal... \n");
+    // printf("\n Finalizando el servidor por señal... \n");
     
     // finalizamos la ejecucion de cualquier hilo (que usa procesar_conexion_en_ejecucion) para que libere recursos correctamente
     procesar_conexion_en_ejecucion = false; 
     
-    log_info(logger, "¡Este proceso nunca debió existir! \n\n\n");
+    log_info(logger, "Finalizando MEMORIA \n\n\n");
     //libera_espacio_memoria(memoria,logger);
     liberar_memoria();
     exit(EXIT_SUCCESS);

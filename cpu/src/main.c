@@ -25,11 +25,19 @@ int tamanio_pagina_memoria;
 
 
 int main(int argc, char* argv[]) {
+
+    if(argc != 2){
+        printf("Error: Se esperan un parámetro\n");
+        printf("%s <path_archivo_configuracion>\n", argv[0]);
+        exit(EXIT_FAILURE);
+    }
+
+    char *path_archivo_configuracion = argv[1];
     
     logger = iniciar_logger("cpu.log", "CPU", LOG_LEVEL_INFO);
     log_info(logger, "Iniciando Modulo CPU \n");
     
-    config = init_cpu_config("cpu.config");
+    config = init_cpu_config(path_archivo_configuracion);
 
     init_cpu();
 
@@ -38,7 +46,7 @@ int main(int argc, char* argv[]) {
     envio_generico_op_code(conexion_memoria, SOLICITUD_TAMANIO_PAGINA);
     ignorar_op_code(conexion_memoria);
     tamanio_pagina_memoria = (int)recibir_generico_entero(conexion_memoria);
-    log_info(logger, "Tamanio de pagina memoria (%d)", tamanio_pagina_memoria);
+    log_info(logger, "Tamanio de pagina memoria (%d) bytes \n", tamanio_pagina_memoria);
 
     server_cpu_dispatch_fd = iniciar_servidor("CPU DISPATCH", config->ip_cpu, config->puerto_escucha_dispatch, logger);
     log_info(logger, "CPU DISPATCH Escuchando Conexiones \n");

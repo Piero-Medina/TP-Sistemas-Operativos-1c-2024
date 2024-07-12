@@ -149,21 +149,24 @@ void bitmap_mostrar_detalles(t_bitmap* bitmap){
     int cantidad_de_bloques_ocupados = 0;
     bool bloque;
 
+    printf("Detalles del Bitmap:\n");
+    printf("--------------------\n");
+
     for (int i = 0; i < (bitmap->tamanio_en_bytes * 8); i++){
         bloque = bitarray_test_bit(bitmap->bitarray, i);
 
         if(bloque == 0){
-            printf("|Block (%d)-> 0|", i);
+            printf("| Block(%d)-> 0 |\n", i);
             cantidad_de_bloques_libres ++;
         }
         else{
-            printf("|Block (%d)-> 1|", i);
+            printf("| Block(%d)-> 1 |\n", i);
             cantidad_de_bloques_ocupados ++;
         }
         cantidad_de_bloques ++;
     }
 
-    printf("\n");
+    printf("--------------------\n");
     printf("Cantidad de bloques: %d \n", cantidad_de_bloques);
     printf("Cantidad de bloques libres: %d \n", cantidad_de_bloques_libres);
     printf("Cantidad de bloques ocupados: %d \n", cantidad_de_bloques_ocupados);

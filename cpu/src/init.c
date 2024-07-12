@@ -38,7 +38,7 @@ void sigint_handler(int signum){
     // finalizamos la ejecucion de cualquier hilo (que usa procesar_conexion_io) para que libere recursos correctamente
     procesar_conexion_en_ejecucion = false;
     
-    log_info(logger, "¡Este proceso nunca debió existir! \n\n\n");
+    log_info(logger, "Finalizando CPU \n\n\n");
     
     liberar_cpu();
 

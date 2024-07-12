@@ -42,7 +42,7 @@ void liberar_entrada_salida(void){
 void sigint_handler(int signum){
     // printf("\n Finalizando el servidor por señal... \n");
     procesar_conexion_en_ejecucion = false;
-    log_info(logger, "¡Este proceso nunca debió existir! \n\n\n"); 
+    log_info(logger, "Finalizando ENTRADASALIDA \n\n\n"); 
     liberar_entrada_salida();
 
     exit(EXIT_SUCCESS);

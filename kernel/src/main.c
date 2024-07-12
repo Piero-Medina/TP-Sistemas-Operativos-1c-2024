@@ -33,10 +33,18 @@ pthread_t hilo_cpu_dispatch;
 
 int main(int argc, char* argv[]) {
 
+    if(argc != 2){
+        printf("Error: Se esperan un parámetro\n");
+        printf("%s <path_archivo_configuracion>\n", argv[0]);
+        exit(EXIT_FAILURE);
+    }
+
+    char *path_archivo_configuracion = argv[1];
+
     logger = iniciar_logger_oculto("kernel.log", "KERNEL", LOG_LEVEL_INFO);
     log_info(logger, "Iniciando Modulo Kernel \n");
    
-    config = init_kernel_config("kernel.config");
+    config = init_kernel_config(path_archivo_configuracion);
 
     init_kernel();
 

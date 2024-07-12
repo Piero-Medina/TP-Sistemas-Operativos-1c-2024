@@ -45,7 +45,7 @@ void procesar_conexion_general(void *args){
                 
                 log_debug(logger_m, "PID: <%d> tiempo de retardo para envio de intruccion (%d) milisegundos", pid, config->retardo_respuesta);
                 sleep_ms(config->retardo_respuesta);
-                log_info(logger_m, "PID: <%d> enviando instruccion a CPU \n", pid);
+                log_info(logger_m, "PID: <%d> - enviando instruccion a CPU \n", pid);
 
                 enviar_instruccion(socket, intruccion, IGNORAR_OP_CODE);
                 break;
@@ -71,7 +71,7 @@ void procesar_conexion_general(void *args){
                     break;
                 }
 
-                log_info(logger_m, "PID: <%d> enviando peticion a CPU \n", pid);
+                log_info(logger_m, "PID: <%d> - enviando peticion a CPU \n", pid);
                 enviar_generico_int32(socket, MEMORIA_OK, marco);
                 break;
             }

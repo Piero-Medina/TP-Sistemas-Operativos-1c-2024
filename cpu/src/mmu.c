@@ -127,7 +127,7 @@ int obtener_direccion_fisica(uint32_t numero_pagina, uint32_t pid, int desplazam
 
     if(marco == -1){
         if(tlb_habilitada){
-            //log_info(logger, "No se encontró entrada [Pid (%u)|Pagina (%u)] en la TLB", pid, numero_pagina);
+            log_debug(logger, "No se encontró entrada [Pid (%u)|Pagina (%u)] en la TLB", pid, numero_pagina);
         }
 
         log_debug(logger, "Solicitando numero de marco a Memoria");
@@ -154,7 +154,7 @@ int obtener_direccion_fisica(uint32_t numero_pagina, uint32_t pid, int desplazam
 
     }
     else{
-        log_warning(logger, "Se encontró entrada [Pid %u|Pagina %u|Marco %"PRId32"] en la TLB", pid, numero_pagina, marco);
+        log_info(logger, "Se encontró entrada [Pid %u|Pagina %u|Marco %"PRId32"] en la TLB", pid, numero_pagina, marco);
         *direccion_fisica = (marco * tamanio_pagina) + desplazamiento;
         return MMU_OK;
     }
