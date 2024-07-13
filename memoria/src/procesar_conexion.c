@@ -40,7 +40,7 @@ void procesar_conexion_general(void *args){
                 recibir_generico_doble_entero(socket,&pid, &program_counter);
                 
                 sem_wait(&mutex_lista_de_procesos);
-                t_instruccion* intruccion = buscar_intruccion((int)pid, (int)program_counter);
+                    t_instruccion* intruccion = buscar_intruccion((int)pid, (int)program_counter);
                 sem_post(&mutex_lista_de_procesos);
                 
                 log_debug(logger_m, "PID: <%d> tiempo de retardo para envio de intruccion (%d) milisegundos", pid, config->retardo_respuesta);

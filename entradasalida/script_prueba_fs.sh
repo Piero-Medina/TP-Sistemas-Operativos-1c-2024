@@ -31,12 +31,22 @@ CONFIG2="config/prueba_fs/TECLADO.config"
 NOMBRE3="MONITOR"
 CONFIG3="config/prueba_fs/MONITOR.config"
 
-# Ejecutar Valgrind en terminales separadas con los argumentos especificados
-xterm -hold -e "echo -e '${GREEN}Ejecutando Valgrind para IO ${NOMBRE1}${RESET}';
-               valgrind --tool=memcheck --leak-check=full --show-leak-kinds=all ./bin/entradasalida $NOMBRE1 $CONFIG1; exec bash" &
+# Inicia una sesión de tmux llamada 'valgrind-sesion-fs'
+tmux new-session -d -s valgrind-sesion-fs
 
-xterm -hold -e "echo -e '${GREEN}Ejecutando Valgrind para IO ${NOMBRE2}${RESET}';
-               valgrind --tool=memcheck --leak-check=full --show-leak-kinds=all ./bin/entradasalida $NOMBRE2 $CONFIG2; exec bash" &
+# Configura la primera ventana para ejecutar Valgrind para IO FS
+tmux send-keys -t valgrind-sesion-fs:0 "echo -e '${GREEN}Ejecutando Valgrind para IO ${NOMBRE1}${RESET}'" C-m
+tmux send-keys -t valgrind-sesion-fs:0 "valgrind --tool=memcheck --leak-check=full --show-leak-kinds=all ./bin/entradasalida $NOMBRE1 $CONFIG1" C-m
 
-xterm -hold -e "echo -e '${GREEN}Ejecutando Valgrind para IO ${NOMBRE3}${RESET}';
-               valgrind --tool=memcheck --leak-check=full --show-leak-kinds=all ./bin/entradasalida $NOMBRE3 $CONFIG3; exec bash" &
+# Crea una segunda ventana en la sesión 'valgrind-sesion-fs' y configura para IO TECLADO
+tmux new-window -t valgrind-sesion-fs:1
+tmux send-keys -t valgrind-sesion-fs:1 "echo -e '${GREEN}Ejecutando Valgrind para IO ${NOMBRE2}${RESET}'" C-m
+tmux send-keys -t valgrind-sesion-fs:1 "valgrind --tool=memcheck --leak-check=full --show-leak-kinds=all ./bin/entradasalida $NOMBRE2 $CONFIG2" C-m
+
+# Crea una tercera ventana en la sesión 'valgrind-sesion-fs' y configura para IO MONITOR
+tmux new-window -t valgrind-sesion-fs:2
+tmux send-keys -t valgrind-sesion-fs:2 "echo -e '${GREEN}Ejecutando Valgrind para IO ${NOMBRE3}${RESET}'" C-m
+tmux send-keys -t valgrind-sesion-fs:2 "valgrind --tool=memcheck --leak-check=full --show-leak-kinds=all ./bin/entradasalida $NOMBRE3 $CONFIG3" C-m
+
+# Adjunta y muestra la sesión de tmux
+tmux attach -t valgrind-sesion-fs
