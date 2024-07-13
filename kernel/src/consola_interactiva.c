@@ -369,8 +369,8 @@ bool finalizar_proceso_NEW(int pid){
     t_PCB* pcb = (t_PCB*)buscar_pcb_por_pid_y_remover(pid, cola_new->elements);
     
     if(pcb == NULL){
-        return false;
         sem_post(&mutex_cola_new);
+        return false;
     }
 
     if(pcb != NULL){
